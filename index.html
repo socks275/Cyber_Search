@@ -1,988 +1,139 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER-NEXUS // Quantum Web Browser</title>
-    
-    <!-- Font Awesome Icons & Google Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            bg: '#06080e',
-                            card: '#0d111e',
-                            border: '#1b233a',
-                            cyan: '#00f0ff',
-                            violet: '#a855f7',
-                            pink: '#ff007f',
-                            emerald: '#10b981',
-                            amber: '#f59e0b',
-                            blue: '#3b82f6'
-                        }
-                    },
-                    fontFamily: {
-                        orbitron: ['Orbitron', 'sans-serif'],
-                        rajdhani: ['Rajdhani', 'sans-serif'],
-                        mono: ['Fira Code', 'monospace']
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <!-- Custom Cyberpunk UI & Glassmorphism Styling -->
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-        
-        body {
-            background-color: #06080e;
-            color: #94a3b8;
-            font-family: 'Rajdhani', sans-serif;
-            overflow: hidden;
-        }
-
-        /* Subtle glowing grid background */
-        .cyber-grid {
-            background-image: 
-                linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-            background-size: 32px 32px;
-        }
-
-        /* Glassmorphism Containers */
-        .glass-panel {
-            background: rgba(13, 17, 30, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(0, 240, 255, 0.15);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-        }
-
-        .glass-panel-glow {
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
-        }
-
-        /* Glowing accents */
-        .glow-cyan {
-            text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
-        }
-        .glow-border-cyan {
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
-        }
-
-        /* Custom Animated Tab Bar */
-        .tab-active {
-            background: linear-gradient(180deg, rgba(0, 240, 255, 0.15) 0%, rgba(13, 17, 30, 0.9) 100%);
-            border-bottom: 2px solid #00f0ff;
-            color: #ffffff;
-        }
-
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(6, 8, 14, 0.8);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 240, 255, 0.3);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 240, 255, 0.6);
-        }
-
-        /* Scanline HUD effect */
-        .scanlines {
-            position: relative;
-            overflow: hidden;
-        }
-        .scanlines::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-            background-size: 100% 4px;
-            z-index: 20;
-            pointer-events: none;
-            opacity: 0.3;
-        }
-
-        /* Pulse Animations */
-        @keyframes cyber-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        .animate-pulse-fast {
-            animation: cyber-pulse 1.5s infinite ease-in-out;
-        }
-
-        /* Theme Overrides */
-        .theme-space {
-            --accent-color: #a855f7;
-            --bg-color: #080314;
-        }
-        .theme-matrix {
-            --accent-color: #10b981;
-            --bg-color: #021209;
-        }
-        .theme-stealth {
-            --accent-color: #64748b;
-            --bg-color: #0f172a;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYBER-NET Browser // Bing Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
+    body {
+      font-family: 'Fira Code', monospace;
+      background-color: #030712;
+      color: #06b6d4;
+    }
+    .grid-bg {
+      background-image: linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+    }
+  </style>
 </head>
-<body class="cyber-grid h-screen w-screen flex flex-col justify-between select-none text-sm text-slate-300">
+<body class="h-screen w-screen overflow-hidden flex flex-col grid-bg">
 
-    <!-- TOP STATUS HUD HEADER -->
-    <header class="h-9 glass-panel flex items-center justify-between px-3 z-40 border-b border-cyber-border/60 text-xs">
-        <!-- System Branding & Status -->
-        <div class="flex items-center space-x-3">
-            <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-atom text-cyber-cyan text-sm animate-spin" style="animation-duration: 8s;"></i>
-                <span class="font-orbitron font-bold text-slate-100 tracking-wider">CYBER<span class="text-cyber-cyan">-NEXUS</span> <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30">v4.5</span></span>
-            </div>
-            
-            <div class="hidden md:flex items-center space-x-3 text-[11px] border-l border-slate-800 pl-3">
-                <span class="flex items-center space-x-1">
-                    <span class="w-2 h-2 rounded-full bg-cyber-emerald animate-pulse"></span>
-                    <span class="text-slate-400">PROXY ENGINE:</span>
-                    <span id="hud-proxy-status" class="text-cyber-emerald font-mono">ACTIVE (ENCRYPTED)</span>
-                </span>
-                <span class="text-slate-700">|</span>
-                <span class="flex items-center space-x-1">
-                    <i class="fa-solid fa-shield-halved text-cyber-cyan"></i>
-                    <span class="text-slate-400">SHIELD:</span>
-                    <span id="hud-shield-count" class="text-cyber-cyan font-mono">14 TRACKERS BLOCKED</span>
-                </span>
-            </div>
-        </div>
-
-        <!-- Real-Time Metrics & Controls -->
-        <div class="flex items-center space-x-4 font-mono text-[11px]">
-            <div class="hidden lg:flex items-center space-x-3">
-                <span title="Simulated Network Latency"><i class="fa-solid fa-bolt text-amber-400 mr-1"></i><span id="hud-latency">24ms</span></span>
-                <span title="Memory Bandwidth Consumption"><i class="fa-solid fa-microchip text-cyber-violet mr-1"></i><span id="hud-ram">420 MB</span></span>
-            </div>
-
-            <!-- View Mode Buttons -->
-            <div class="flex items-center space-x-1 border-l border-slate-800 pl-3">
-                <button id="btn-split-screen" onclick="toggleSplitScreen()" class="p-1 px-2 rounded hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition border border-transparent hover:border-cyber-cyan/30" title="Toggle Split Screen View">
-                    <i class="fa-solid fa-columns"></i>
-                </button>
-                <button id="btn-reader-mode" onclick="toggleReaderMode()" class="p-1 px-2 rounded hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition border border-transparent hover:border-cyber-cyan/30" title="Reader Mode (Distraction-Free)">
-                    <i class="fa-solid fa-book-open"></i>
-                </button>
-                <button id="btn-devtools" onclick="toggleDevTools()" class="p-1 px-2 rounded hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition border border-transparent hover:border-cyber-cyan/30" title="Developer / Network Inspector">
-                    <i class="fa-solid fa-code"></i>
-                </button>
-                <button onclick="openSettingsModal()" class="p-1 px-2 rounded hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition border border-transparent hover:border-cyber-cyan/30" title="System Configuration">
-                    <i class="fa-solid fa-sliders"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- NAVIGATION & TAB BAR CONTAINER -->
-    <div class="glass-panel border-b border-cyber-border/40 z-30">
-        <!-- TAB STRIP -->
-        <div class="flex items-center px-2 pt-1.5 space-x-1 overflow-x-auto no-scrollbar" id="tabs-container">
-            <!-- Dynamic Tabs inserted via JavaScript -->
-        </div>
-
-        <!-- MAIN OMNIBOX & NAVIGATION BAR -->
-        <div class="flex items-center space-x-2 px-3 py-2 bg-cyber-bg/80">
-            <!-- Navigation Buttons -->
-            <div class="flex items-center space-x-1">
-                <button onclick="navBack()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Back">
-                    <i class="fa-solid fa-arrow-left text-xs"></i>
-                </button>
-                <button onclick="navForward()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Forward">
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                </button>
-                <button onclick="reloadTab()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Reload Tab">
-                    <i id="reload-icon" class="fa-solid fa-rotate-right text-xs"></i>
-                </button>
-                <button onclick="goHome()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Home Hub">
-                    <i class="fa-solid fa-house text-xs"></i>
-                </button>
-            </div>
-
-            <!-- SMART OMNIBOX (ADDRESS & SEARCH BAR) -->
-            <div class="relative flex-1 flex items-center">
-                <div class="absolute left-3 flex items-center space-x-2 text-xs">
-                    <i id="ssl-icon" class="fa-solid fa-lock text-cyber-emerald" title="Encrypted Connection Verified"></i>
-                </div>
-
-                <input type="text" id="omnibox" 
-                    placeholder="Enter URL or search query with Quantum Engine..." 
-                    class="w-full h-9 pl-9 pr-24 bg-cyber-card/90 border border-cyber-border rounded-lg text-xs text-slate-100 font-mono outline-none focus:border-cyber-cyan focus:shadow-[0_0_12px_rgba(0,240,255,0.25)] transition-all"
-                    onkeydown="handleOmniboxKey(event)"
-                    onfocus="this.select()"
-                >
-
-                <div class="absolute right-2 flex items-center space-x-1 text-xs">
-                    <button id="btn-bookmark" onclick="toggleCurrentBookmark()" class="px-2 py-1 hover:text-cyber-amber transition" title="Bookmark Page">
-                        <i id="bookmark-star" class="fa-regular fa-star"></i>
-                    </button>
-                    <button id="btn-proxy-mode" onclick="toggleProxyMode()" class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 hover:bg-cyber-cyan/20 transition" title="Toggle Embedded Proxy Bypass">
-                        PROXY
-                    </button>
-                </div>
-
-                <!-- Auto-complete / Search Suggestion Dropdown -->
-                <div id="omnibox-dropdown" class="hidden absolute top-10 left-0 right-0 glass-panel rounded-lg shadow-2xl p-2 z-50 text-xs max-h-60 overflow-y-auto">
-                    <!-- Dynamic suggestions populated here -->
-                </div>
-            </div>
-
-            <!-- Utility Quick Actions -->
-            <div class="flex items-center space-x-1">
-                <button onclick="toggleBookmarksDrawer()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Bookmarks & Favorites">
-                    <i class="fa-solid fa-bookmark text-xs"></i>
-                </button>
-                <button onclick="toggleHistoryDrawer()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Browsing History">
-                    <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-                </button>
-            </div>
-        </div>
+  <!-- HUD Header -->
+  <header class="glass-panel p-2 flex items-center justify-between border-b border-cyan-500/30">
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center text-cyan-400 font-bold tracking-widest text-sm px-2">
+        <i data-lucide="terminal" class="w-4 h-4 mr-2"></i>
+        <span>CYBER_NET // BING_NODE</span>
+      </div>
+      <span class="text-xs text-cyan-600">| LATENCY: <span id="ping">12ms</span></span>
+    </div>
+    
+    <!-- Navigation & Omnibox -->
+    <div class="flex-1 max-w-3xl mx-4 flex items-center space-x-2">
+      <button onclick="navigateBack()" class="p-1.5 hover:bg-cyan-950/50 rounded text-cyan-400 border border-cyan-800/50">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      </button>
+      <button onclick="navigateForward()" class="p-1.5 hover:bg-cyan-950/50 rounded text-cyan-400 border border-cyan-800/50">
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+      <button onclick="reloadTab()" class="p-1.5 hover:bg-cyan-950/50 rounded text-cyan-400 border border-cyan-800/50">
+        <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+      </button>
+      
+      <div class="relative flex-1 flex items-center">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 text-cyan-500"></i>
+        <input 
+          id="urlInput" 
+          type="text" 
+          placeholder="Enter query or URL (Routed via Bing Search)..." 
+          class="w-full bg-slate-950/80 border border-cyan-500/40 rounded px-9 py-1.5 text-sm text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan"
+          onkeydown="if(event.key === 'Enter') handleSearch()"
+        >
+      </div>
+      <button onclick="handleSearch()" class="px-3 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-sm hover:bg-cyan-500/40">
+        EXECUTE
+      </button>
     </div>
 
-    <!-- MAIN DISPLAY VIEWPORT CONTAINER -->
-    <main class="relative flex-1 w-full overflow-hidden flex bg-cyber-bg">
-        <!-- PRIMARY VIEWPORT -->
-        <div id="viewport-primary" class="relative flex-1 h-full w-full">
-            <!-- Active IFrame or Speed Dial Launchpad inserted dynamically -->
-        </div>
-
-        <!-- SECONDARY VIEWPORT (Split-Screen Mode) -->
-        <div id="viewport-secondary" class="hidden relative flex-1 h-full border-l-2 border-cyber-cyan/40">
-            <!-- Secondary split tab loaded here -->
-        </div>
-
-        <!-- FLOATING OVERLAY: READER MODE SCREEN -->
-        <div id="reader-overlay" class="hidden absolute inset-0 z-40 glass-panel p-8 overflow-y-auto text-slate-200">
-            <div class="max-w-3xl mx-auto space-y-4">
-                <div class="flex justify-between items-center border-b border-cyber-cyan/30 pb-3">
-                    <span class="text-xs font-mono text-cyber-cyan"><i class="fa-solid fa-book-open mr-2"></i>QUANTUM READER MODE SIMULATOR</span>
-                    <button onclick="toggleReaderMode()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-                </div>
-                <h1 id="reader-title" class="text-3xl font-orbitron font-bold text-white">Distraction-Free Reading Mode</h1>
-                <div id="reader-content" class="space-y-4 font-sans text-base leading-relaxed text-slate-300">
-                    <p>Clean distraction-free preview of current web resources. Embedded scripts, tracking beacons, and complex CSS styling stripped for optimal reading experience.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- FLOATING OVERLAY: DEVELOPER / NETWORK INSPECTOR DRAWER -->
-        <div id="devtools-drawer" class="hidden absolute bottom-0 left-0 right-0 h-64 z-40 glass-panel border-t border-cyber-cyan/40 flex flex-col font-mono text-xs">
-            <div class="h-8 bg-cyber-card/90 px-3 flex items-center justify-between border-b border-cyber-border">
-                <div class="flex space-x-4">
-                    <button onclick="switchDevTab('headers')" id="devtab-headers" class="text-cyber-cyan font-bold border-b-2 border-cyber-cyan pb-1">Headers & Response</button>
-                    <button onclick="switchDevTab('console')" id="devtab-console" class="text-slate-400 hover:text-white pb-1">Console Logs</button>
-                    <button onclick="switchDevTab('network')" id="devtab-network" class="text-slate-400 hover:text-white pb-1">Network Requests</button>
-                </div>
-                <button onclick="toggleDevTools()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div id="dev-content-headers" class="flex-1 p-3 overflow-y-auto space-y-2 text-slate-300 bg-cyber-bg/90">
-                <div><span class="text-cyber-cyan">Request URL:</span> <span id="dev-req-url">https://duckduckgo.com</span></div>
-                <div><span class="text-cyber-cyan">Request Method:</span> GET</div>
-                <div><span class="text-cyber-cyan">Status Code:</span> <span class="text-cyber-emerald">200 OK (Proxied via CorsBypass)</span></div>
-                <div class="mt-2 text-cyber-violet font-bold">Response Headers:</div>
-                <pre class="bg-black/50 p-2 rounded border border-cyber-border/40 text-[11px] text-slate-400">content-type: text/html; charset=UTF-8
-x-frame-options: ALLOW-FROM ALL
-strict-transport-security: max-age=31536000; includeSubDomains
-x-quantum-shield: ACTIVE
-x-cyber-proxy: ENCRYPTED-DIRECT-TUNNEL</pre>
-            </div>
-
-            <div id="dev-content-console" class="hidden flex-1 p-3 overflow-y-auto font-mono text-slate-300 bg-black/90 space-y-1">
-                <div class="text-slate-500">[SYSTEM] Quantum Browser Engine Initialized.</div>
-                <div class="text-cyber-cyan">[SECURITY] CSP Shield enforcement active.</div>
-                <div class="text-cyber-emerald">[NETWORK] Reverse Cors-Proxy tunnel engaged for current active tab.</div>
-            </div>
-
-            <div id="dev-content-network" class="hidden flex-1 p-3 overflow-y-auto bg-cyber-bg/90">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-slate-500 border-b border-cyber-border">
-                            <th class="py-1">Name</th>
-                            <th>Status</th>
-                            <th>Type</th>
-                            <th>Size</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-slate-300">
-                        <tr class="border-b border-cyber-border/30">
-                            <td class="py-1 text-cyber-cyan">document / HTML</td>
-                            <td class="text-cyber-emerald">200</td>
-                            <td>document</td>
-                            <td>42.5 KB</td>
-                            <td>120 ms</td>
-                        </tr>
-                        <tr class="border-b border-cyber-border/30">
-                            <td class="py-1 text-cyber-cyan">style.css</td>
-                            <td class="text-cyber-emerald">200</td>
-                            <td>stylesheet</td>
-                            <td>18.2 KB</td>
-                            <td>45 ms</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <!-- DRAWER: BOOKMARKS MANAGER -->
-    <div id="bookmarks-drawer" class="hidden absolute top-20 right-4 w-80 glass-panel rounded-xl z-50 p-4 shadow-2xl border border-cyber-cyan/30">
-        <div class="flex items-center justify-between border-b border-cyber-border pb-2 mb-3">
-            <h3 class="font-orbitron text-xs font-bold text-cyber-cyan flex items-center"><i class="fa-solid fa-bookmark mr-2"></i>BOOKMARKS HUB</h3>
-            <button onclick="toggleBookmarksDrawer()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div id="bookmarks-list" class="space-y-1 max-h-80 overflow-y-auto text-xs">
-            <!-- Dynamic bookmarks loaded here -->
-        </div>
+    <!-- Right Controls -->
+    <div class="flex items-center space-x-2">
+      <button onclick="openSpeedDial()" class="p-1.5 hover:bg-cyan-950/50 rounded text-cyan-400 border border-cyan-800/50" title="Home Hub">
+        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+      </button>
     </div>
+  </header>
 
-    <!-- DRAWER: HISTORY MANAGER -->
-    <div id="history-drawer" class="hidden absolute top-20 right-4 w-80 glass-panel rounded-xl z-50 p-4 shadow-2xl border border-cyber-cyan/30">
-        <div class="flex items-center justify-between border-b border-cyber-border pb-2 mb-3">
-            <h3 class="font-orbitron text-xs font-bold text-cyber-violet flex items-center"><i class="fa-solid fa-clock-rotate-left mr-2"></i>BROWSING HISTORY</h3>
-            <button onclick="clearHistory()" class="text-[10px] text-red-400 hover:underline">Clear All</button>
-        </div>
-        <div id="history-list" class="space-y-1 max-h-80 overflow-y-auto text-xs">
-            <!-- Dynamic history items loaded here -->
-        </div>
+  <!-- Main Viewport -->
+  <main class="flex-1 relative bg-slate-950/90">
+    <iframe 
+      id="viewport" 
+      src="https://www.bing.com" 
+      class="w-full h-full border-none"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+    ></iframe>
+  </main>
+
+  <!-- HUD Footer Status -->
+  <footer class="glass-panel px-4 py-1 flex justify-between items-center text-xs text-cyan-500/70 border-t border-cyan-500/30">
+    <div>ENGINE: BING_CORE // ENCRYPTED_PROXY_READY</div>
+    <div class="flex space-x-4">
+      <span>SECURE_SOCKET: ACTIVE</span>
+      <span>NODE: HK-09</span>
     </div>
-
-    <!-- SETTINGS / CONFIGURATION MODAL -->
-    <div id="settings-modal" class="hidden fixed inset-0 z-50 glass-panel bg-black/70 flex items-center justify-center p-4">
-        <div class="w-full max-w-lg glass-panel rounded-xl p-6 border border-cyber-cyan/40 shadow-2xl space-y-5">
-            <div class="flex items-center justify-between border-b border-cyber-border pb-3">
-                <h2 class="font-orbitron font-bold text-lg text-white flex items-center"><i class="fa-solid fa-sliders text-cyber-cyan mr-2"></i>QUANTUM CONFIGURATION</h2>
-                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <div class="space-y-4 text-xs">
-                <!-- Search Engine Selection -->
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Default Search Engine</label>
-                    <select id="setting-search-engine" onchange="updateSettings()" class="w-full p-2 bg-cyber-bg border border-cyber-border rounded text-slate-200 outline-none focus:border-cyber-cyan">
-                        <option value="duckduckgo">DuckDuckGo (Privacy Focused)</option>
-                        <option value="google">Google Search</option>
-                        <option value="bing">Microsoft Bing</option>
-                        <option value="ecosia">Ecosia (Eco Search)</option>
-                    </select>
-                </div>
-
-                <!-- Theme Customizer -->
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Cyber Aesthetic Theme</label>
-                    <select id="setting-theme" onchange="changeTheme(this.value)" class="w-full p-2 bg-cyber-bg border border-cyber-border rounded text-slate-200 outline-none focus:border-cyber-cyan">
-                        <option value="cyber">Cyber Neon (Cyan & Charcoal)</option>
-                        <option value="space">Deep Space (Violet & Midnight)</option>
-                        <option value="matrix">Matrix Grid (Terminal Green)</option>
-                        <option value="stealth">Stealth Dark (Slate Minimal)</option>
-                    </select>
-                </div>
-
-                <!-- Proxy & Shield Simulation Toggles -->
-                <div class="space-y-2 pt-2 border-t border-cyber-border">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <div class="font-bold text-slate-200">AdBlock & Tracker Shield</div>
-                            <div class="text-[10px] text-slate-500">Block analytics beacons and malicious scripts</div>
-                        </div>
-                        <input type="checkbox" id="setting-shield" checked class="w-4 h-4 accent-cyber-cyan cursor-pointer">
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <div class="font-bold text-slate-200">Force HTTPS Protocol</div>
-                            <div class="text-[10px] text-slate-500">Upgrade unsecure connections automatically</div>
-                        </div>
-                        <input type="checkbox" id="setting-https" checked class="w-4 h-4 accent-cyber-cyan cursor-pointer">
-                    </div>
-                </div>
-
-                <!-- Custom User Agent -->
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Custom User-Agent Identity</label>
-                    <input type="text" id="setting-useragent" value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) CyberNexus/4.5 QuantumBrowser" class="w-full p-2 bg-cyber-bg border border-cyber-border rounded text-slate-300 font-mono text-[11px]">
-                </div>
-            </div>
-
-            <div class="flex justify-end pt-3 border-t border-cyber-border">
-                <button onclick="closeSettingsModal()" class="px-5 py-2 bg-cyber-cyan text-black font-orbitron font-bold text-xs rounded hover:bg-cyan-300 transition shadow-[0_0_12px_rgba(0,240,255,0.4)]">
-                    APPLY CONFIGURATION
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST NOTIFICATIONS HUB -->
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
-    <script>
-        /* PRESET LAUNCHPAD SPEED DIALS */
-        const SPEED_DIALS = [
-            { name: 'DuckDuckGo', url: 'https://duckduckgo.com', icon: 'fa-compass', color: 'text-amber-400' },
-            { name: 'Wikipedia', url: 'https://en.wikipedia.org', icon: 'fa-book', color: 'text-slate-300' },
-            { name: 'Archive.org', url: 'https://archive.org', icon: 'fa-vault', color: 'text-cyber-cyan' },
-            { name: 'Hacker News', url: 'https://news.ycombinator.com', icon: 'fa-y-combinator', color: 'text-orange-500' },
-            { name: 'Reddit', url: 'https://reddit.com', icon: 'fa-reddit-alien', color: 'text-red-500' },
-            { name: 'GitHub', url: 'https://github.com', icon: 'fa-github', color: 'text-violet-400' },
-            { name: 'OpenStreetMap', url: 'https://www.openstreetmap.org', icon: 'fa-map-location-dot', color: 'text-emerald-400' },
-            { name: 'AI Hub', url: 'https://duckduckgo.com/?q=Artificial+Intelligence', icon: 'fa-brain', color: 'text-cyber-pink' }
-        ];
-
-        /* STATE MANAGEMENT */
-        let tabs = [];
-        let activeTabId = null;
-        let isSplitScreen = false;
-        let isReaderMode = false;
-        let isDevToolsOpen = false;
-        let currentTheme = 'cyber';
-        let searchEngine = 'duckduckgo';
-        let proxyMode = true; // Use CORS proxy bypass fallback
-
-        let bookmarks = JSON.parse(localStorage.getItem('cn_bookmarks')) || [
-            { name: 'DuckDuckGo', url: 'https://duckduckgo.com' },
-            { name: 'Wikipedia', url: 'https://en.wikipedia.org' },
-            { name: 'Hacker News', url: 'https://news.ycombinator.com' }
-        ];
-
-        let historyList = JSON.parse(localStorage.getItem('cn_history')) || [];
-
-        /* INITIALIZATION */
-        window.addEventListener('DOMContentLoaded', () => {
-            initSystemHUD();
-            setupKeyboardShortcuts();
-            
-            // Create default Home tab
-            createNewTab();
-        });
-
-        /* TAB MANAGEMENT SYSTEM */
-        function createNewTab(url = null) {
-            const tabId = 'tab_' + Date.now();
-            const newTab = {
-                id: tabId,
-                title: 'Quantum Hub',
-                url: url || 'about:blank',
-                icon: 'fa-compass',
-                history: [url || 'about:blank'],
-                historyIndex: 0
-            };
-
-            tabs.push(newTab);
-            renderTabs();
-            switchTab(tabId);
-        }
-
-        function closeTab(tabId, event) {
-            if (event) event.stopPropagation();
-            if (tabs.length <= 1) {
-                // If closing last tab, reset to blank home screen
-                tabs[0].url = 'about:blank';
-                tabs[0].title = 'Quantum Hub';
-                renderTabs();
-                loadTabContent(tabs[0].id);
-                return;
-            }
-
-            const index = tabs.findIndex(t => t.id === tabId);
-            tabs = tabs.filter(t => t.id !== tabId);
-
-            if (activeTabId === tabId) {
-                const nextTab = tabs[Math.max(0, index - 1)];
-                switchTab(nextTab.id);
-            } else {
-                renderTabs();
-            }
-        }
-
-        function switchTab(tabId) {
-            activeTabId = tabId;
-            renderTabs();
-            
-            const activeTab = getActiveTab();
-            if (!activeTab) return;
-
-            // Update Omnibox value
-            const omnibox = document.getElementById('omnibox');
-            omnibox.value = activeTab.url === 'about:blank' ? '' : activeTab.url;
-
-            // Update Bookmark indicator status
-            updateBookmarkIndicator();
-
-            // Load Content into Viewport
-            loadTabContent(tabId);
-        }
-
-        function getActiveTab() {
-            return tabs.find(t => t.id === activeTabId);
-        }
-
-        function renderTabs() {
-            const container = document.getElementById('tabs-container');
-            container.innerHTML = '';
-
-            tabs.forEach(tab => {
-                const isActive = tab.id === activeTabId;
-                const tabEl = document.createElement('div');
-                tabEl.className = `group relative flex items-center space-x-2 px-3 py-1.5 rounded-t-lg cursor-pointer text-xs font-mono transition-all duration-150 min-w-[130px] max-w-[200px] border border-b-0 ${
-                    isActive 
-                        ? 'tab-active border-cyber-cyan/40 text-white shadow-[0_-2px_10px_rgba(0,240,255,0.15)]' 
-                        : 'bg-cyber-card/40 text-slate-400 border-cyber-border hover:bg-cyber-card/80 hover:text-slate-200'
-                }`;
-
-                tabEl.onclick = () => switchTab(tab.id);
-
-                tabEl.innerHTML = `
-                    <i class="fa-solid ${tab.icon} text-cyber-cyan text-[11px]"></i>
-                    <span class="truncate flex-1 font-medium">${tab.title}</span>
-                    <button onclick="closeTab('${tab.id}', event)" class="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-500/20 hover:text-red-400 rounded transition">
-                        <i class="fa-solid fa-xmark text-[10px]"></i>
-                    </button>
-                `;
-
-                container.appendChild(tabEl);
-            });
-
-            // New Tab (+) Button
-            const addBtn = document.createElement('button');
-            addBtn.className = 'w-7 h-7 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition mb-1 text-xs';
-            addBtn.title = 'New Quantum Tab (Ctrl+T)';
-            addBtn.onclick = () => createNewTab();
-            addBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
-            container.appendChild(addBtn);
-        }
-
-        /* OMNIBOX & NAVIGATION CONTROL */
-        function handleOmniboxKey(e) {
-            if (e.key === 'Enter') {
-                const val = e.target.value.trim();
-                if (!val) return;
-
-                let targetUrl = val;
-
-                // Detect if URL or Search Query
-                const isUrl = /^(https?:\/\/)?([\w\d\-]+\.)+[\w\d\-]+(\/.*)?$/i.test(val);
-
-                if (!isUrl && !val.startsWith('about:')) {
-                    // Convert to search query
-                    if (searchEngine === 'google') targetUrl = `https://www.google.com/search?q=${encodeURIComponent(val)}`;
-                    else if (searchEngine === 'bing') targetUrl = `https://www.bing.com/search?q=${encodeURIComponent(val)}`;
-                    else if (searchEngine === 'ecosia') targetUrl = `https://www.ecosia.org/search?q=${encodeURIComponent(val)}`;
-                    else targetUrl = `https://duckduckgo.com/?q=${encodeURIComponent(val)}`;
-                } else if (!val.startsWith('http://') && !val.startsWith('https://') && !val.startsWith('about:')) {
-                    targetUrl = 'https://' + val;
-                }
-
-                navigateToUrl(targetUrl);
-                document.getElementById('omnibox-dropdown').classList.add('hidden');
-            }
-        }
-
-        function navigateToUrl(url) {
-            const activeTab = getActiveTab();
-            if (!activeTab) return;
-
-            activeTab.url = url;
-            activeTab.title = extractDomainTitle(url);
-            
-            // Push to History
-            if (url !== 'about:blank') {
-                addToHistory(activeTab.title, url);
-            }
-
-            document.getElementById('omnibox').value = url === 'about:blank' ? '' : url;
-            renderTabs();
-            loadTabContent(activeTab.id);
-            updateBookmarkIndicator();
-
-            // Update DevTools Req URL
-            document.getElementById('dev-req-url').textContent = url;
-        }
-
-        function extractDomainTitle(url) {
-            if (url === 'about:blank') return 'Quantum Hub';
-            try {
-                const parsed = new URL(url);
-                return parsed.hostname.replace('www.', '');
-            } catch {
-                return url;
-            }
-        }
-
-        /* VIEWPORT CONTENT LOADER & REVERSE PROXY SIMULATION */
-        function loadTabContent(tabId) {
-            const tab = tabs.find(t => t.id === tabId);
-            const primaryView = document.getElementById('viewport-primary');
-            
-            if (!tab || tab.url === 'about:blank') {
-                renderLaunchpad(primaryView);
-                return;
-            }
-
-            // Construct IFrame URL with optional Proxy Wrapper
-            let iframeUrl = tab.url;
-            
-            primaryView.innerHTML = `
-                <div class="relative w-full h-full flex flex-col">
-                    <!-- Loading Indicator Overlay -->
-                    <div id="loader-${tab.id}" class="absolute inset-0 glass-panel z-20 flex flex-col items-center justify-center space-y-3 transition-opacity duration-300">
-                        <i class="fa-solid fa-atom text-4xl text-cyber-cyan animate-spin"></i>
-                        <span class="font-orbitron text-xs text-cyber-cyan tracking-widest animate-pulse">ESTABLISHING ENCRYPTED TUNNEL...</span>
-                    </div>
-
-                    <!-- IFRAME CONTAINER -->
-                    <iframe id="iframe-${tab.id}" 
-                        src="${iframeUrl}" 
-                        class="w-full h-full border-none bg-white"
-                        onload="handleIframeLoaded('${tab.id}')"
-                        onerror="handleIframeError('${tab.id}')"
-                        sandbox="allow-scripts allow-same-origin allow-forms allow-popups">
-                    </iframe>
-                </div>
-            `;
-
-            // Timeout safety check for iframe restriction / cors refusal
-            setTimeout(() => {
-                const loader = document.getElementById(`loader-${tab.id}`);
-                if (loader) loader.classList.add('opacity-0', 'pointer-events-none');
-            }, 1200);
-        }
-
-        function handleIframeLoaded(tabId) {
-            const loader = document.getElementById(`loader-${tabId}`);
-            if (loader) loader.classList.add('opacity-0', 'pointer-events-none');
-        }
-
-        /* SPEED DIAL LAUNCHPAD */
-        function renderLaunchpad(container) {
-            let speedDialHtml = SPEED_DIALS.map(sd => `
-                <div onclick="navigateToUrl('${sd.url}')" class="group glass-panel p-4 rounded-xl border border-cyber-border hover:border-cyber-cyan/60 hover:shadow-[0_0_20px_rgba(0,240,255,0.2)] cursor-pointer transition flex flex-col items-center text-center">
-                    <div class="w-12 h-12 rounded-xl bg-cyber-card/80 border border-cyber-border flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition ${sd.color}">
-                        <i class="fa-solid ${sd.icon}"></i>
-                    </div>
-                    <span class="font-bold text-xs text-slate-200 group-hover:text-cyber-cyan transition">${sd.name}</span>
-                    <span class="text-[10px] text-slate-500 truncate w-full mt-0.5">${sd.url.replace('https://', '')}</span>
-                </div>
-            `).join('');
-
-            container.innerHTML = `
-                <div class="w-full h-full overflow-y-auto p-6 md:p-12 flex flex-col items-center justify-center">
-                    <div class="max-w-4xl w-full space-y-8 text-center">
-                        <!-- Quantum Header -->
-                        <div class="space-y-2">
-                            <h1 class="text-4xl md:text-5xl font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-white to-cyber-violet tracking-wider">
-                                QUANTUM NEXUS
-                            </h1>
-                            <p class="text-xs font-mono text-slate-400">NEXT-GEN CYBERPUNK BROWSER & ENCRYPTED GATEWAY</p>
-                        </div>
-
-                        <!-- Speed Dial Grid -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
-                            ${speedDialHtml}
-                        </div>
-
-                        <!-- System Status Widget -->
-                        <div class="glass-panel p-4 rounded-xl border border-cyber-border text-left grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-                            <div class="flex items-center space-x-3">
-                                <i class="fa-solid fa-network-wired text-cyber-cyan text-lg"></i>
-                                <div>
-                                    <div class="text-slate-400">PROXY PROTOCOL</div>
-                                    <div class="text-cyber-cyan font-bold">AES-256 CORS TUNNEL</div>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-3 border-t md:border-t-0 md:border-l border-cyber-border pt-2 md:pt-0 md:pl-4">
-                                <i class="fa-solid fa-shield-virus text-cyber-emerald text-lg"></i>
-                                <div>
-                                    <div class="text-slate-400">PRIVACY SHIELD</div>
-                                    <div class="text-cyber-emerald font-bold">100% ENFORCED</div>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-3 border-t md:border-t-0 md:border-l border-cyber-border pt-2 md:pt-0 md:pl-4">
-                                <i class="fa-solid fa-server text-cyber-violet text-lg"></i>
-                                <div>
-                                    <div class="text-slate-400">DNS OVER HTTPS</div>
-                                    <div class="text-cyber-violet font-bold">CLOUDFLARE SECURE</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        /* NAVIGATION CONTROLS */
-        function navBack() { showToast('Navigated Back'); }
-        function navForward() { showToast('Navigated Forward'); }
-        function reloadTab() {
-            const icon = document.getElementById('reload-icon');
-            icon.classList.add('animate-spin');
-            const activeTab = getActiveTab();
-            if (activeTab) loadTabContent(activeTab.id);
-            setTimeout(() => icon.classList.remove('animate-spin'), 800);
-        }
-        function goHome() { navigateToUrl('about:blank'); }
-
-        /* SPLIT-SCREEN MODE */
-        function toggleSplitScreen() {
-            isSplitScreen = !isSplitScreen;
-            const secondary = document.getElementById('viewport-secondary');
-            
-            if (isSplitScreen) {
-                secondary.classList.remove('hidden');
-                secondary.innerHTML = `
-                    <div class="w-full h-full flex flex-col">
-                        <div class="h-8 glass-panel px-3 flex items-center justify-between text-xs font-mono">
-                            <span class="text-cyber-cyan"><i class="fa-solid fa-columns mr-1"></i>SPLIT VIEW: DUCKDUCKGO</span>
-                            <button onclick="toggleSplitScreen()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                        <iframe src="https://duckduckgo.com" class="w-full flex-1 border-none bg-white"></iframe>
-                    </div>
-                `;
-                showToast('Split Screen Enabled');
-            } else {
-                secondary.classList.add('hidden');
-                secondary.innerHTML = '';
-            }
-        }
-
-        /* READER MODE */
-        function toggleReaderMode() {
-            isReaderMode = !isReaderMode;
-            const overlay = document.getElementById('reader-overlay');
-            const activeTab = getActiveTab();
-
-            if (isReaderMode) {
-                document.getElementById('reader-title').textContent = activeTab ? activeTab.title : 'Reader View';
-                overlay.classList.remove('hidden');
-            } else {
-                overlay.classList.add('hidden');
-            }
-        }
-
-        /* DEVTOOLS / NETWORK INSPECTOR */
-        function toggleDevTools() {
-            isDevToolsOpen = !isDevToolsOpen;
-            const drawer = document.getElementById('devtools-drawer');
-            if (isDevToolsOpen) drawer.classList.remove('hidden');
-            else drawer.classList.add('hidden');
-        }
-
-        function switchDevTab(tabName) {
-            ['headers', 'console', 'network'].forEach(t => {
-                document.getElementById(`dev-content-${t}`).classList.add('hidden');
-                document.getElementById(`devtab-${t}`).className = 'text-slate-400 hover:text-white pb-1';
-            });
-            document.getElementById(`dev-content-${tabName}`).classList.remove('hidden');
-            document.getElementById(`devtab-${tabName}`).className = 'text-cyber-cyan font-bold border-b-2 border-cyber-cyan pb-1';
-        }
-
-        /* BOOKMARKS & HISTORY MANAGEMENT */
-        function toggleCurrentBookmark() {
-            const activeTab = getActiveTab();
-            if (!activeTab || activeTab.url === 'about:blank') return;
-
-            const existingIdx = bookmarks.findIndex(b => b.url === activeTab.url);
-            if (existingIdx >= 0) {
-                bookmarks.splice(existingIdx, 1);
-                showToast('Bookmark Removed');
-            } else {
-                bookmarks.push({ name: activeTab.title, url: activeTab.url });
-                showToast('Page Bookmarked!');
-            }
-
-            localStorage.setItem('cn_bookmarks', JSON.stringify(bookmarks));
-            updateBookmarkIndicator();
-            renderBookmarksList();
-        }
-
-        function updateBookmarkIndicator() {
-            const activeTab = getActiveTab();
-            const star = document.getElementById('bookmark-star');
-            if (activeTab && bookmarks.some(b => b.url === activeTab.url)) {
-                star.className = 'fa-solid fa-star text-cyber-amber';
-            } else {
-                star.className = 'fa-regular fa-star';
-            }
-        }
-
-        function toggleBookmarksDrawer() {
-            const drawer = document.getElementById('bookmarks-drawer');
-            document.getElementById('history-drawer').classList.add('hidden');
-            drawer.classList.toggle('hidden');
-            if (!drawer.classList.contains('hidden')) renderBookmarksList();
-        }
-
-        function renderBookmarksList() {
-            const list = document.getElementById('bookmarks-list');
-            list.innerHTML = '';
-            if (bookmarks.length === 0) {
-                list.innerHTML = '<div class="text-slate-500 py-2">No bookmarks saved yet.</div>';
-                return;
-            }
-
-            bookmarks.forEach(b => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2 rounded hover:bg-cyber-card cursor-pointer border border-transparent hover:border-cyber-border';
-                item.onclick = () => {
-                    navigateToUrl(b.url);
-                    toggleBookmarksDrawer();
-                };
-                item.innerHTML = `
-                    <div class="truncate flex-1 pr-2">
-                        <div class="font-bold text-slate-200">${b.name}</div>
-                        <div class="text-[10px] text-slate-500 truncate">${b.url}</div>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-[10px] text-cyber-cyan"></i>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function toggleHistoryDrawer() {
-            const drawer = document.getElementById('history-drawer');
-            document.getElementById('bookmarks-drawer').classList.add('hidden');
-            drawer.classList.toggle('hidden');
-            if (!drawer.classList.contains('hidden')) renderHistoryList();
-        }
-
-        function addToHistory(title, url) {
-            historyList.unshift({ title, url, time: new Date().toLocaleTimeString() });
-            if (historyList.length > 50) historyList.pop();
-            localStorage.setItem('cn_history', JSON.stringify(historyList));
-        }
-
-        function renderHistoryList() {
-            const list = document.getElementById('history-list');
-            list.innerHTML = '';
-            if (historyList.length === 0) {
-                list.innerHTML = '<div class="text-slate-500 py-2">Browsing history empty.</div>';
-                return;
-            }
-
-            historyList.forEach(h => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2 rounded hover:bg-cyber-card cursor-pointer border border-transparent hover:border-cyber-border';
-                item.onclick = () => {
-                    navigateToUrl(h.url);
-                    toggleHistoryDrawer();
-                };
-                item.innerHTML = `
-                    <div class="truncate flex-1 pr-2">
-                        <div class="font-bold text-slate-200">${h.title}</div>
-                        <div class="text-[10px] text-slate-500 truncate">${h.url}</div>
-                    </div>
-                    <span class="text-[9px] font-mono text-cyber-violet">${h.time}</span>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function clearHistory() {
-            historyList = [];
-            localStorage.removeItem('cn_history');
-            renderHistoryList();
-            showToast('History Cleared');
-        }
-
-        /* SETTINGS MODAL & THEMES */
-        function openSettingsModal() { document.getElementById('settings-modal').classList.remove('hidden'); }
-        function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
-        function updateSettings() {
-            searchEngine = document.getElementById('setting-search-engine').value;
-            showToast('Settings Updated');
-        }
-
-        function changeTheme(themeName) {
-            currentTheme = themeName;
-            document.body.className = `cyber-grid h-screen w-screen flex flex-col justify-between select-none text-sm text-slate-300 theme-${themeName}`;
-            showToast(`Theme changed to ${themeName.toUpperCase()}`);
-        }
-
-        function toggleProxyMode() {
-            proxyMode = !proxyMode;
-            const btn = document.getElementById('btn-proxy-mode');
-            const status = document.getElementById('hud-proxy-status');
-            
-            if (proxyMode) {
-                btn.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 hover:bg-cyber-cyan/20 transition';
-                status.textContent = 'ACTIVE (ENCRYPTED)';
-                status.className = 'text-cyber-emerald font-mono';
-                showToast('Proxy Tunnel Engaged');
-            } else {
-                btn.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700';
-                status.textContent = 'DIRECT MODE';
-                status.className = 'text-amber-400 font-mono';
-                showToast('Direct Mode Engaged');
-            }
-        }
-
-        /* HUD & METRICS ENGINE */
-        function initSystemHUD() {
-            setInterval(() => {
-                const latency = Math.floor(Math.random() * 15) + 18;
-                const ram = Math.floor(Math.random() * 40) + 390;
-                document.getElementById('hud-latency').textContent = `${latency}ms`;
-                document.getElementById('hud-ram').textContent = `${ram} MB`;
-            }, 3000);
-        }
-
-        /* KEYBOARD SHORTCUTS HANDLER */
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey || e.metaKey) {
-                    if (e.key === 't' || e.key === 'T') {
-                        e.preventDefault();
-                        createNewTab();
-                    } else if (e.key === 'w' || e.key === 'W') {
-                        e.preventDefault();
-                        if (activeTabId) closeTab(activeTabId);
-                    } else if (e.key === 'l' || e.key === 'L') {
-                        e.preventDefault();
-                        document.getElementById('omnibox').focus();
-                    } else if (e.key === 'r' || e.key === 'R') {
-                        e.preventDefault();
-                        reloadTab();
-                    }
-                }
-            });
-        }
-
-        /* TOAST NOTIFICATION UTILITY */
-        function showToast(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'pointer-events-auto glass-panel px-4 py-2 rounded-lg border border-cyber-cyan/40 text-xs text-cyber-cyan font-mono shadow-xl flex items-center space-x-2 transition-all duration-300 transform translate-x-full';
-            toast.innerHTML = `<i class="fa-solid fa-circle-check text-cyber-emerald"></i><span>${msg}</span>`;
-            
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.remove('translate-x-full'), 10);
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
-        }
-    </script>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    const viewport = document.getElementById('viewport');
+    const urlInput = document.getElementById('urlInput');
+
+    function handleSearch() {
+      let query = urlInput.value.trim();
+      if (!query) return;
+
+      if (query.startsWith('http://') || query.startsWith('https://')) {
+        viewport.src = query;
+      } else if (query.includes('.') && !query.includes(' ')) {
+        viewport.src = 'https://' + query;
+      } else {
+        viewport.src = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+      }
+    }
+
+    function navigateBack() {
+      try { viewport.contentWindow.history.back(); } catch(e) {}
+    }
+
+    function navigateForward() {
+      try { viewport.contentWindow.history.forward(); } catch(e) {}
+    }
+
+    function reloadTab() {
+      viewport.src = viewport.src;
+    }
+
+    function openSpeedDial() {
+      viewport.src = 'https://www.bing.com';
+      urlInput.value = '';
+    }
+
+    // Ping simulator
+    setInterval(() => {
+      document.getElementById('ping').innerText = Math.floor(Math.random() * 10 + 8) + 'ms';
+    }, 3000);
+  </script>
 </body>
 </html>
