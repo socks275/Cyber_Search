@@ -1,962 +1,557 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER ENGINE // Quantum Web Parser & Proxy Browser</title>
-    
-    <!-- OpenSearch Definition for Chrome/Firefox custom search engine registration -->
-    <link rel="search" type="application/opensearchdescription+xml" title="Cyber Engine" href="data:text/xml;charset=utf-8,%3COpenSearchDescription%20xmlns%3D%22http%3A%2F%2Fa9.com%2F-%2Fspec%2Fopensearch%2F1.1%2F%22%3E%3CShortName%3ECyberEngine%3C%2FShortName%3E%3CDescription%3ECyber%20Engine%20Quantum%20Search%3C%2FDescription%3E%3CInputEncoding%3EUTF-8%3C%2FInputEncoding%3EOpenSearchDescription%3E">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CYBER_SEARCH // Virtual Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
+    * { font-family: 'Fira Code', monospace; }
+    body { background-color: #030712; color: #06b6d4; }
+    .grid-bg {
+      background-image: 
+        linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+    }
+    .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+    .tab-active {
+      background: rgba(6, 182, 212, 0.2);
+      border-bottom: 2px solid #06b6d4;
+      color: #38bdf8;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #030712; }
+    ::-webkit-scrollbar-thumb { background: #0891b2; border-radius: 3px; }
+  </style>
+</head>
+<body class="h-full w-screen overflow-hidden flex flex-col grid-bg select-none">
 
-    <!-- Font Awesome Icons & Google Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            bg: '#05070d',
-                            card: '#0c101d',
-                            panel: '#111728',
-                            border: '#1d273e',
-                            cyan: '#00f0ff',
-                            violet: '#a855f7',
-                            pink: '#ff007f',
-                            emerald: '#10b981',
-                            amber: '#f59e0b',
-                            blue: '#3b82f6'
-                        }
-                    },
-                    fontFamily: {
-                        orbitron: ['Orbitron', 'sans-serif'],
-                        rajdhani: ['Rajdhani', 'sans-serif'],
-                        mono: ['Fira Code', 'monospace']
-                    }
-                }
-            }
+  <!-- TOP HEADER OMNIBOX BAR -->
+  <header class="glass-panel px-4 py-2 flex items-center justify-between border-b border-cyan-500/30 z-50">
+    <div class="flex items-center space-x-3">
+      <div onclick="goHome()" class="cursor-pointer flex items-center text-cyan-400 font-bold tracking-widest text-xs px-2.5 py-1 rounded bg-cyan-950/60 border border-cyan-500/40 hover:bg-cyan-900/50 transition">
+        <i data-lucide="search" class="w-4 h-4 mr-2 text-cyan-400"></i>
+        <span>CYBER_SEARCH</span>
+      </div>
+    </div>
+
+    <!-- Central Search Bar -->
+    <div class="flex-1 max-w-3xl mx-4 flex items-center space-x-2">
+      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition">
+        <i data-lucide="home" class="w-4 h-4"></i>
+      </button>
+
+      <div class="relative flex-1 flex items-center">
+        <i data-lucide="globe" class="w-4 h-4 absolute left-3 text-cyan-500"></i>
+        <input 
+          id="omnibox" 
+          type="text" 
+          placeholder="Search query or enter web URL..." 
+          class="w-full bg-slate-950/90 border border-cyan-500/40 rounded px-9 py-1.5 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan transition"
+          onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
+        >
+      </div>
+
+      <button onclick="handleSearchSubmit()" class="px-4 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 font-semibold transition">
+        EXECUTE
+      </button>
+    </div>
+
+    <div class="flex items-center space-x-2">
+      <button onclick="openNewTab()" class="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded border border-cyan-400/50 flex items-center text-xs space-x-1">
+        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+        <span class="hidden sm:inline">NEW TAB</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TAB BAR -->
+  <div id="tabBar" class="bg-slate-950/80 border-b border-cyan-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs"></div>
+
+  <!-- MAIN VIEWPORT CONTAINER -->
+  <main id="viewportContainer" class="flex-1 relative bg-slate-950/90 overflow-hidden"></main>
+
+  <!-- STATUS FOOTER -->
+  <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
+    <div class="flex items-center space-x-3">
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> CLOUDFLARE PROXY: CONNECTED</span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span>TABS: <span id="tabCount">1</span></span>
+      <span id="clock">00:00:00</span>
+    </div>
+  </footer>
+
+  <script>
+    // CLOUDFLARE WORKER PROXY CONFIGURATION
+    const WORKER_PROXY_URL = "https://small-hill-0227.mac-for-chrome.workers.dev/";
+
+    let tabs = [];
+    let activeTabId = null;
+
+    const SPEED_DIALS = [
+      { name: 'Wikipedia', query: 'Wikipedia Free Encyclopedia', icon: 'book-open' },
+      { name: 'GitHub Search', query: 'GitHub open source repositories', icon: 'code' },
+      { name: 'Reddit Topics', query: 'Reddit discussions tech news', icon: 'message-square' },
+      { name: 'Latest Tech News', query: 'Artificial Intelligence Technology News', icon: 'newspaper' },
+      { name: 'Stack Overflow', query: 'Stack Overflow developer guides', icon: 'terminal' },
+      { name: 'Archive.org', query: 'Internet Archive digital library', icon: 'archive' }
+    ];
+
+    window.onload = () => {
+      openNewTab();
+      setInterval(updateClock, 1000);
+      updateClock();
+      lucide.createIcons();
+    };
+
+    function updateClock() {
+      document.getElementById('clock').innerText = new Date().toTimeString().split(' ')[0];
+    }
+
+    function openNewTab(url = 'nexus://newtab') {
+      const id = 'tab_' + Date.now();
+      const isSearch = url.startsWith('search://');
+      const searchTerms = isSearch ? decodeURIComponent(url.replace('search://', '')) : '';
+
+      const tab = {
+        id: id,
+        title: isSearch ? `Search: ${searchTerms}` : (url === 'nexus://newtab' ? 'Cyber Launchpad' : getDomainName(url)),
+        url: url
+      };
+      
+      tabs.push(tab);
+      renderTabs();
+      switchTab(id);
+    }
+
+    function closeTab(id, e) {
+      if (e) e.stopPropagation();
+      if (tabs.length === 1) {
+        tabs = [];
+        openNewTab();
+        return;
+      }
+
+      tabs = tabs.filter(t => t.id !== id);
+      const container = document.getElementById('viewport_' + id);
+      if (container) container.remove();
+
+      if (activeTabId === id) {
+        switchTab(tabs[tabs.length - 1].id);
+      } else {
+        renderTabs();
+      }
+    }
+
+    function switchTab(id) {
+      activeTabId = id;
+      renderTabs();
+      renderViewports();
+      
+      const tab = tabs.find(t => t.id === id);
+      if (tab) {
+        let displayVal = '';
+        if (tab.url.startsWith('search://')) {
+          displayVal = decodeURIComponent(tab.url.replace('search://', ''));
+        } else if (tab.url !== 'nexus://newtab') {
+          displayVal = tab.url;
         }
-    </script>
-    
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
+        document.getElementById('omnibox').value = displayVal;
+      }
+    }
+
+    function renderTabs() {
+      const tabBar = document.getElementById('tabBar');
+      document.getElementById('tabCount').innerText = tabs.length;
+      tabBar.innerHTML = '';
+
+      tabs.forEach(tab => {
+        const isActive = tab.id === activeTabId;
+        const el = document.createElement('div');
+        el.className = `flex items-center space-x-2 px-3 py-1 rounded-t border-t border-x border-cyan-500/20 cursor-pointer min-w-[140px] max-w-[210px] justify-between transition ${isActive ? 'tab-active font-semibold' : 'text-cyan-500/70 hover:bg-slate-900/50'}`;
+        el.onclick = () => switchTab(tab.id);
+
+        let iconName = 'globe';
+        if (tab.url === 'nexus://newtab') iconName = 'layout-grid';
+        if (tab.url.startsWith('search://')) iconName = 'search';
+
+        el.innerHTML = `
+          <div class="flex items-center space-x-1.5 overflow-hidden">
+            <i data-lucide="${iconName}" class="w-3.5 h-3.5 shrink-0"></i>
+            <span class="truncate text-[11px]">${escapeHtml(tab.title)}</span>
+          </div>
+          <button onclick="closeTab('${tab.id}', event)" class="hover:text-cyan-200 rounded p-0.5">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        `;
+        tabBar.appendChild(el);
+      });
+      lucide.createIcons();
+    }
+
+    function renderViewports() {
+      const container = document.getElementById('viewportContainer');
+      
+      tabs.forEach(tab => {
+        let vp = document.getElementById('viewport_' + tab.id);
+        if (!vp) {
+          vp = document.createElement('div');
+          vp.id = 'viewport_' + tab.id;
+          vp.className = 'w-full h-full absolute inset-0';
+          container.appendChild(vp);
+          loadTabContent(tab, vp);
         }
         
-        body {
-            background-color: #05070d;
-            color: #94a3b8;
-            font-family: 'Rajdhani', sans-serif;
-            overflow: hidden;
-        }
+        vp.style.display = (tab.id === activeTabId) ? 'block' : 'none';
+      });
+    }
 
-        /* Subtle glowing grid background */
-        .cyber-grid {
-            background-image: 
-                linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-            background-size: 32px 32px;
-        }
+    function loadTabContent(tab, element) {
+      if (tab.url === 'nexus://newtab') {
+        element.innerHTML = getNewTabHTML(tab.id);
+        attachNewTabEvents(tab.id);
+      } else if (tab.url.startsWith('search://')) {
+        const query = decodeURIComponent(tab.url.replace('search://', ''));
+        renderSearchResultsPage(tab, element, query);
+      } else {
+        renderWebPageContent(tab, element, tab.url);
+      }
+      lucide.createIcons();
+    }
 
-        /* Glassmorphism Containers */
-        .glass-panel {
-            background: rgba(12, 16, 29, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(0, 240, 255, 0.15);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
-        }
+    async function fetchViaWorker(targetUrl) {
+      const proxyUrl = `${WORKER_PROXY_URL}?url=${encodeURIComponent(targetUrl)}`;
+      const response = await fetch(proxyUrl);
+      if (!response.ok) throw new Error("Worker HTTP Error: " + response.status);
+      return await response.text();
+    }
 
-        .tab-active {
-            background: linear-gradient(180deg, rgba(0, 240, 255, 0.2) 0%, rgba(12, 16, 29, 0.95) 100%);
-            border-bottom: 2px solid #00f0ff;
-            color: #ffffff;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(5, 7, 13, 0.9);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 240, 255, 0.3);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 240, 255, 0.6);
-        }
-
-        /* Parsed Content Dynamic Injection Styling */
-        .parsed-content {
-            user-select: text !important;
-            font-family: 'Rajdhani', sans-serif;
-            color: #cbd5e1;
-        }
-        .parsed-content h1, .parsed-content h2, .parsed-content h3 {
-            color: #00f0ff;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            margin-top: 1.25rem;
-            margin-bottom: 0.5rem;
-        }
-        .parsed-content h1 { font-size: 1.75rem; border-bottom: 1px solid rgba(0, 240, 255, 0.2); padding-bottom: 0.5rem; }
-        .parsed-content h2 { font-size: 1.35rem; }
-        .parsed-content h3 { font-size: 1.15rem; }
-        .parsed-content p { margin-bottom: 1rem; line-height: 1.6; }
-        .parsed-content a { color: #00f0ff; text-decoration: underline; cursor: pointer; }
-        .parsed-content a:hover { color: #a855f7; }
-        .parsed-content img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid rgba(0, 240, 255, 0.2); margin: 1rem 0; }
-        .parsed-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-        .parsed-content th, .parsed-content td { border: 1px solid #1d273e; padding: 0.5rem; text-align: left; }
-        .parsed-content th { background-color: rgba(0, 240, 255, 0.1); color: #00f0ff; }
-        .parsed-content code, .parsed-content pre { font-family: 'Fira Code', monospace; background-color: #080c16; padding: 0.2rem 0.4rem; border-radius: 4px; color: #a855f7; }
-        .parsed-content pre { padding: 1rem; overflow-x: auto; border: 1px solid #1d273e; }
-    </style>
-</head>
-<body class="cyber-grid h-screen w-screen flex flex-col justify-between select-none text-sm text-slate-300">
-
-    <header class="h-10 glass-panel flex items-center justify-between px-3 z-40 border-b border-cyber-border/80 text-xs">
-        <div class="flex items-center space-x-3">
-            <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-microchip text-cyber-cyan text-base animate-pulse"></i>
-                <span class="font-orbitron font-extrabold text-slate-100 tracking-wider">CYBER<span class="text-cyber-cyan">ENGINE</span> <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/30 font-mono">v5.0 PARSER</span></span>
+    async function renderSearchResultsPage(tab, element, query) {
+      element.innerHTML = `
+        <div class="w-full h-full overflow-y-auto p-4 md:p-8">
+          <div class="max-w-4xl mx-auto space-y-6">
+            <div class="border-b border-cyan-500/20 pb-4 flex items-center justify-between">
+              <div>
+                <p class="text-xs text-cyan-500/70">SEARCH RESULTS FOR</p>
+                <h2 class="text-lg font-bold text-cyan-200">"${escapeHtml(query)}"</h2>
+              </div>
+              <div id="statusIndicator_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
+                <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
+                <span>FETCHING RESULTS...</span>
+              </div>
             </div>
-            
-            <div class="hidden md:flex items-center space-x-3 text-[11px] border-l border-slate-800 pl-3 font-mono">
-                <span class="flex items-center space-x-1">
-                    <span class="w-2 h-2 rounded-full bg-cyber-emerald animate-ping"></span>
-                    <span class="text-slate-400">PROXY FETCH pipeline:</span>
-                    <span id="hud-proxy-name" class="text-cyber-emerald">ALLORIGINS CORS PARSER</span>
-                </span>
-                <span class="text-slate-700">|</span>
-                <span class="flex items-center space-x-1">
-                    <i class="fa-solid fa-shield-cat text-cyber-cyan"></i>
-                    <span class="text-slate-400">CSP / X-FRAME:</span>
-                    <span class="text-cyber-cyan">BYPASSED (DOM RE-RENDER)</span>
-                </span>
-            </div>
+
+            <div id="resultsList_${tab.id}" class="space-y-4"></div>
+          </div>
         </div>
+      `;
+      lucide.createIcons();
 
-        <div class="flex items-center space-x-3 font-mono text-[11px]">
-            <div class="hidden lg:flex items-center space-x-3">
-                <span><i class="fa-solid fa-bolt text-amber-400 mr-1"></i><span id="hud-latency">18ms</span></span>
-                <span><i class="fa-solid fa-layer-group text-cyber-violet mr-1"></i><span id="hud-nodes">0 Nodes Extracted</span></span>
-            </div>
+      try {
+        const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+        const htmlText = await fetchViaWorker(targetSearchUrl);
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        const results = doc.querySelectorAll('.result');
 
-            <!-- Proxy Engine Selector -->
-            <select id="proxy-selector" onchange="changeProxyEngine(this.value)" class="bg-cyber-card text-cyber-cyan border border-cyber-border rounded px-2 py-0.5 text-[10px] outline-none">
-                <option value="allorigins">Proxy: AllOrigins (JSON)</option>
-                <option value="corsproxy">Proxy: CORSProxy.io</option>
-                <option value="thingproxy">Proxy: ThingProxy</option>
-                <option value="direct">Direct Fetch (Cors Permissive)</option>
-            </select>
+        const listContainer = document.getElementById(`resultsList_${tab.id}`);
+        const statusInd = document.getElementById(`statusIndicator_${tab.id}`);
+        if (statusInd) statusInd.style.display = 'none';
 
-            <button onclick="openSettingsModal()" class="p-1 px-2 rounded hover:bg-cyber-cyan/10 hover:text-cyber-cyan transition border border-transparent hover:border-cyber-cyan/30" title="Engine Settings">
-                <i class="fa-solid fa-sliders"></i>
-            </button>
-        </div>
-    </header>
+        if (!results || results.length === 0) {
+          listContainer.innerHTML = `<p class="text-xs text-cyan-400">No direct results found. Try another query.</p>`;
+          return;
+        }
 
-    <div class="glass-panel border-b border-cyber-border z-30">
-        <!-- TAB STRIP -->
-        <div class="flex items-center px-2 pt-1.5 space-x-1 overflow-x-auto no-scrollbar" id="tabs-container">
-            <!-- Tabs loaded via JS -->
-        </div>
+        let itemsHTML = '';
+        results.forEach((res, i) => {
+          if (i >= 10) return;
+          const titleEl = res.querySelector('.result__title a');
+          const snippetEl = res.querySelector('.result__snippet');
+          const urlEl = res.querySelector('.result__url');
 
-        <!-- MAIN OMNIBOX BAR -->
-        <div class="flex items-center space-x-2 px-3 py-2 bg-cyber-bg/90">
-            <div class="flex items-center space-x-1">
-                <button onclick="navBack()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Back">
-                    <i class="fa-solid fa-arrow-left text-xs"></i>
-                </button>
-                <button onclick="navForward()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Forward">
-                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                </button>
-                <button onclick="reloadTab()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Reload Tab">
-                    <i id="reload-icon" class="fa-solid fa-rotate-right text-xs"></i>
-                </button>
-                <button onclick="goHome()" class="w-8 h-8 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition" title="Home Launchpad">
-                    <i class="fa-solid fa-house text-xs"></i>
-                </button>
-            </div>
-
-            <!-- SMART OMNIBOX -->
-            <div class="relative flex-1 flex items-center">
-                <div class="absolute left-3 flex items-center space-x-2 text-xs">
-                    <i id="ssl-icon" class="fa-solid fa-lock text-cyber-emerald" title="Encrypted Reader Proxy"></i>
-                </div>
-
-                <input type="text" id="omnibox" 
-                    placeholder="Enter URL or search term with Cyber Engine..." 
-                    class="w-full h-9 pl-9 pr-28 bg-cyber-card border border-cyber-border rounded-lg text-xs text-slate-100 font-mono outline-none focus:border-cyber-cyan focus:shadow-[0_0_12px_rgba(0,240,255,0.3)] transition-all"
-                    onkeydown="handleOmniboxKey(event)"
-                    onfocus="this.select()"
-                >
-
-                <div class="absolute right-2 flex items-center space-x-1 text-xs">
-                    <button id="btn-bookmark" onclick="toggleCurrentBookmark()" class="px-2 py-1 hover:text-cyber-amber transition" title="Bookmark Page">
-                        <i id="bookmark-star" class="fa-regular fa-star"></i>
-                    </button>
-                    <button onclick="fetchAndParseCurrent()" class="px-2.5 py-1 rounded text-[10px] font-mono bg-cyber-cyan text-black font-bold hover:bg-cyan-300 transition shadow-[0_0_8px_rgba(0,240,255,0.4)]" title="Scrape & Parse Target Page">
-                        FETCH
-                    </button>
-                </div>
-            </div>
-
-            <!-- MODE SWITCHERS FOR ACTIVE TAB -->
-            <div class="flex items-center space-x-1 border-l border-cyber-border pl-2">
-                <button onclick="setTabDisplayMode('web')" id="mode-btn-web" class="px-2.5 py-1.5 rounded-lg text-xs font-mono border border-cyber-cyan/40 bg-cyber-cyan/20 text-cyber-cyan flex items-center space-x-1" title="Interactive Web Mode">
-                    <i class="fa-solid fa-globe"></i>
-                    <span class="hidden sm:inline">Web</span>
-                </button>
-                <button onclick="setTabDisplayMode('images')" id="mode-btn-images" class="px-2.5 py-1.5 rounded-lg text-xs font-mono border border-cyber-border hover:border-cyber-cyan/40 text-slate-400 flex items-center space-x-1" title="Extracted Images Gallery">
-                    <i class="fa-solid fa-images"></i>
-                    <span class="hidden sm:inline">Images</span>
-                </button>
-                <button onclick="setTabDisplayMode('media')" id="mode-btn-media" class="px-2.5 py-1.5 rounded-lg text-xs font-mono border border-cyber-border hover:border-cyber-cyan/40 text-slate-400 flex items-center space-x-1" title="Extracted Video & Audio Players">
-                    <i class="fa-solid fa-film"></i>
-                    <span class="hidden sm:inline">Media</span>
-                </button>
-                <button onclick="setTabDisplayMode('reader')" id="mode-btn-reader" class="px-2.5 py-1.5 rounded-lg text-xs font-mono border border-cyber-border hover:border-cyber-cyan/40 text-slate-400 flex items-center space-x-1" title="Distraction-Free Reader">
-                    <i class="fa-solid fa-book-open"></i>
-                    <span class="hidden sm:inline">Reader</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <main class="relative flex-1 w-full overflow-hidden flex bg-cyber-bg">
-        <div id="viewport-container" class="relative flex-1 h-full w-full overflow-y-auto p-4 md:p-6">
-            <!-- Tab content dynamically populated here -->
-        </div>
-
-        <!-- BOOKMARKS DRAWER -->
-        <div id="bookmarks-drawer" class="hidden absolute top-4 right-4 w-80 glass-panel rounded-xl z-50 p-4 shadow-2xl border border-cyber-cyan/30">
-            <div class="flex items-center justify-between border-b border-cyber-border pb-2 mb-3">
-                <h3 class="font-orbitron text-xs font-bold text-cyber-cyan flex items-center"><i class="fa-solid fa-bookmark mr-2"></i>CYBER BOOKMARKS</h3>
-                <button onclick="toggleBookmarksDrawer()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="bookmarks-list" class="space-y-1 max-h-80 overflow-y-auto text-xs"></div>
-        </div>
-    </main>
-
-    <div id="settings-modal" class="hidden fixed inset-0 z-50 glass-panel bg-black/80 flex items-center justify-center p-4">
-        <div class="w-full max-w-lg glass-panel rounded-xl p-6 border border-cyber-cyan/40 shadow-2xl space-y-5">
-            <div class="flex items-center justify-between border-b border-cyber-border pb-3">
-                <h2 class="font-orbitron font-bold text-base text-white flex items-center"><i class="fa-solid fa-sliders text-cyber-cyan mr-2"></i>ENGINE CONFIGURATION</h2>
-                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-
-            <div class="space-y-4 text-xs font-mono">
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Primary Search Engine</label>
-                    <select id="setting-search-engine" onchange="updateSettings()" class="w-full p-2 bg-cyber-bg border border-cyber-border rounded text-slate-200 outline-none focus:border-cyber-cyan">
-                        <option value="duckduckgo">DuckDuckGo API / Proxy</option>
-                        <option value="wikipedia">Wikipedia Search API</option>
-                        <option value="searx">SearXNG Meta Search</option>
-                    </select>
-                </div>
-
-                <div class="p-3 bg-cyber-card rounded border border-cyber-border space-y-2">
-                    <div class="font-bold text-cyber-cyan flex items-center"><i class="fa-solid fa-compass mr-2"></i>Chrome Default Search Engine Integration</div>
-                    <p class="text-[11px] text-slate-400 leading-relaxed">
-                        You can set this application as your Chrome/Edge default search engine! Use this URL format in Chrome Settings -> Search Engine:
-                    </p>
-                    <input type="text" readonly id="opensearch-url" value="" class="w-full p-1.5 bg-black border border-cyber-border rounded text-[10px] text-cyber-emerald select-all">
-                </div>
-
-                <div class="space-y-2 pt-2 border-t border-cyber-border">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <div class="font-bold text-slate-200">Auto-Extract Media on Load</div>
-                            <div class="text-[10px] text-slate-500">Automatically parse images and video feeds when opening a URL</div>
-                        </div>
-                        <input type="checkbox" id="setting-autoextract" checked class="w-4 h-4 accent-cyber-cyan cursor-pointer">
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-end pt-3 border-t border-cyber-border">
-                <button onclick="closeSettingsModal()" class="px-5 py-2 bg-cyber-cyan text-black font-orbitron font-bold text-xs rounded hover:bg-cyan-300 transition shadow-[0_0_12px_rgba(0,240,255,0.4)]">
-                    APPLY CONFIG
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
-    <script>
-        /* PRESET LAUNCHPAD SPEED DIALS */
-        const SPEED_DIALS = [
-            { name: 'DuckDuckGo Search', url: 'https://html.duckduckgo.com/html/', icon: 'fa-compass', color: 'text-amber-400' },
-            { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Main_Page', icon: 'fa-book', color: 'text-slate-300' },
-            { name: 'Hacker News', url: 'https://news.ycombinator.com', icon: 'fa-y-combinator', color: 'text-orange-500' },
-            { name: 'BBC News', url: 'https://www.bbc.com/news', icon: 'fa-newspaper', color: 'text-red-400' },
-            { name: 'Reddit Classic', url: 'https://old.reddit.com', icon: 'fa-reddit-alien', color: 'text-red-500' },
-            { name: 'GitHub Trending', url: 'https://github.com/trending', icon: 'fa-github', color: 'text-violet-400' }
-        ];
-
-        /* STATE MANAGEMENT */
-        let tabs = [];
-        let activeTabId = null;
-        let selectedProxy = 'allorigins';
-        let searchEngine = 'duckduckgo';
-        let autoExtractMedia = true;
-
-        let bookmarks = JSON.parse(localStorage.getItem('ce_bookmarks')) || [
-            { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Main_Page' },
-            { name: 'Hacker News', url: 'https://news.ycombinator.com' }
-        ];
-
-        window.addEventListener('DOMContentLoaded', () => {
-            setupOpenSearchURL();
-            
-            // Check for ?q= search query parameter in URL (allows acting as Chrome Default Search Engine)
-            const urlParams = new URLSearchParams(window.location.search);
-            const queryParam = urlParams.get('q');
-
-            if (queryParam) {
-                createNewTab();
-                const activeTab = getActiveTab();
-                executeSearchOrNavigate(queryParam);
-            } else {
-                createNewTab();
+          if (titleEl) {
+            let href = titleEl.getAttribute('href') || '';
+            if (href.includes('uddg=')) {
+              href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
             }
+            const title = titleEl.textContent.trim();
+            const snippet = snippetEl ? snippetEl.textContent.trim() : '';
+
+            itemsHTML += `
+              <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition">
+                <span class="text-[10px] text-cyan-400/80 block truncate mb-1">${escapeHtml(href)}</span>
+                <a href="#" onclick="openResultUrl('${escapeHtml(href)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition underline underline-offset-4 decoration-cyan-500/40">
+                  ${escapeHtml(title)}
+                </a>
+                <p class="text-xs text-slate-300 mt-2 leading-relaxed">${escapeHtml(snippet)}</p>
+              </div>
+            `;
+          }
         });
 
-        function setupOpenSearchURL() {
-            const currentBase = window.location.origin + window.location.pathname;
-            document.getElementById('opensearch-url').value = `${currentBase}?q=%s`;
+        listContainer.innerHTML = itemsHTML;
+
+      } catch (err) {
+        const listContainer = document.getElementById(`resultsList_${tab.id}`);
+        if (listContainer) {
+          listContainer.innerHTML = `
+            <div class="glass-panel p-6 rounded-xl border border-red-500/30">
+              <p class="text-xs text-red-400 mb-2">Failed to load search results: ${escapeHtml(err.message)}</p>
+              <p class="text-xs text-cyan-300">Ensure your Cloudflare Worker is active at <code>${WORKER_PROXY_URL}</code>.</p>
+            </div>
+          `;
+        }
+      }
+    }
+
+    async function renderWebPageContent(tab, element, url) {
+      element.innerHTML = `
+        <div class="w-full h-full overflow-y-auto p-4 md:p-8">
+          <div class="max-w-4xl mx-auto space-y-6">
+            <div class="border-b border-cyan-500/20 pb-4 flex items-center justify-between">
+              <div>
+                <p class="text-xs text-cyan-500/70">PARSED WEBPAGE CONTENT</p>
+                <h2 class="text-sm font-bold text-cyan-200 truncate max-w-md">${escapeHtml(url)}</h2>
+              </div>
+              <div id="pageLoader_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
+                <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
+                <span>EXTRACTING CONTENT...</span>
+              </div>
+            </div>
+
+            <div id="parsedContent_${tab.id}" class="space-y-6"></div>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+
+      try {
+        const htmlText = await fetchViaWorker(url);
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+
+        const pageLoader = document.getElementById(`pageLoader_${tab.id}`);
+        if (pageLoader) pageLoader.style.display = 'none';
+
+        const contentDiv = document.getElementById(`parsedContent_${tab.id}`);
+
+        // Extract Images
+        const imgs = Array.from(doc.querySelectorAll('img'))
+          .map(img => img.src || img.getAttribute('data-src'))
+          .filter(src => src && (src.startsWith('http') || src.startsWith('//')))
+          .slice(0, 8);
+
+        // Extract Headings & Paragraphs
+        const headings = Array.from(doc.querySelectorAll('h1, h2, h3, p'))
+          .map(el => el.textContent.trim())
+          .filter(text => text.length > 30)
+          .slice(0, 15);
+
+        // Extract Video links/iframes
+        const videos = Array.from(doc.querySelectorAll('iframe, video source'))
+          .map(v => v.src)
+          .filter(src => src && (src.includes('youtube') || src.includes('vimeo') || src.endsWith('.mp4')))
+          .slice(0, 4);
+
+        let outputHTML = '';
+
+        if (imgs.length > 0) {
+          outputHTML += `
+            <div>
+              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3">EXTRACTED IMAGES (${imgs.length})</h3>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                ${imgs.map(img => `
+                  <div class="glass-panel p-1 rounded-lg overflow-hidden border border-cyan-500/20">
+                    <img src="${escapeHtml(img)}" class="w-full h-24 object-cover rounded" onerror="this.style.display='none'">
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
         }
 
-        function createNewTab(url = 'about:blank') {
-            const tabId = 'tab_' + Date.now();
-            const newTab = {
-                id: tabId,
-                title: 'Cyber Launchpad',
-                url: url,
-                displayMode: 'web', // 'web', 'images', 'media', 'reader'
-                history: [url],
-                historyIndex: 0,
-                parsedData: null, // Holds raw HTML, links, extracted images, extracted videos, reader text
-                isLoading: false
-            };
-
-            tabs.push(newTab);
-            renderTabs();
-            switchTab(tabId);
-
-            if (url !== 'about:blank') {
-                fetchAndParseTab(newTab);
-            }
+        if (videos.length > 0) {
+          outputHTML += `
+            <div>
+              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3">EXTRACTED VIDEOS (${videos.length})</h3>
+              <div class="space-y-2">
+                ${videos.map(v => `
+                  <div class="glass-panel p-2 rounded border border-cyan-500/20 text-xs text-sky-300">
+                    <i data-lucide="video" class="w-4 h-4 inline mr-2 text-cyan-400"></i>
+                    <a href="${escapeHtml(v)}" target="_blank" class="hover:underline">${escapeHtml(v)}</a>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
         }
 
-        function closeTab(tabId, event) {
-            if (event) event.stopPropagation();
-            if (tabs.length <= 1) {
-                tabs[0].url = 'about:blank';
-                tabs[0].title = 'Cyber Launchpad';
-                tabs[0].parsedData = null;
-                renderTabs();
-                renderTabViewport(tabs[0]);
-                return;
-            }
-
-            const index = tabs.findIndex(t => t.id === tabId);
-            tabs = tabs.filter(t => t.id !== tabId);
-
-            if (activeTabId === tabId) {
-                const nextTab = tabs[Math.max(0, index - 1)];
-                switchTab(nextTab.id);
-            } else {
-                renderTabs();
-            }
+        if (headings.length > 0) {
+          outputHTML += `
+            <div>
+              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3">TEXT CONTENT</h3>
+              <div class="glass-panel p-6 rounded-xl border border-cyan-500/20 space-y-4 text-xs text-slate-200 leading-relaxed">
+                ${headings.map(text => `<p>${escapeHtml(text)}</p>`).join('')}
+              </div>
+            </div>
+          `;
+        } else {
+          outputHTML += `<p class="text-xs text-cyan-400">Page loaded, but no main text blocks were extracted.</p>`;
         }
 
-        function switchTab(tabId) {
-            activeTabId = tabId;
-            renderTabs();
+        contentDiv.innerHTML = outputHTML;
+        lucide.createIcons();
+
+      } catch (err) {
+        const contentDiv = document.getElementById(`parsedContent_${tab.id}`);
+        if (contentDiv) {
+          contentDiv.innerHTML = `
+            <div class="glass-panel p-6 rounded-xl border border-red-500/30">
+              <p class="text-xs text-red-400">Error extracting page content: ${escapeHtml(err.message)}</p>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function openResultUrl(url) {
+      openNewTab(url);
+    }
+
+    function handleSearchSubmit() {
+      const input = document.getElementById('omnibox').value.trim();
+      if (!input) return;
+      
+      if (input.startsWith('http://') || input.startsWith('https://') || (input.includes('.') && !input.includes(' '))) {
+        let target = input.startsWith('http') ? input : 'https://' + input;
+        navigateCurrentTab(target);
+      } else {
+        navigateCurrentTab('search://' + encodeURIComponent(input));
+      }
+    }
+
+    function navigateCurrentTab(url) {
+      const tab = tabs.find(t => t.id === activeTabId);
+      if (!tab) return;
+
+      tab.url = url;
+      if (url.startsWith('search://')) {
+        const query = decodeURIComponent(url.replace('search://', ''));
+        tab.title = `Search: ${query}`;
+      } else {
+        tab.title = getDomainName(url);
+      }
+      
+      const vp = document.getElementById('viewport_' + tab.id);
+      if (vp) loadTabContent(tab, vp);
+      renderTabs();
+    }
+
+    function goHome() {
+      navigateCurrentTab('nexus://newtab');
+    }
+
+    function getNewTabHTML(tabId) {
+      return `
+        <div class="w-full h-full overflow-y-auto p-6 md:p-12 flex flex-col items-center justify-between">
+          <div class="w-full max-w-4xl flex flex-col items-center">
             
-            const activeTab = getActiveTab();
-            if (!activeTab) return;
+            <div class="text-center my-6">
+              <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>CYBER_SEARCH VIRTUAL ENGINE</span>
+              </div>
+              <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
+                CYBER_SEARCH
+              </h1>
+              <p class="text-xs text-cyan-500/70 mt-2">Custom Cloudflare Proxy Active</p>
+            </div>
 
-            // Sync Omnibox
-            const omnibox = document.getElementById('omnibox');
-            omnibox.value = activeTab.url === 'about:blank' ? '' : activeTab.url;
+            <!-- Central Omnibox Search -->
+            <div class="w-full max-w-2xl relative my-4">
+              <div class="relative flex items-center">
+                <i data-lucide="search" class="w-5 h-5 absolute left-4 text-cyan-400"></i>
+                <input 
+                  id="tabSearchInput_${tabId}"
+                  type="text" 
+                  placeholder="Type search terms or enter web URL..." 
+                  class="w-full bg-slate-900/90 border-2 border-cyan-500/50 rounded-xl px-12 py-3 text-sm text-cyan-100 placeholder-cyan-600 focus:outline-none focus:border-cyan-300 glow-cyan transition"
+                >
+                <button 
+                  id="tabSearchBtn_${tabId}"
+                  class="absolute right-3 px-4 py-1.5 bg-cyan-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-cyan-400 transition"
+                >
+                  SEARCH
+                </button>
+              </div>
+            </div>
 
-            // Sync Mode Buttons
-            updateModeButtonsUI(activeTab.displayMode);
-            updateBookmarkIndicator();
+            <!-- Speed Dial Shortcuts -->
+            <div class="w-full max-w-3xl mt-8">
+              <h3 class="text-xs font-semibold text-cyan-500 tracking-wider mb-4 text-left">FAST_QUERIES</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                ${SPEED_DIALS.map(dial => `
+                  <button 
+                    onclick="navigateCurrentTab('search://${encodeURIComponent(dial.query)}')"
+                    class="glass-panel p-3 rounded-lg flex flex-col items-center hover:border-cyan-400 hover:bg-cyan-950/40 transition group"
+                  >
+                    <div class="p-2.5 rounded-full bg-slate-900/80 mb-2 border border-cyan-500/20 group-hover:scale-110 transition">
+                      <i data-lucide="${dial.icon}" class="w-5 h-5 text-cyan-400"></i>
+                    </div>
+                    <span class="text-xs text-cyan-300 font-medium truncate w-full text-center">${dial.name}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
 
-            // Render Tab Content Viewport
-            renderTabViewport(activeTab);
-        }
+          </div>
+        </div>
+      `;
+    }
 
-        function getActiveTab() {
-            return tabs.find(t => t.id === activeTabId);
-        }
+    function attachNewTabEvents(tabId) {
+      const input = document.getElementById(`tabSearchInput_${tabId}`);
+      const btn = document.getElementById(`tabSearchBtn_${tabId}`);
 
-        function renderTabs() {
-            const container = document.getElementById('tabs-container');
-            container.innerHTML = '';
-
-            tabs.forEach(tab => {
-                const isActive = tab.id === activeTabId;
-                const tabEl = document.createElement('div');
-                tabEl.className = `group relative flex items-center space-x-2 px-3 py-1.5 rounded-t-lg cursor-pointer text-xs font-mono transition-all duration-150 min-w-[140px] max-w-[200px] border border-b-0 ${
-                    isActive 
-                        ? 'tab-active border-cyber-cyan/40 text-white shadow-[0_-2px_10px_rgba(0,240,255,0.15)]' 
-                        : 'bg-cyber-card/40 text-slate-400 border-cyber-border hover:bg-cyber-card hover:text-slate-200'
-                }`;
-
-                tabEl.onclick = () => switchTab(tab.id);
-
-                const spinClass = tab.isLoading ? 'fa-atom text-cyber-cyan animate-spin' : 'fa-globe text-cyber-cyan';
-
-                tabEl.innerHTML = `
-                    <i class="fa-solid ${spinClass} text-[11px]"></i>
-                    <span class="truncate flex-1 font-medium">${escapeHtml(tab.title)}</span>
-                    <button onclick="closeTab('${tab.id}', event)" class="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-500/20 hover:text-red-400 rounded transition">
-                        <i class="fa-solid fa-xmark text-[10px]"></i>
-                    </button>
-                `;
-
-                container.appendChild(tabEl);
-            });
-
-            const addBtn = document.createElement('button');
-            addBtn.className = 'w-7 h-7 rounded-lg glass-panel hover:border-cyber-cyan/50 hover:text-cyber-cyan flex items-center justify-center transition mb-1 text-xs';
-            addBtn.title = 'New Tab';
-            addBtn.onclick = () => createNewTab();
-            addBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
-            container.appendChild(addBtn);
-        }
-
-        function handleOmniboxKey(e) {
-            if (e.key === 'Enter') {
-                const val = e.target.value.trim();
-                if (!val) return;
-                executeSearchOrNavigate(val);
-            }
-        }
-
-        function executeSearchOrNavigate(input) {
-            let targetUrl = input;
-            const isUrl = /^(https?:\/\/)?([\w\d\-]+\.)+[\w\d\-]+(\/.*)?$/i.test(input);
-
-            if (!isUrl && !input.startsWith('about:')) {
-                if (searchEngine === 'wikipedia') {
-                    targetUrl = `https://en.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(input)}`;
-                } else if (searchEngine === 'searx') {
-                    targetUrl = `https://searx.be/search?q=${encodeURIComponent(input)}`;
-                } else {
-                    targetUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(input)}`;
-                }
-            } else if (!input.startsWith('http://') && !input.startsWith('https://') && !input.startsWith('about:')) {
-                targetUrl = 'https://' + input;
-            }
-
-            const activeTab = getActiveTab();
-            if (!activeTab) return;
-
-            activeTab.url = targetUrl;
-            document.getElementById('omnibox').value = targetUrl;
-            fetchAndParseTab(activeTab);
-        }
-
-        function fetchAndParseCurrent() {
-            const activeTab = getActiveTab();
-            if (activeTab && activeTab.url !== 'about:blank') {
-                fetchAndParseTab(activeTab);
-            }
-        }
-
-        async function fetchAndParseTab(tab) {
-            tab.isLoading = true;
-            renderTabs();
-            renderTabViewport(tab);
-
-            try {
-                const proxyUrl = getProxyEndpoint(tab.url);
-                const response = await fetch(proxyUrl);
-                
-                let rawHtml = '';
-                if (selectedProxy === 'allorigins') {
-                    const data = await response.json();
-                    rawHtml = data.contents;
-                } else {
-                    rawHtml = await response.text();
-                }
-
-                if (!rawHtml) throw new Error('Received empty response from proxy pipeline.');
-
-                // Parse Raw HTML into virtual DOM DOMParser
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(rawHtml, 'text/html');
-
-                // Extract Page Title
-                const pageTitle = doc.querySelector('title')?.innerText || tab.url;
-                tab.title = pageTitle;
-
-                // Process & Extract Media Elements
-                const extractedImages = extractImages(doc, tab.url);
-                const extractedVideos = extractVideos(doc, tab.url);
-                const readerContent = extractReaderText(doc);
-
-                // Sanitize and Rewrite Links for In-App Tab Navigation
-                sanitizeAndRewriteDOM(doc, tab.url);
-
-                tab.parsedData = {
-                    bodyHtml: doc.body ? doc.body.innerHTML : '<div>No body content found</div>',
-                    images: extractedImages,
-                    videos: extractedVideos,
-                    readerText: readerContent,
-                    nodeCount: doc.getElementsByTagName('*').length
-                };
-
-                showToast(`Page Scraped: ${extractedImages.length} Images, ${extractedVideos.length} Videos`);
-            } catch (err) {
-                console.error('Fetch error:', err);
-                tab.parsedData = {
-                    error: true,
-                    errorMessage: err.message || 'Failed to fetch webpage through proxy pipeline.'
-                };
-            } finally {
-                tab.isLoading = false;
-                renderTabs();
-                renderTabViewport(tab);
-            }
-        }
-
-        function getProxyEndpoint(targetUrl) {
-            if (selectedProxy === 'allorigins') {
-                return `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-            } else if (selectedProxy === 'corsproxy') {
-                return `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-            } else if (selectedProxy === 'thingproxy') {
-                return `https://thingproxy.freeboard.io/fetch/${targetUrl}`;
-            } else {
-                return targetUrl;
-            }
-        }
-
-        function extractImages(doc, baseUrl) {
-            const images = [];
-            const imgEls = doc.querySelectorAll('img');
-            
-            imgEls.forEach(img => {
-                let src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('srcset');
-                if (src) {
-                    src = resolveRelativeUrl(src.split(' ')[0], baseUrl);
-                    const alt = img.getAttribute('alt') || 'Extracted Media';
-                    if (src.startsWith('http') && !images.some(i => i.src === src)) {
-                        images.push({ src, alt });
-                    }
-                }
-            });
-            return images;
-        }
-
-        function extractVideos(doc, baseUrl) {
-            const media = [];
-
-            // Native <video> and <source> tags
-            const videoEls = doc.querySelectorAll('video, source');
-            videoEls.forEach(vid => {
-                let src = vid.getAttribute('src');
-                if (src) {
-                    src = resolveRelativeUrl(src, baseUrl);
-                    if (!media.some(m => m.src === src)) {
-                        media.push({ type: 'video', src, title: 'Native Video Stream' });
-                    }
-                }
-            });
-
-            // Embedded iFrames (YouTube, Vimeo, MP4 embeds)
-            const iframes = doc.querySelectorAll('iframe');
-            iframes.forEach(iframe => {
-                const src = iframe.getAttribute('src');
-                if (src) {
-                    const resolved = resolveRelativeUrl(src, baseUrl);
-                    if (resolved.includes('youtube') || resolved.includes('vimeo') || resolved.includes('player')) {
-                        media.push({ type: 'embed', src: resolved, title: 'Embedded Media Player' });
-                    }
-                }
-            });
-
-            return media;
-        }
-
-        function extractReaderText(doc) {
-            // Remove scripts, styles, navs, headers, footers for pure text reader mode
-            const clone = doc.cloneNode(true);
-            const selectorsToRemove = ['script', 'style', 'nav', 'header', 'footer', 'iframe', 'svg', 'noscript', '.ads', '.advertisement'];
-            selectorsToRemove.forEach(s => clone.querySelectorAll(s).forEach(el => el.remove()));
-
-            const article = clone.querySelector('article') || clone.querySelector('main') || clone.body;
-            return article ? article.innerHTML : 'Unable to parse distraction-free reader text.';
-        }
-
-        function sanitizeAndRewriteDOM(doc, baseUrl) {
-            // Rewrite all <a> anchors so clicking opens inside the app's proxy tab!
-            const links = doc.querySelectorAll('a');
-            links.forEach(a => {
-                const href = a.getAttribute('href');
-                if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
-                    const fullUrl = resolveRelativeUrl(href, baseUrl);
-                    a.setAttribute('data-cyber-href', fullUrl);
-                    a.setAttribute('href', '#');
-                    a.setAttribute('onclick', `event.preventDefault(); window.navigateInCyberApp('${fullUrl}')`);
-                }
-            });
-
-            // Resolve relative image src attributes in the main HTML
-            const imgs = doc.querySelectorAll('img');
-            imgs.forEach(img => {
-                const src = img.getAttribute('src');
-                if (src) img.setAttribute('src', resolveRelativeUrl(src, baseUrl));
-            });
-        }
-
-        function resolveRelativeUrl(relative, base) {
-            try {
-                return new URL(relative, base).href;
-            } catch {
-                return relative;
-            }
-        }
-
-        // Global function called when user clicks ANY parsed link inside the page
-        window.navigateInCyberApp = function(targetUrl) {
-            const activeTab = getActiveTab();
-            if (activeTab) {
-                activeTab.url = targetUrl;
-                document.getElementById('omnibox').value = targetUrl;
-                fetchAndParseTab(activeTab);
-            }
+      if (input && btn) {
+        const execute = () => {
+          const val = input.value.trim();
+          if (!val) return;
+          if (val.startsWith('http://') || val.startsWith('https://') || (val.includes('.') && !val.includes(' '))) {
+            let target = val.startsWith('http') ? val : 'https://' + val;
+            navigateCurrentTab(target);
+          } else {
+            navigateCurrentTab('search://' + encodeURIComponent(val));
+          }
         };
 
-        function renderTabViewport(tab) {
-            const container = document.getElementById('viewport-container');
+        btn.onclick = execute;
+        input.onkeydown = (e) => { if (e.key === 'Enter') execute(); };
+      }
+    }
 
-            if (tab.url === 'about:blank') {
-                renderLaunchpad(container);
-                return;
-            }
+    function getDomainName(url) {
+      try {
+        return new URL(url).hostname.replace('www.', '');
+      } catch(e) {
+        return url.length > 15 ? url.substring(0, 15) + '...' : url;
+      }
+    }
 
-            if (tab.isLoading) {
-                container.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center space-y-4 text-cyber-cyan">
-                        <i class="fa-solid fa-atom text-5xl animate-spin"></i>
-                        <div class="font-orbitron text-xs tracking-widest animate-pulse">PARSING WEB TREE VIA ENCRYPTED PROXY...</div>
-                        <div class="font-mono text-[11px] text-slate-500">${escapeHtml(tab.url)}</div>
-                    </div>
-                `;
-                return;
-            }
-
-            if (!tab.parsedData) {
-                container.innerHTML = `<div class="p-8 text-center text-slate-500">Click FETCH or Enter URL to scrape content.</div>`;
-                return;
-            }
-
-            if (tab.parsedData.error) {
-                container.innerHTML = `
-                    <div class="max-w-xl mx-auto my-12 glass-panel p-6 rounded-xl border border-red-500/40 text-center space-y-3">
-                        <i class="fa-solid fa-triangle-exclamation text-3xl text-red-400"></i>
-                        <h3 class="font-orbitron font-bold text-red-400">PROXY FETCH FAILED</h3>
-                        <p class="text-xs text-slate-300 font-mono">${escapeHtml(tab.parsedData.errorMessage)}</p>
-                        <button onclick="fetchAndParseCurrent()" class="px-4 py-1.5 bg-cyber-cyan text-black font-bold text-xs rounded hover:bg-cyan-300">
-                            RETRY WITH ALLORIGINS
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
-            // Update System HUD Node count
-            document.getElementById('hud-nodes').textContent = `${tab.parsedData.nodeCount || 0} Nodes Extracted`;
-
-            // RENDER BASED ON ACTIVE DISPLAY MODE
-            if (tab.displayMode === 'images') {
-                renderImagesGallery(container, tab.parsedData.images);
-            } else if (tab.displayMode === 'media') {
-                renderMediaGallery(container, tab.parsedData.videos);
-            } else if (tab.displayMode === 'reader') {
-                renderReaderView(container, tab.title, tab.parsedData.readerText);
-            } else {
-                // Interactive Web Mode (Sanitized Web Page Content)
-                container.innerHTML = `
-                    <div class="max-w-5xl mx-auto glass-panel p-6 rounded-xl border border-cyber-border parsed-content">
-                        <div class="text-xs font-mono text-cyber-cyan mb-4 border-b border-cyber-border pb-2 flex justify-between items-center">
-                            <span><i class="fa-solid fa-code mr-1"></i>PARSED INTERACTIVE DOM VIEW</span>
-                            <span class="text-slate-500">${escapeHtml(tab.url)}</span>
-                        </div>
-                        <div>${tab.parsedData.bodyHtml}</div>
-                    </div>
-                `;
-            }
-        }
-
-        function renderLaunchpad(container) {
-            let speedDialHtml = SPEED_DIALS.map(sd => `
-                <div onclick="executeSearchOrNavigate('${sd.url}')" class="group glass-panel p-4 rounded-xl border border-cyber-border hover:border-cyber-cyan/60 hover:shadow-[0_0_20px_rgba(0,240,255,0.2)] cursor-pointer transition flex flex-col items-center text-center">
-                    <div class="w-12 h-12 rounded-xl bg-cyber-card border border-cyber-border flex items-center justify-center text-2xl mb-2 group-hover:scale-110 transition ${sd.color}">
-                        <i class="fa-solid ${sd.icon}"></i>
-                    </div>
-                    <span class="font-bold text-xs text-slate-200 group-hover:text-cyber-cyan transition">${sd.name}</span>
-                    <span class="text-[10px] text-slate-500 truncate w-full mt-0.5">${sd.url.replace('https://', '')}</span>
-                </div>
-            `).join('');
-
-            container.innerHTML = `
-                <div class="w-full h-full flex flex-col items-center justify-center">
-                    <div class="max-w-3xl w-full space-y-8 text-center my-auto">
-                        <div class="space-y-2">
-                            <h1 class="text-4xl md:text-5xl font-orbitron font-black text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-white to-cyber-violet tracking-wider">
-                                CYBER ENGINE
-                            </h1>
-                            <p class="text-xs font-mono text-slate-400">QUANTUM SCRAPER, CLIENT-SIDE PARSER & MEDIA EXTRACTOR</p>
-                        </div>
-
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
-                            ${speedDialHtml}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderImagesGallery(container, images) {
-            if (!images || images.length === 0) {
-                container.innerHTML = `<div class="p-12 text-center text-slate-500 font-mono">No image tags extracted from target webpage.</div>`;
-                return;
-            }
-
-            const galleryHtml = images.map((img, idx) => `
-                <div class="glass-panel p-2 rounded-xl border border-cyber-border hover:border-cyber-cyan/50 transition group flex flex-col justify-between">
-                    <div class="relative overflow-hidden rounded-lg bg-black h-40 flex items-center justify-center">
-                        <img src="${img.src}" alt="${escapeHtml(img.alt)}" loading="lazy" class="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-300" onerror="this.src='https://placehold.co/300x200/0c101d/00f0ff?text=Image+Load+Failed'">
-                    </div>
-                    <div class="mt-2 flex items-center justify-between text-[11px] font-mono">
-                        <span class="truncate text-slate-400 flex-1 pr-2">${escapeHtml(img.alt)}</span>
-                        <a href="${img.src}" target="_blank" download class="text-cyber-cyan hover:underline"><i class="fa-solid fa-download"></i></a>
-                    </div>
-                </div>
-            `).join('');
-
-            container.innerHTML = `
-                <div class="max-w-6xl mx-auto space-y-4">
-                    <div class="flex items-center justify-between border-b border-cyber-border pb-2">
-                        <h2 class="font-orbitron font-bold text-cyber-cyan text-sm"><i class="fa-solid fa-images mr-2"></i>EXTRACTED IMAGE GALLERY (${images.length})</h2>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        ${galleryHtml}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderMediaGallery(container, videos) {
-            if (!videos || videos.length === 0) {
-                container.innerHTML = `<div class="p-12 text-center text-slate-500 font-mono">No playable video streams or media embeds found on this page.</div>`;
-                return;
-            }
-
-            const mediaHtml = videos.map(m => {
-                if (m.type === 'video') {
-                    return `
-                        <div class="glass-panel p-4 rounded-xl border border-cyber-border space-y-2">
-                            <video controls class="w-full rounded-lg bg-black max-h-80">
-                                <source src="${m.src}">
-                                Your browser does not support HTML video.
-                            </video>
-                            <div class="text-xs font-mono text-cyber-cyan truncate">${escapeHtml(m.src)}</div>
-                        </div>
-                    `;
-                } else {
-                    return `
-                        <div class="glass-panel p-4 rounded-xl border border-cyber-border space-y-2">
-                            <iframe src="${m.src}" class="w-full h-64 rounded-lg bg-black border-none" allowfullscreen></iframe>
-                            <div class="text-xs font-mono text-cyber-violet truncate">${escapeHtml(m.src)}</div>
-                        </div>
-                    `;
-                }
-            }).join('');
-
-            container.innerHTML = `
-                <div class="max-w-4xl mx-auto space-y-4">
-                    <div class="flex items-center justify-between border-b border-cyber-border pb-2">
-                        <h2 class="font-orbitron font-bold text-cyber-violet text-sm"><i class="fa-solid fa-film mr-2"></i>EXTRACTED MEDIA PLAYERS (${videos.length})</h2>
-                    </div>
-                    <div class="space-y-4">
-                        ${mediaHtml}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderReaderView(container, title, content) {
-            container.innerHTML = `
-                <div class="max-w-3xl mx-auto glass-panel p-8 rounded-xl border border-cyber-cyan/30 space-y-4">
-                    <div class="border-b border-cyber-border pb-3">
-                        <span class="text-xs font-mono text-cyber-cyan"><i class="fa-solid fa-book-open mr-2"></i>CYBER READER MODE</span>
-                        <h1 class="text-2xl font-orbitron font-bold text-white mt-1">${escapeHtml(title)}</h1>
-                    </div>
-                    <div class="parsed-content font-sans text-slate-300 leading-relaxed space-y-4">
-                        ${content}
-                    </div>
-                </div>
-            `;
-        }
-
-        function setTabDisplayMode(mode) {
-            const activeTab = getActiveTab();
-            if (!activeTab) return;
-
-            activeTab.displayMode = mode;
-            updateModeButtonsUI(mode);
-            renderTabViewport(activeTab);
-        }
-
-        function updateModeButtonsUI(mode) {
-            ['web', 'images', 'media', 'reader'].forEach(m => {
-                const btn = document.getElementById(`mode-btn-${m}`);
-                if (btn) {
-                    if (m === mode) {
-                        btn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-mono border border-cyber-cyan/40 bg-cyber-cyan/20 text-cyber-cyan flex items-center space-x-1';
-                    } else {
-                        btn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-mono border border-cyber-border hover:border-cyber-cyan/40 text-slate-400 flex items-center space-x-1';
-                    }
-                }
-            });
-        }
-
-        function changeProxyEngine(val) {
-            selectedProxy = val;
-            const names = {
-                'allorigins': 'ALLORIGINS CORS PARSER',
-                'corsproxy': 'CORSPROXY.IO PIPELINE',
-                'thingproxy': 'THINGPROXY TUNNEL',
-                'direct': 'DIRECT FETCH (UNPROXIED)'
-            };
-            document.getElementById('hud-proxy-name').textContent = names[val] || val.toUpperCase();
-            showToast(`Proxy engine switched to ${val}`);
-        }
-
-        function toggleCurrentBookmark() {
-            const activeTab = getActiveTab();
-            if (!activeTab || activeTab.url === 'about:blank') return;
-
-            const existingIdx = bookmarks.findIndex(b => b.url === activeTab.url);
-            if (existingIdx >= 0) {
-                bookmarks.splice(existingIdx, 1);
-                showToast('Bookmark Removed');
-            } else {
-                bookmarks.push({ name: activeTab.title, url: activeTab.url });
-                showToast('Page Bookmarked!');
-            }
-
-            localStorage.setItem('ce_bookmarks', JSON.stringify(bookmarks));
-            updateBookmarkIndicator();
-        }
-
-        function updateBookmarkIndicator() {
-            const activeTab = getActiveTab();
-            const star = document.getElementById('bookmark-star');
-            if (activeTab && bookmarks.some(b => b.url === activeTab.url)) {
-                star.className = 'fa-solid fa-star text-cyber-amber';
-            } else {
-                star.className = 'fa-regular fa-star';
-            }
-        }
-
-        function toggleBookmarksDrawer() {
-            const drawer = document.getElementById('bookmarks-drawer');
-            drawer.classList.toggle('hidden');
-            if (!drawer.classList.contains('hidden')) renderBookmarksList();
-        }
-
-        function renderBookmarksList() {
-            const list = document.getElementById('bookmarks-list');
-            list.innerHTML = '';
-            if (bookmarks.length === 0) {
-                list.innerHTML = '<div class="text-slate-500 py-2">No bookmarks saved yet.</div>';
-                return;
-            }
-
-            bookmarks.forEach(b => {
-                const item = document.createElement('div');
-                item.className = 'flex items-center justify-between p-2 rounded hover:bg-cyber-card cursor-pointer border border-transparent hover:border-cyber-border';
-                item.onclick = () => {
-                    executeSearchOrNavigate(b.url);
-                    toggleBookmarksDrawer();
-                };
-                item.innerHTML = `
-                    <div class="truncate flex-1 pr-2">
-                        <div class="font-bold text-slate-200">${escapeHtml(b.name)}</div>
-                        <div class="text-[10px] text-slate-500 truncate">${escapeHtml(b.url)}</div>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-[10px] text-cyber-cyan"></i>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function navBack() { showToast('Navigated Back'); }
-        function navForward() { showToast('Navigated Forward'); }
-        function reloadTab() {
-            const icon = document.getElementById('reload-icon');
-            icon.classList.add('animate-spin');
-            fetchAndParseCurrent();
-            setTimeout(() => icon.classList.remove('animate-spin'), 800);
-        }
-        function goHome() {
-            const activeTab = getActiveTab();
-            if (activeTab) {
-                activeTab.url = 'about:blank';
-                activeTab.title = 'Cyber Launchpad';
-                activeTab.parsedData = null;
-                renderTabs();
-                renderTabViewport(activeTab);
-            }
-        }
-
-        function openSettingsModal() { document.getElementById('settings-modal').classList.remove('hidden'); }
-        function closeSettingsModal() { document.getElementById('settings-modal').classList.add('hidden'); }
-        function updateSettings() {
-            searchEngine = document.getElementById('setting-search-engine').value;
-            showToast('Configuration Updated');
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-        }
-
-        function showToast(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'pointer-events-auto glass-panel px-4 py-2 rounded-lg border border-cyber-cyan/40 text-xs text-cyber-cyan font-mono shadow-xl flex items-center space-x-2 transition-all duration-300 transform translate-x-full';
-            toast.innerHTML = `<i class="fa-solid fa-circle-check text-cyber-emerald"></i><span>${escapeHtml(msg)}</span>`;
-            
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.remove('translate-x-full'), 10);
-            setTimeout(() => {
-                toast.classList.add('translate-x-full');
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
-        }
-    </script>
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+  </script>
 </body>
 </html>
