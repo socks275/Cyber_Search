@@ -1,139 +1,509 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER-NET Browser // Bing Edition</title>
+  <title>CYBER_NEXUS // Browser & Launchpad</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
-    body {
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600;700&display=swap');
+    
+    * {
       font-family: 'Fira Code', monospace;
+    }
+
+    body {
       background-color: #030712;
       color: #06b6d4;
     }
+
     .grid-bg {
-      background-image: linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-                        linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
-      background-size: 20px 20px;
+      background-image: 
+        linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
     }
+
     .glass-panel {
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(6, 182, 212, 0.3);
     }
+
     .glow-cyan {
-      box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+    }
+
+    .tab-active {
+      background: rgba(6, 182, 212, 0.2);
+      border-bottom: 2px solid #06b6d4;
+      color: #38bdf8;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #030712;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #0891b2;
+      border-radius: 3px;
     }
   </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col grid-bg">
+<body class="h-full w-screen overflow-hidden flex flex-col grid-bg select-none">
 
-  <!-- HUD Header -->
-  <header class="glass-panel p-2 flex items-center justify-between border-b border-cyan-500/30">
+  <!-- HUD TOP BAR -->
+  <header class="glass-panel px-3 py-1.5 flex items-center justify-between border-b border-cyan-500/30 z-50">
+    <!-- System Branding -->
     <div class="flex items-center space-x-3">
-      <div class="flex items-center text-cyan-400 font-bold tracking-widest text-sm px-2">
-        <i data-lucide="terminal" class="w-4 h-4 mr-2"></i>
-        <span>CYBER_NET // BING_NODE</span>
+      <div class="flex items-center text-cyan-400 font-bold tracking-widest text-xs px-2 py-1 rounded bg-cyan-950/50 border border-cyan-500/30">
+        <i data-lucide="shield-alert" class="w-4 h-4 mr-1.5 text-cyan-400"></i>
+        <span>CYBER_NEXUS v4.2</span>
       </div>
-      <span class="text-xs text-cyan-600">| LATENCY: <span id="ping">12ms</span></span>
+      <div class="hidden md:flex items-center space-x-3 text-[10px] text-cyan-500/80">
+        <span>PING: <span id="pingVal" class="text-cyan-300">14ms</span></span>
+        <span>ENGINE: <span class="text-cyan-300">BING_CORE</span></span>
+      </div>
     </div>
-    
-    <!-- Navigation & Omnibox -->
+
+    <!-- Navigation & Omnibox Controls -->
     <div class="flex-1 max-w-3xl mx-4 flex items-center space-x-2">
-      <button onclick="navigateBack()" class="p-1.5 hover:bg-cyan-950/50 rounded text-cyan-400 border border-cyan-800/50">
+      <button onclick="navBack()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition">
         <i data-lucide="arrow-left" class="w-4 h-4"></i>
       </button>
-      <button onclick="navigateForward()" class="p-1.5 hover:bg-cyan-950/50 rounded text-cyan-400 border border-cyan-800/50">
+      <button onclick="navForward()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition">
         <i data-lucide="arrow-right" class="w-4 h-4"></i>
       </button>
-      <button onclick="reloadTab()" class="p-1.5 hover:bg-cyan-950/50 rounded text-cyan-400 border border-cyan-800/50">
+      <button onclick="reloadActiveTab()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition">
         <i data-lucide="rotate-cw" class="w-4 h-4"></i>
       </button>
-      
+      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition" title="Cyber Nexus Start Page">
+        <i data-lucide="home" class="w-4 h-4"></i>
+      </button>
+
+      <!-- URL / Search Bar -->
       <div class="relative flex-1 flex items-center">
-        <i data-lucide="search" class="w-4 h-4 absolute left-3 text-cyan-500"></i>
+        <i data-lucide="globe" class="w-4 h-4 absolute left-3 text-cyan-500"></i>
         <input 
-          id="urlInput" 
+          id="omnibox" 
           type="text" 
-          placeholder="Enter query or URL (Routed via Bing Search)..." 
-          class="w-full bg-slate-950/80 border border-cyan-500/40 rounded px-9 py-1.5 text-sm text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan"
-          onkeydown="if(event.key === 'Enter') handleSearch()"
+          placeholder="Search Bing or enter target URL..." 
+          class="w-full bg-slate-950/90 border border-cyan-500/40 rounded px-9 py-1 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan transition"
+          onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
         >
+        <!-- Mode Switcher Toggle -->
+        <button id="modeToggleBtn" onclick="toggleProxyMode()" class="absolute right-2 px-1.5 py-0.5 text-[9px] bg-cyan-950 border border-cyan-500/40 text-cyan-400 rounded hover:bg-cyan-900 transition" title="Toggle Interceptor Proxy Mode to block real browser new tabs">
+          PROXY: ON
+        </button>
       </div>
-      <button onclick="handleSearch()" class="px-3 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-sm hover:bg-cyan-500/40">
-        EXECUTE
+
+      <button onclick="handleSearchSubmit()" class="px-3 py-1 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 transition">
+        NAVIGATE
       </button>
     </div>
 
-    <!-- Right Controls -->
+    <!-- Quick Tools & Actions -->
     <div class="flex items-center space-x-2">
-      <button onclick="openSpeedDial()" class="p-1.5 hover:bg-cyan-950/50 rounded text-cyan-400 border border-cyan-800/50" title="Home Hub">
-        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+      <button onclick="openNewTab()" class="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded border border-cyan-400/50 flex items-center text-xs space-x-1">
+        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+        <span class="hidden sm:inline">NEW TAB</span>
       </button>
     </div>
   </header>
 
-  <!-- Main Viewport -->
-  <main class="flex-1 relative bg-slate-950/90">
-    <iframe 
-      id="viewport" 
-      src="https://www.bing.com" 
-      class="w-full h-full border-none"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-    ></iframe>
+  <!-- TAB MANAGER BAR -->
+  <div id="tabBar" class="bg-slate-950/80 border-b border-cyan-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs">
+    <!-- Dynamic Tabs Render Here -->
+  </div>
+
+  <!-- MAIN VIEWPORT DISPLAY AREA -->
+  <main id="viewportContainer" class="flex-1 relative bg-slate-950/90 overflow-hidden">
+    <!-- Dynamic Viewports (Iframes & Dashboards) Render Here -->
   </main>
 
-  <!-- HUD Footer Status -->
-  <footer class="glass-panel px-4 py-1 flex justify-between items-center text-xs text-cyan-500/70 border-t border-cyan-500/30">
-    <div>ENGINE: BING_CORE // ENCRYPTED_PROXY_READY</div>
-    <div class="flex space-x-4">
-      <span>SECURE_SOCKET: ACTIVE</span>
-      <span>NODE: HK-09</span>
+  <!-- HUD STATUS FOOTER -->
+  <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
+    <div class="flex items-center space-x-3">
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> NETWORK: ONLINE</span>
+      <span>TARGET_FRAME: INLINE_INTERCEPT</span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span>TABS: <span id="tabCount">1</span></span>
+      <span id="clock">00:00:00</span>
     </div>
   </footer>
 
   <script>
-    lucide.createIcons();
+    // Tab & System State Management
+    let tabs = [];
+    let activeTabId = null;
+    let proxyMode = true; // Strips target="_blank" so links open inside Cyber Nexus
 
-    const viewport = document.getElementById('viewport');
-    const urlInput = document.getElementById('urlInput');
+    const INITIAL_SPEED_DIALS = [
+      { name: 'Bing Core', url: 'https://www.bing.com', icon: 'search', color: 'text-cyan-400' },
+      { name: 'Wikipedia', url: 'https://www.wikipedia.org', icon: 'book-open', color: 'text-emerald-400' },
+      { name: 'GitHub', url: 'https://github.com', icon: 'code', color: 'text-purple-400' },
+      { name: 'Reddit', url: 'https://www.reddit.com', icon: 'message-square', color: 'text-orange-400' },
+      { name: 'DuckDuckGo', url: 'https://duckduckgo.com', icon: 'shield', color: 'text-yellow-400' },
+      { name: 'Internet Archive', url: 'https://archive.org', icon: 'archive', color: 'text-blue-400' }
+    ];
 
-    function handleSearch() {
-      let query = urlInput.value.trim();
-      if (!query) return;
+    // Initialize System
+    window.onload = () => {
+      openNewTab();
+      setInterval(updateClock, 1000);
+      setInterval(updatePing, 2500);
+      updateClock();
+      lucide.createIcons();
+    };
 
-      if (query.startsWith('http://') || query.startsWith('https://')) {
-        viewport.src = query;
-      } else if (query.includes('.') && !query.includes(' ')) {
-        viewport.src = 'https://' + query;
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toTimeString().split(' ')[0];
+    }
+
+    function updatePing() {
+      document.getElementById('pingVal').innerText = (Math.floor(Math.random() * 8) + 10) + 'ms';
+    }
+
+    function toggleProxyMode() {
+      proxyMode = !proxyMode;
+      const btn = document.getElementById('modeToggleBtn');
+      if (proxyMode) {
+        btn.innerText = 'PROXY: ON';
+        btn.className = 'absolute right-2 px-1.5 py-0.5 text-[9px] bg-cyan-950 border border-cyan-500/40 text-cyan-400 rounded hover:bg-cyan-900 transition';
       } else {
-        viewport.src = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+        btn.innerText = 'PROXY: OFF';
+        btn.className = 'absolute right-2 px-1.5 py-0.5 text-[9px] bg-rose-950 border border-rose-500/40 text-rose-400 rounded hover:bg-rose-900 transition';
       }
     }
 
-    function navigateBack() {
-      try { viewport.contentWindow.history.back(); } catch(e) {}
+    // Tab Management Logic
+    function openNewTab(url = 'nexus://newtab') {
+      const id = 'tab_' + Date.now();
+      const tab = {
+        id: id,
+        title: url === 'nexus://newtab' ? 'Cyber Launchpad' : 'Web View',
+        url: url,
+        history: [url]
+      };
+      
+      tabs.push(tab);
+      renderTabs();
+      switchTab(id);
     }
 
-    function navigateForward() {
-      try { viewport.contentWindow.history.forward(); } catch(e) {}
+    function closeTab(id, e) {
+      if (e) e.stopPropagation();
+      if (tabs.length === 1) {
+        // If last tab, open new default dashboard tab
+        tabs = [];
+        openNewTab();
+        return;
+      }
+
+      tabs = tabs.filter(t => t.id !== id);
+      const container = document.getElementById('viewport_' + id);
+      if (container) container.remove();
+
+      if (activeTabId === id) {
+        switchTab(tabs[tabs.length - 1].id);
+      } else {
+        renderTabs();
+      }
     }
 
-    function reloadTab() {
-      viewport.src = viewport.src;
+    function switchTab(id) {
+      activeTabId = id;
+      renderTabs();
+      renderViewports();
+      
+      const tab = tabs.find(t => t.id === id);
+      if (tab) {
+        document.getElementById('omnibox').value = tab.url === 'nexus://newtab' ? '' : tab.url;
+      }
     }
 
-    function openSpeedDial() {
-      viewport.src = 'https://www.bing.com';
-      urlInput.value = '';
+    function renderTabs() {
+      const tabBar = document.getElementById('tabBar');
+      document.getElementById('tabCount').innerText = tabs.length;
+      tabBar.innerHTML = '';
+
+      tabs.forEach(tab => {
+        const isActive = tab.id === activeTabId;
+        const el = document.createElement('div');
+        el.className = `flex items-center space-x-2 px-3 py-1 rounded-t border-t border-x border-cyan-500/20 cursor-pointer min-w-[130px] max-w-[200px] justify-between transition ${isActive ? 'tab-active font-semibold' : 'text-cyan-500/70 hover:bg-slate-900/50'}`;
+        el.onclick = () => switchTab(tab.id);
+
+        el.innerHTML = `
+          <div class="flex items-center space-x-1.5 overflow-hidden">
+            <i data-lucide="${tab.url === 'nexus://newtab' ? 'layout-grid' : 'globe'}" class="w-3.5 h-3.5 shrink-0"></i>
+            <span class="truncate text-[11px]">${escapeHtml(tab.title)}</span>
+          </div>
+          <button onclick="closeTab('${tab.id}', event)" class="hover:text-cyan-200 rounded p-0.5">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        `;
+        tabBar.appendChild(el);
+      });
+      lucide.createIcons();
     }
 
-    // Ping simulator
-    setInterval(() => {
-      document.getElementById('ping').innerText = Math.floor(Math.random() * 10 + 8) + 'ms';
-    }, 3000);
+    function renderViewports() {
+      const container = document.getElementById('viewportContainer');
+      
+      // Hide all non-active viewports
+      tabs.forEach(tab => {
+        let vp = document.getElementById('viewport_' + tab.id);
+        if (!vp) {
+          vp = document.createElement('div');
+          vp.id = 'viewport_' + tab.id;
+          vp.className = 'w-full h-full absolute inset-0';
+          container.appendChild(vp);
+          loadTabContent(tab, vp);
+        }
+        
+        if (tab.id === activeTabId) {
+          vp.style.display = 'block';
+        } else {
+          vp.style.display = 'none';
+        }
+      });
+    }
+
+    function loadTabContent(tab, element) {
+      if (tab.url === 'nexus://newtab') {
+        element.innerHTML = getNewTabHTML(tab.id);
+        attachNewTabEvents(tab.id);
+      } else {
+        let frameUrl = tab.url;
+        // Proxy URL interceptor for search results
+        if (proxyMode && !frameUrl.startsWith('https://corsproxy.io')) {
+          // Fallback to standard URL or proxy format
+          frameUrl = tab.url;
+        }
+
+        element.innerHTML = `
+          <iframe 
+            id="iframe_${tab.id}"
+            src="${frameUrl}" 
+            class="w-full h-full border-none bg-slate-900"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+          ></iframe>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    function handleSearchSubmit() {
+      const input = document.getElementById('omnibox').value.trim();
+      if (!input) return;
+
+      let targetUrl = '';
+      if (input.startsWith('http://') || input.startsWith('https://')) {
+        targetUrl = input;
+      } else if (input.includes('.') && !input.includes(' ')) {
+        targetUrl = 'https://' + input;
+      } else {
+        // Bing Search Core Route
+        targetUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(input);
+      }
+
+      navigateCurrentTab(targetUrl);
+    }
+
+    function navigateCurrentTab(url) {
+      const tab = tabs.find(t => t.id === activeTabId);
+      if (!tab) return;
+
+      tab.url = url;
+      tab.title = url.includes('bing.com') ? 'Bing Search' : getDomainName(url);
+      
+      document.getElementById('omnibox').value = url;
+      
+      const vp = document.getElementById('viewport_' + tab.id);
+      if (vp) {
+        loadTabContent(tab, vp);
+      }
+      renderTabs();
+    }
+
+    function navBack() {
+      const tab = tabs.find(t => t.id === activeTabId);
+      if (!tab) return;
+      const iframe = document.getElementById('iframe_' + tab.id);
+      try { iframe.contentWindow.history.back(); } catch(e) {}
+    }
+
+    function navForward() {
+      const tab = tabs.find(t => t.id === activeTabId);
+      if (!tab) return;
+      const iframe = document.getElementById('iframe_' + tab.id);
+      try { iframe.contentWindow.history.forward(); } catch(e) {}
+    }
+
+    function reloadActiveTab() {
+      const tab = tabs.find(t => t.id === activeTabId);
+      if (!tab) return;
+      const vp = document.getElementById('viewport_' + tab.id);
+      if (vp) loadTabContent(tab, vp);
+    }
+
+    function goHome() {
+      navigateCurrentTab('nexus://newtab');
+    }
+
+    // Custom Cyber New Tab UI Generator
+    function getNewTabHTML(tabId) {
+      return `
+        <div class="w-full h-full overflow-y-auto p-6 md:p-12 flex flex-col items-center justify-between">
+          <div class="w-full max-w-4xl flex flex-col items-center">
+            
+            <!-- Cyber Hero Logo -->
+            <div class="text-center my-6">
+              <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>CYBER_NEXUS LAUNCHPAD</span>
+              </div>
+              <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
+                BING_CYBER_TERMINAL
+              </h1>
+              <p class="text-xs text-cyan-500/70 mt-2">Ultra-fast search & multi-tab workspace embedded</p>
+            </div>
+
+            <!-- Central Bing Search Hub -->
+            <div class="w-full max-w-2xl relative my-4">
+              <div class="relative flex items-center">
+                <i data-lucide="search" class="w-5 h-5 absolute left-4 text-cyan-400"></i>
+                <input 
+                  id="tabSearchInput_${tabId}"
+                  type="text" 
+                  placeholder="Execute Bing query or enter Web Address..." 
+                  class="w-full bg-slate-900/90 border-2 border-cyan-500/50 rounded-xl px-12 py-3 text-sm text-cyan-100 placeholder-cyan-600 focus:outline-none focus:border-cyan-300 glow-cyan transition"
+                >
+                <button 
+                  id="tabSearchBtn_${tabId}"
+                  class="absolute right-3 px-4 py-1.5 bg-cyan-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-cyan-400 transition"
+                >
+                  SEARCH
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Launch Speed Dials -->
+            <div class="w-full max-w-3xl mt-8">
+              <h3 class="text-xs font-semibold text-cyan-500 tracking-wider mb-4 text-left">QUICK_DIAL_NODES</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                ${INITIAL_SPEED_DIALS.map(dial => `
+                  <button 
+                    onclick="navigateCurrentTab('${dial.url}')"
+                    class="glass-panel p-3 rounded-lg flex flex-col items-center hover:border-cyan-400 hover:bg-cyan-950/40 transition group"
+                  >
+                    <div class="p-2.5 rounded-full bg-slate-900/80 mb-2 border border-cyan-500/20 group-hover:scale-110 transition">
+                      <i data-lucide="${dial.icon}" class="w-5 h-5 ${dial.color}"></i>
+                    </div>
+                    <span class="text-xs text-cyan-300 font-medium truncate w-full text-center">${dial.name}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Integrated Cyber Widgets -->
+            <div class="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+              
+              <!-- Quick Notes Widget -->
+              <div class="glass-panel p-4 rounded-xl flex flex-col">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-cyan-400 flex items-center">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5 mr-1.5"></i> SCRATCHPAD
+                  </span>
+                  <span class="text-[10px] text-cyan-600">AUTO-SAVED</span>
+                </div>
+                <textarea 
+                  id="scratchpad"
+                  placeholder="Type notes or task lists here..."
+                  class="w-full flex-1 h-24 bg-slate-950/70 border border-cyan-500/20 rounded p-2 text-xs text-cyan-200 focus:outline-none focus:border-cyan-500/50 resize-none"
+                  oninput="localStorage.setItem('nexus_notes', this.value)"
+                >${escapeHtml(localStorage.getItem('nexus_notes') || '')}</textarea>
+              </div>
+
+              <!-- System Diagnostics Widget -->
+              <div class="glass-panel p-4 rounded-xl flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-cyan-400 flex items-center">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5 mr-1.5"></i> SYSTEM_HUD
+                  </span>
+                  <span class="text-[10px] text-emerald-400">STATUS: OPTIMAL</span>
+                </div>
+                <div class="space-y-2 text-xs text-cyan-300">
+                  <div class="flex justify-between items-center bg-slate-950/50 p-2 rounded border border-cyan-500/10">
+                    <span class="text-cyan-500">Search Engine</span>
+                    <span class="font-semibold text-cyan-300">Bing Core</span>
+                  </div>
+                  <div class="flex justify-between items-center bg-slate-950/50 p-2 rounded border border-cyan-500/10">
+                    <span class="text-cyan-500">Same-Tab Interceptor</span>
+                    <span class="font-semibold text-emerald-400">ACTIVE</span>
+                  </div>
+                  <div class="flex justify-between items-center bg-slate-950/50 p-2 rounded border border-cyan-500/10">
+                    <span class="text-cyan-500">Active Viewport</span>
+                    <span class="font-semibold text-sky-400">Virtual Frame</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="text-[11px] text-cyan-600/60 mt-8 text-center">
+            CYBER_NEXUS OS // Powered by Bing & Web Viewport Frame
+          </div>
+        </div>
+      `;
+    }
+
+    function attachNewTabEvents(tabId) {
+      const input = document.getElementById(`tabSearchInput_${tabId}`);
+      const btn = document.getElementById(`tabSearchBtn_${tabId}`);
+
+      if (input && btn) {
+        const execute = () => {
+          const val = input.value.trim();
+          if (!val) return;
+          let targetUrl = '';
+          if (val.startsWith('http://') || val.startsWith('https://')) {
+            targetUrl = val;
+          } else if (val.includes('.') && !val.includes(' ')) {
+            targetUrl = 'https://' + val;
+          } else {
+            targetUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(val);
+          }
+          navigateCurrentTab(targetUrl);
+        };
+
+        btn.onclick = execute;
+        input.onkeydown = (e) => { if (e.key === 'Enter') execute(); };
+      }
+    }
+
+    // Helper Functions
+    function getDomainName(url) {
+      try {
+        const host = new URL(url).hostname;
+        return host.replace('www.', '');
+      } catch(e) {
+        return 'Web Page';
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
   </script>
 </body>
 </html>
