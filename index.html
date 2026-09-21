@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER_SEARCH // Virtual Engine</title>
+  <title>CYBER_SEARCH // Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -45,7 +45,7 @@
 
     <!-- Central Search Bar -->
     <div class="flex-1 max-w-3xl mx-4 flex items-center space-x-2">
-      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition">
+      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition" title="Home">
         <i data-lucide="home" class="w-4 h-4"></i>
       </button>
 
@@ -82,7 +82,7 @@
   <!-- STATUS FOOTER -->
   <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
     <div class="flex items-center space-x-3">
-      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> CLOUDFLARE PROXY: CONNECTED</span>
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> PROXY PROTCOL: ONLINE</span>
     </div>
     <div class="flex items-center space-x-4">
       <span>TABS: <span id="tabCount">1</span></span>
@@ -91,7 +91,7 @@
   </footer>
 
   <script>
-    // CLOUDFLARE WORKER PROXY CONFIGURATION
+    // CLOUDFLARE WORKER ENDPOINT
     const WORKER_PROXY_URL = "https://small-hill-0227.mac-for-chrome.workers.dev/";
 
     let tabs = [];
@@ -99,11 +99,11 @@
 
     const SPEED_DIALS = [
       { name: 'Wikipedia', query: 'Wikipedia Free Encyclopedia', icon: 'book-open' },
-      { name: 'GitHub Search', query: 'GitHub open source repositories', icon: 'code' },
-      { name: 'Reddit Topics', query: 'Reddit discussions tech news', icon: 'message-square' },
-      { name: 'Latest Tech News', query: 'Artificial Intelligence Technology News', icon: 'newspaper' },
-      { name: 'Stack Overflow', query: 'Stack Overflow developer guides', icon: 'terminal' },
-      { name: 'Archive.org', query: 'Internet Archive digital library', icon: 'archive' }
+      { name: 'GitHub Search', query: 'GitHub open source projects', icon: 'code' },
+      { name: 'Reddit Discussions', query: 'Reddit technology trends', icon: 'message-square' },
+      { name: 'Tech News', query: 'Latest Artificial Intelligence News', icon: 'newspaper' },
+      { name: 'Stack Overflow', query: 'Stack Overflow code examples', icon: 'terminal' },
+      { name: 'Internet Archive', query: 'Internet Archive digital library', icon: 'archive' }
     ];
 
     window.onload = () => {
@@ -231,7 +231,7 @@
     async function fetchViaWorker(targetUrl) {
       const proxyUrl = `${WORKER_PROXY_URL}?url=${encodeURIComponent(targetUrl)}`;
       const response = await fetch(proxyUrl);
-      if (!response.ok) throw new Error("Worker HTTP Error: " + response.status);
+      if (!response.ok) throw new Error("HTTP Error: " + response.status);
       return await response.text();
     }
 
@@ -269,7 +269,7 @@
         if (statusInd) statusInd.style.display = 'none';
 
         if (!results || results.length === 0) {
-          listContainer.innerHTML = `<p class="text-xs text-cyan-400">No direct results found. Try another query.</p>`;
+          listContainer.innerHTML = `<p class="text-xs text-cyan-400">No results found for this query.</p>`;
           return;
         }
 
@@ -278,7 +278,6 @@
           if (i >= 10) return;
           const titleEl = res.querySelector('.result__title a');
           const snippetEl = res.querySelector('.result__snippet');
-          const urlEl = res.querySelector('.result__url');
 
           if (titleEl) {
             let href = titleEl.getAttribute('href') || '';
@@ -286,7 +285,7 @@
               href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
             }
             const title = titleEl.textContent.trim();
-            const snippet = snippetEl ? snippetEl.textContent.trim() : '';
+            const snippet = snippetEl ? snippetEl.textContent.trim() : 'Click to extract and view full webpage contents, images, and videos.';
 
             itemsHTML += `
               <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition">
@@ -307,8 +306,7 @@
         if (listContainer) {
           listContainer.innerHTML = `
             <div class="glass-panel p-6 rounded-xl border border-red-500/30">
-              <p class="text-xs text-red-400 mb-2">Failed to load search results: ${escapeHtml(err.message)}</p>
-              <p class="text-xs text-cyan-300">Ensure your Cloudflare Worker is active at <code>${WORKER_PROXY_URL}</code>.</p>
+              <p class="text-xs text-red-400 mb-2">Error loading search results: ${escapeHtml(err.message)}</p>
             </div>
           `;
         }
@@ -321,12 +319,12 @@
           <div class="max-w-4xl mx-auto space-y-6">
             <div class="border-b border-cyan-500/20 pb-4 flex items-center justify-between">
               <div>
-                <p class="text-xs text-cyan-500/70">PARSED WEBPAGE CONTENT</p>
+                <p class="text-xs text-cyan-500/70">EXTRACTED CONTENT</p>
                 <h2 class="text-sm font-bold text-cyan-200 truncate max-w-md">${escapeHtml(url)}</h2>
               </div>
               <div id="pageLoader_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
                 <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-                <span>EXTRACTING CONTENT...</span>
+                <span>PARSING WEBPAGE...</span>
               </div>
             </div>
 
@@ -348,32 +346,46 @@
 
         // Extract Images
         const imgs = Array.from(doc.querySelectorAll('img'))
-          .map(img => img.src || img.getAttribute('data-src'))
-          .filter(src => src && (src.startsWith('http') || src.startsWith('//')))
-          .slice(0, 8);
+          .map(img => img.getAttribute('src') || img.getAttribute('data-src'))
+          .filter(src => src && src.length > 5)
+          .map(src => {
+            if (src.startsWith('//')) return 'https:' + src;
+            if (src.startsWith('/')) {
+              const base = new URL(url);
+              return base.origin + src;
+            }
+            return src;
+          })
+          .filter(src => src.startsWith('http'))
+          .slice(0, 12);
 
-        // Extract Headings & Paragraphs
-        const headings = Array.from(doc.querySelectorAll('h1, h2, h3, p'))
+        // Extract Text Blocks
+        const textBlocks = Array.from(doc.querySelectorAll('h1, h2, h3, p, li'))
           .map(el => el.textContent.trim())
-          .filter(text => text.length > 30)
-          .slice(0, 15);
+          .filter(text => text.length > 25)
+          .slice(0, 20);
 
-        // Extract Video links/iframes
-        const videos = Array.from(doc.querySelectorAll('iframe, video source'))
-          .map(v => v.src)
-          .filter(src => src && (src.includes('youtube') || src.includes('vimeo') || src.endsWith('.mp4')))
+        // Extract Video Sources
+        const videos = Array.from(doc.querySelectorAll('iframe, video, source'))
+          .map(v => v.getAttribute('src'))
+          .filter(src => src && (src.includes('youtube') || src.includes('vimeo') || src.includes('.mp4')))
+          .map(src => src.startsWith('//') ? 'https:' + src : src)
           .slice(0, 4);
 
         let outputHTML = '';
 
+        // Render Media - Images
         if (imgs.length > 0) {
           outputHTML += `
             <div>
-              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3">EXTRACTED IMAGES (${imgs.length})</h3>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3 flex items-center">
+                <i data-lucide="image" class="w-4 h-4 mr-1.5"></i>
+                EXTRACTED IMAGES (${imgs.length})
+              </h3>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 ${imgs.map(img => `
                   <div class="glass-panel p-1 rounded-lg overflow-hidden border border-cyan-500/20">
-                    <img src="${escapeHtml(img)}" class="w-full h-24 object-cover rounded" onerror="this.style.display='none'">
+                    <img src="${escapeHtml(img)}" class="w-full h-28 object-cover rounded" onerror="this.parentElement.style.display='none'">
                   </div>
                 `).join('')}
               </div>
@@ -381,15 +393,21 @@
           `;
         }
 
+        // Render Media - Videos
         if (videos.length > 0) {
           outputHTML += `
             <div>
-              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3">EXTRACTED VIDEOS (${videos.length})</h3>
-              <div class="space-y-2">
+              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3 flex items-center">
+                <i data-lucide="video" class="w-4 h-4 mr-1.5"></i>
+                EXTRACTED VIDEOS (${videos.length})
+              </h3>
+              <div class="space-y-3">
                 ${videos.map(v => `
-                  <div class="glass-panel p-2 rounded border border-cyan-500/20 text-xs text-sky-300">
-                    <i data-lucide="video" class="w-4 h-4 inline mr-2 text-cyan-400"></i>
-                    <a href="${escapeHtml(v)}" target="_blank" class="hover:underline">${escapeHtml(v)}</a>
+                  <div class="glass-panel p-3 rounded-xl border border-cyan-500/20 flex items-center justify-between">
+                    <span class="text-xs text-sky-300 truncate max-w-md">${escapeHtml(v)}</span>
+                    <a href="${escapeHtml(v)}" target="_blank" class="px-3 py-1 bg-cyan-600/30 border border-cyan-400 text-cyan-300 text-xs rounded hover:bg-cyan-500/40">
+                      OPEN VIDEO
+                    </a>
                   </div>
                 `).join('')}
               </div>
@@ -397,17 +415,21 @@
           `;
         }
 
-        if (headings.length > 0) {
+        // Render Text Content
+        if (textBlocks.length > 0) {
           outputHTML += `
             <div>
-              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3">TEXT CONTENT</h3>
-              <div class="glass-panel p-6 rounded-xl border border-cyan-500/20 space-y-4 text-xs text-slate-200 leading-relaxed">
-                ${headings.map(text => `<p>${escapeHtml(text)}</p>`).join('')}
+              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3 flex items-center">
+                <i data-lucide="file-text" class="w-4 h-4 mr-1.5"></i>
+                PARSED CONTENT
+              </h3>
+              <div class="glass-panel p-6 rounded-xl border border-cyan-500/20 space-y-3 text-xs text-slate-200 leading-relaxed">
+                ${textBlocks.map(text => `<p>${escapeHtml(text)}</p>`).join('')}
               </div>
             </div>
           `;
         } else {
-          outputHTML += `<p class="text-xs text-cyan-400">Page loaded, but no main text blocks were extracted.</p>`;
+          outputHTML += `<p class="text-xs text-cyan-400">Page loaded successfully, but no readable text blocks were detected.</p>`;
         }
 
         contentDiv.innerHTML = outputHTML;
@@ -418,7 +440,7 @@
         if (contentDiv) {
           contentDiv.innerHTML = `
             <div class="glass-panel p-6 rounded-xl border border-red-500/30">
-              <p class="text-xs text-red-400">Error extracting page content: ${escapeHtml(err.message)}</p>
+              <p class="text-xs text-red-400">Failed to extract content: ${escapeHtml(err.message)}</p>
             </div>
           `;
         }
@@ -470,12 +492,12 @@
             <div class="text-center my-6">
               <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>CYBER_SEARCH VIRTUAL ENGINE</span>
+                <span>CYBER_SEARCH ONLINE</span>
               </div>
               <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
                 CYBER_SEARCH
               </h1>
-              <p class="text-xs text-cyan-500/70 mt-2">Custom Cloudflare Proxy Active</p>
+              <p class="text-xs text-cyan-500/70 mt-2">Cloudflare Proxy Active // Text, Image & Video Extractor</p>
             </div>
 
             <!-- Central Omnibox Search -->
@@ -485,7 +507,7 @@
                 <input 
                   id="tabSearchInput_${tabId}"
                   type="text" 
-                  placeholder="Type search terms or enter web URL..." 
+                  placeholder="Type search query or paste website URL..." 
                   class="w-full bg-slate-900/90 border-2 border-cyan-500/50 rounded-xl px-12 py-3 text-sm text-cyan-100 placeholder-cyan-600 focus:outline-none focus:border-cyan-300 glow-cyan transition"
                 >
                 <button 
