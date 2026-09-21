@@ -54,7 +54,7 @@
         <input 
           id="omnibox" 
           type="text" 
-          placeholder="Search query or enter web URL..." 
+          placeholder="Search query or enter web/video URL..." 
           class="w-full bg-slate-950/90 border border-cyan-500/40 rounded px-9 py-1.5 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan transition"
           onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
         >
@@ -82,7 +82,7 @@
   <!-- STATUS FOOTER -->
   <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
     <div class="flex items-center space-x-3">
-      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> PROXY CORE: HYBRID AUTO-FALLBACK</span>
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> SYSTEM: ONLINE // VIDEO EMBED READY</span>
     </div>
     <div class="flex items-center space-x-4">
       <span>TABS: <span id="tabCount">1</span></span>
@@ -95,13 +95,14 @@
 
     let tabs = [];
     let activeTabId = null;
+    let searchOffsets = {};
 
     const SPEED_DIALS = [
       { name: 'Wikipedia', query: 'Wikipedia Free Encyclopedia', icon: 'book-open' },
+      { name: 'YouTube Tech', query: 'site:youtube.com tech review', icon: 'video' },
       { name: 'GitHub Search', query: 'GitHub open source projects', icon: 'code' },
       { name: 'Reddit Discussions', query: 'Reddit technology trends', icon: 'message-square' },
       { name: 'Tech News', query: 'Latest Artificial Intelligence News', icon: 'newspaper' },
-      { name: 'Stack Overflow', query: 'Stack Overflow code examples', icon: 'terminal' },
       { name: 'Internet Archive', query: 'Internet Archive digital library', icon: 'archive' }
     ];
 
@@ -182,6 +183,7 @@
         let iconName = 'globe';
         if (tab.url === 'nexus://newtab') iconName = 'layout-grid';
         if (tab.url.startsWith('search://')) iconName = 'search';
+        if (tab.url.includes('youtube.com') || tab.url.includes('youtu.be')) iconName = 'video';
 
         el.innerHTML = `
           <div class="flex items-center space-x-1.5 overflow-hidden">
@@ -220,6 +222,7 @@
         attachNewTabEvents(tab.id);
       } else if (tab.url.startsWith('search://')) {
         const query = decodeURIComponent(tab.url.replace('search://', ''));
+        searchOffsets[tab.id] = 0;
         renderSearchResultsPage(tab, element, query);
       } else {
         renderWebPageContent(tab, element, tab.url);
@@ -234,9 +237,20 @@
       return await response.text();
     }
 
-    // SEARCH PROVIDER 1: Wikipedia Search Engine API
-    async function searchWikipedia(query) {
-      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+    // Convert standard YouTube links into embeddable players
+    function getEmbeddableVideoUrl(url) {
+      if (url.includes('youtube.com/watch?v=')) {
+        const videoId = url.split('v=')[1].split('&')[0];
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      } else if (url.includes('youtu.be/')) {
+        const videoId = url.split('youtu.be/')[1].split('?')[0];
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      }
+      return url;
+    }
+
+    async function searchWikipedia(query, offset = 0) {
+      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=15&sroffset=${offset}&format=json&origin=*`;
       const res = await fetch(wikiUrl);
       const data = await res.json();
       
@@ -249,7 +263,6 @@
       }));
     }
 
-    // SEARCH PROVIDER 2: DuckDuckGo Proxy Scraper
     async function searchDuckDuckGo(query) {
       const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
       const htmlText = await fetchViaWorker(targetSearchUrl);
@@ -260,7 +273,7 @@
 
       const parsedResults = [];
       results.forEach((res, i) => {
-        if (i >= 10) return;
+        if (i >= 15) return;
         const titleEl = res.querySelector('.result__title a');
         const snippetEl = res.querySelector('.result__snippet');
 
@@ -272,7 +285,7 @@
           parsedResults.push({
             title: titleEl.textContent.trim(),
             url: href,
-            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to extract full webpage content, images, and videos.'
+            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to load live website inside CYBER_SEARCH.'
           });
         }
       });
@@ -290,198 +303,118 @@
               </div>
               <div id="statusIndicator_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
                 <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-                <span id="engineStatus_${tab.id}">FETCHING VIA DUCKDUCKGO...</span>
+                <span id="engineStatus_${tab.id}">FETCHING SEARCH RESULTS...</span>
               </div>
             </div>
 
             <div id="resultsList_${tab.id}" class="space-y-4"></div>
+
+            <div class="pt-4 flex justify-center">
+              <button id="loadMoreBtn_${tab.id}" onclick="loadMoreResults('${tab.id}', '${escapeHtml(query)}')" class="px-6 py-2 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 rounded-lg text-xs hover:bg-cyan-900/60 font-semibold transition flex items-center space-x-2">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>LOAD MORE RESULTS</span>
+              </button>
+            </div>
           </div>
         </div>
       `;
       lucide.createIcons();
 
-      const listContainer = document.getElementById(`resultsList_${tab.id}`);
-      const statusInd = document.getElementById(`statusIndicator_${tab.id}`);
-      const statusText = document.getElementById(`engineStatus_${tab.id}`);
+      await fetchAndDisplayResults(tab.id, query, 0, false);
+    }
 
+    async function fetchAndDisplayResults(tabId, query, offset, append = false) {
+      const listContainer = document.getElementById(`resultsList_${tabId}`);
+      const statusInd = document.getElementById(`statusIndicator_${tabId}`);
+      
       let results = [];
 
-      // 1. Try DuckDuckGo via Proxy
-      try {
-        results = await searchDuckDuckGo(query);
-      } catch (err) {
-        console.warn("DuckDuckGo failed, falling back to Wikipedia API...", err);
+      if (offset === 0) {
+        try {
+          results = await searchDuckDuckGo(query);
+        } catch (err) {
+          console.warn("DuckDuckGo failed, falling back to Wikipedia API...", err);
+        }
       }
 
-      // 2. Fallback to Wikipedia API if DuckDuckGo was blocked or returned zero results
       if (results.length === 0) {
-        if (statusText) statusText.innerText = "RETRYING VIA WIKIPEDIA CORE...";
         try {
-          results = await searchWikipedia(query);
+          results = await searchWikipedia(query, offset);
         } catch (err) {
-          console.error("Wikipedia search failed too:", err);
+          console.error("Wikipedia search failed:", err);
         }
       }
 
       if (statusInd) statusInd.style.display = 'none';
 
       if (!results || results.length === 0) {
-        listContainer.innerHTML = `
-          <div class="glass-panel p-6 rounded-xl border border-cyan-500/30">
-            <p class="text-xs text-cyan-300 mb-2 font-bold">NO RESULTS FOUND</p>
-            <p class="text-xs text-slate-400">Search engines blocked the automated proxy request. Try typing a direct webpage URL in the bar (e.g., <code class="text-cyan-400">https://example.com</code> or <code class="text-cyan-400">https://wikipedia.org</code>).</p>
-          </div>
-        `;
+        if (!append) {
+          listContainer.innerHTML = `
+            <div class="glass-panel p-6 rounded-xl border border-cyan-500/30">
+              <p class="text-xs text-cyan-300 mb-2 font-bold">NO MORE RESULTS FOUND</p>
+              <p class="text-xs text-slate-400">Try typing a direct web or video URL in the omnibox above (e.g., <code class="text-cyan-400">https://youtube.com</code> or <code class="text-cyan-400">https://wikipedia.org</code>).</p>
+            </div>
+          `;
+        }
         return;
       }
 
       let itemsHTML = '';
       results.forEach(res => {
+        const isVideo = res.url.includes('youtube.com') || res.url.includes('youtu.be') || res.url.includes('.mp4');
+        
         itemsHTML += `
-          <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition">
-            <span class="text-[10px] text-cyan-400/80 block truncate mb-1">${escapeHtml(res.url)}</span>
-            <a href="#" onclick="openResultUrl('${escapeHtml(res.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition underline underline-offset-4 decoration-cyan-500/40">
-              ${escapeHtml(res.title)}
-            </a>
-            <p class="text-xs text-slate-300 mt-2 leading-relaxed">${escapeHtml(res.snippet)}</p>
+          <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition flex justify-between items-start space-x-4">
+            <div class="flex-1">
+              <span class="text-[10px] text-cyan-400/80 block truncate mb-1">${escapeHtml(res.url)}</span>
+              <a href="#" onclick="openResultUrl('${escapeHtml(res.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition underline underline-offset-4 decoration-cyan-500/40">
+                ${escapeHtml(res.title)}
+              </a>
+              <p class="text-xs text-slate-300 mt-2 leading-relaxed">${escapeHtml(res.snippet)}</p>
+            </div>
+            ${isVideo ? `
+              <button onclick="openResultUrl('${escapeHtml(res.url)}')" class="shrink-0 px-3 py-1.5 bg-red-600/30 border border-red-400 text-red-300 text-xs rounded hover:bg-red-500/40 flex items-center space-x-1">
+                <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                <span>PLAY</span>
+              </button>
+            ` : ''}
           </div>
         `;
       });
 
-      listContainer.innerHTML = itemsHTML;
+      if (append) {
+        listContainer.innerHTML += itemsHTML;
+      } else {
+        listContainer.innerHTML = itemsHTML;
+      }
+      lucide.createIcons();
     }
 
-    async function renderWebPageContent(tab, element, url) {
-      element.innerHTML = `
-        <div class="w-full h-full overflow-y-auto p-4 md:p-8">
-          <div class="max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-cyan-500/20 pb-4 flex items-center justify-between">
-              <div>
-                <p class="text-xs text-cyan-500/70">EXTRACTED CONTENT</p>
-                <h2 class="text-sm font-bold text-cyan-200 truncate max-w-md">${escapeHtml(url)}</h2>
-              </div>
-              <div id="pageLoader_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
-                <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-                <span>PARSING WEBPAGE...</span>
-              </div>
-            </div>
+    async function loadMoreResults(tabId, query) {
+      searchOffsets[tabId] = (searchOffsets[tabId] || 0) + 15;
+      const btn = document.getElementById(`loadMoreBtn_${tabId}`);
+      if (btn) btn.innerText = "FETCHING MORE...";
+      
+      await fetchAndDisplayResults(tabId, query, searchOffsets[tabId], true);
+      
+      if (btn) btn.innerText = "LOAD MORE RESULTS";
+    }
 
-            <div id="parsedContent_${tab.id}" class="space-y-6"></div>
-          </div>
+    // Loads live web pages or embedded video players in full-page frames
+    function renderWebPageContent(tab, element, url) {
+      const formattedUrl = getEmbeddableVideoUrl(url);
+
+      element.innerHTML = `
+        <div class="w-full h-full relative bg-black">
+          <iframe 
+            src="${escapeHtml(formattedUrl)}" 
+            class="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+          ></iframe>
         </div>
       `;
-      lucide.createIcons();
-
-      try {
-        const htmlText = await fetchViaWorker(url);
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
-
-        const pageLoader = document.getElementById(`pageLoader_${tab.id}`);
-        if (pageLoader) pageLoader.style.display = 'none';
-
-        const contentDiv = document.getElementById(`parsedContent_${tab.id}`);
-
-        // Extract Images
-        const imgs = Array.from(doc.querySelectorAll('img'))
-          .map(img => img.getAttribute('src') || img.getAttribute('data-src'))
-          .filter(src => src && src.length > 5)
-          .map(src => {
-            if (src.startsWith('//')) return 'https:' + src;
-            if (src.startsWith('/')) {
-              try {
-                const base = new URL(url);
-                return base.origin + src;
-              } catch(e) { return src; }
-            }
-            return src;
-          })
-          .filter(src => src.startsWith('http'))
-          .slice(0, 12);
-
-        // Extract Text Blocks
-        const textBlocks = Array.from(doc.querySelectorAll('h1, h2, h3, p, li'))
-          .map(el => el.textContent.trim())
-          .filter(text => text.length > 25)
-          .slice(0, 25);
-
-        // Extract Video Sources
-        const videos = Array.from(doc.querySelectorAll('iframe, video, source'))
-          .map(v => v.getAttribute('src'))
-          .filter(src => src && (src.includes('youtube') || src.includes('vimeo') || src.includes('.mp4')))
-          .map(src => src.startsWith('//') ? 'https:' + src : src)
-          .slice(0, 4);
-
-        let outputHTML = '';
-
-        if (imgs.length > 0) {
-          outputHTML += `
-            <div>
-              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3 flex items-center">
-                <i data-lucide="image" class="w-4 h-4 mr-1.5"></i>
-                EXTRACTED IMAGES (${imgs.length})
-              </h3>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                ${imgs.map(img => `
-                  <div class="glass-panel p-1 rounded-lg overflow-hidden border border-cyan-500/20">
-                    <img src="${escapeHtml(img)}" class="w-full h-28 object-cover rounded" onerror="this.parentElement.style.display='none'">
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          `;
-        }
-
-        if (videos.length > 0) {
-          outputHTML += `
-            <div>
-              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3 flex items-center">
-                <i data-lucide="video" class="w-4 h-4 mr-1.5"></i>
-                EXTRACTED VIDEOS (${videos.length})
-              </h3>
-              <div class="space-y-3">
-                ${videos.map(v => `
-                  <div class="glass-panel p-3 rounded-xl border border-cyan-500/20 flex items-center justify-between">
-                    <span class="text-xs text-sky-300 truncate max-w-md">${escapeHtml(v)}</span>
-                    <a href="${escapeHtml(v)}" target="_blank" class="px-3 py-1 bg-cyan-600/30 border border-cyan-400 text-cyan-300 text-xs rounded hover:bg-cyan-500/40">
-                      OPEN VIDEO
-                    </a>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          `;
-        }
-
-        if (textBlocks.length > 0) {
-          outputHTML += `
-            <div>
-              <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3 flex items-center">
-                <i data-lucide="file-text" class="w-4 h-4 mr-1.5"></i>
-                PARSED WEBPAGE TEXT
-              </h3>
-              <div class="glass-panel p-6 rounded-xl border border-cyan-500/20 space-y-3 text-xs text-slate-200 leading-relaxed">
-                ${textBlocks.map(text => `<p>${escapeHtml(text)}</p>`).join('')}
-              </div>
-            </div>
-          `;
-        } else {
-          outputHTML += `<p class="text-xs text-cyan-400">Page loaded successfully, but no body text was detected.</p>`;
-        }
-
-        contentDiv.innerHTML = outputHTML;
-        lucide.createIcons();
-
-      } catch (err) {
-        const contentDiv = document.getElementById(`parsedContent_${tab.id}`);
-        if (contentDiv) {
-          contentDiv.innerHTML = `
-            <div class="glass-panel p-6 rounded-xl border border-red-500/30">
-              <p class="text-xs text-red-400">Failed to extract content: ${escapeHtml(err.message)}</p>
-            </div>
-          `;
-        }
-      }
     }
 
     function openResultUrl(url) {
@@ -529,12 +462,12 @@
             <div class="text-center my-6">
               <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>CYBER_SEARCH v3.2 ACTIVE</span>
+                <span>CYBER_SEARCH ONLINE</span>
               </div>
               <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
                 CYBER_SEARCH
               </h1>
-              <p class="text-xs text-cyan-500/70 mt-2">Cloudflare Proxy Active // Multi-Engine Fallback Extractor</p>
+              <p class="text-xs text-cyan-500/70 mt-2">Embedded Video Player & Live Web Viewport</p>
             </div>
 
             <!-- Central Omnibox Search -->
@@ -544,7 +477,7 @@
                 <input 
                   id="tabSearchInput_${tabId}"
                   type="text" 
-                  placeholder="Type search query or paste website URL..." 
+                  placeholder="Type search query or paste website / YouTube URL..." 
                   class="w-full bg-slate-900/90 border-2 border-cyan-500/50 rounded-xl px-12 py-3 text-sm text-cyan-100 placeholder-cyan-600 focus:outline-none focus:border-cyan-300 glow-cyan transition"
                 >
                 <button 
