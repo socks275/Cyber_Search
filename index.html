@@ -1,631 +1,1259 @@
-export default {
-  async fetch(request) {
-    const url = new URL(request.url);
-
-    // 1. Cloudflare Proxy Endpoint (Bypasses X-Frame-Options & CSP headers for the browser app)
-    if (url.pathname === '/proxy') {
-      const targetUrl = url.searchParams.get('url');
-      if (!targetUrl) return new Response('Missing target URL parameter', { status: 400 });
-
-      try {
-        const response = await fetch(targetUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-        });
-
-        const modifiedHeaders = new Headers(response.headers);
-        // Strip anti-embedding security headers
-        modifiedHeaders.delete('x-frame-options');
-        modifiedHeaders.delete('content-security-policy');
-        modifiedHeaders.delete('content-security-policy-report-only');
-        modifiedHeaders.set('Access-Control-Allow-Origin', '*');
-
-        return new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: modifiedHeaders
-        });
-      } catch (err) {
-        return new Response('Proxy request failed: ' + err.message, { status: 500 });
-      }
-    }
-
-    // 2. Serve WebBook Operating System
-    return new Response(htmlContent, {
-      headers: { 'Content-Type': 'text/html; charset=utf-8' }
-    });
-  }
-};
-
-const htmlContent = `<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WebBook OS</title>
-<style>
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:white;user-select:none}
-body{background:#080b13}
-button,input,textarea,select{font:inherit}
-button{cursor:pointer;border:0;color:inherit}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebBook OS - Virtual macOS Desktop</title>
 
-/* Desk & Wallpaper */
-.desk{position:fixed;inset:0;background:linear-gradient(-45deg, #10182d, #315da8, #763e9f, #070910);background-size:400% 400%;animation:gradientBG 18s ease infinite}
-@keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 
-/* Top Bar */
-.top{height:30px;background:rgba(23, 24, 29, 0.65);backdrop-filter:blur(20px);display:flex;align-items:center;gap:18px;padding:0 14px;font-size:13px;z-index:9000;position:relative;box-shadow:0 1px 0 rgba(255,255,255,0.1)}
-.top b{font-weight:600}
-.top span.item{cursor:pointer;opacity:0.9;transition:0.1s}.top span.item:hover{opacity:1}
-.top-right{margin-left:auto;display:flex;align-items:center;gap:15px;font-size:12px}
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        macGray: {
+                            100: '#F5F5F7',
+                            200: '#E5E5EA',
+                            700: '#2C2C2E',
+                            800: '#1C1C1E',
+                            900: '#000000',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
 
-/* Dock */
-.dock-container{position:absolute;z-index:9000;bottom:10px;left:50%;transform:translateX(-50%)}
-.dock{display:flex;gap:10px;padding:8px 12px;background:rgba(36, 37, 44, 0.45);border:1px solid rgba(255,255,255,0.18);border-radius:24px;backdrop-filter:blur(30px);box-shadow:0 20px 40px rgba(0,0,0,0.4)}
-.dock button{position:relative;width:50px;height:50px;border-radius:14px;background:rgba(255,255,255,0.1);font-size:28px;display:flex;align-items:center;justify-content:center;transition:transform 0.2s ease, background 0.2s;box-shadow:0 4px 10px rgba(0,0,0,0.2)}
-.dock button:hover{transform:translateY(-10px) scale(1.25);background:rgba(255,255,255,0.25)}
-.dock button .tooltip{position:absolute;top:-35px;background:rgba(0,0,0,0.8);color:#fff;padding:3px 8px;border-radius:6px;font-size:11px;white-space:nowrap;display:none;pointer-events:none}
-.dock button:hover .tooltip{display:block}
+    <!-- Custom Glassmorphism & UI Styles -->
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-drag: none;
+        }
 
-/* Windows */
-.window{position:absolute;z-index:100;width:680px;height:460px;min-width:300px;min-height:200px;display:none;background:rgba(28, 29, 36, 0.95);border:1px solid rgba(255,255,255,0.15);border-radius:12px;box-shadow:0 25px 60px rgba(0,0,0,0.6);overflow:hidden;flex-direction:column;backdrop-filter:blur(20px)}
-.window.show{display:flex}
-.window.active{z-index:500;box-shadow:0 30px 80px rgba(0,0,0,0.8);border-color:rgba(255,255,255,0.3)}
-.wbar{height:36px;background:rgba(40, 42, 50, 0.8);display:flex;align-items:center;padding:0 12px;cursor:move;border-bottom:1px solid rgba(255,255,255,0.05);position:relative}
-.wbar b{flex:1;text-align:center;font-size:13px;font-weight:500;color:rgba(255,255,255,0.85)}
-.traffic-lights{display:flex;gap:8px;position:absolute;left:12px}
-.traffic-lights i{width:12px;height:12px;border-radius:50%;cursor:pointer;display:inline-block}
-.r{background:#ff5f57;border:0.5px solid #e0443e}.y{background:#ffbd2e;border:0.5px solid #dea123}.g{background:#28c840;border:0.5px solid #1aab29}
-.wbody{flex:1;padding:16px;overflow:auto;position:relative;color:#ddd;font-size:14px}
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
 
-/* Resize Handles */
-.resize-handle{position:absolute;right:0;bottom:0;width:16px;height:16px;cursor:nwse-resize;z-index:10}
+        /* Glassmorphism backgrounds */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
 
-/* Spotlight */
-.spotlight-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:99999;display:none;align-items:flex-start;justify-content:center;padding-top:15vh}
-.spotlight-overlay.show{display:flex}
-.spotlight-box{width:600px;background:rgba(30, 32, 40, 0.85);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.2);border-radius:14px;box-shadow:0 30px 90px rgba(0,0,0,0.7);overflow:hidden}
-.spotlight-box input{width:100%;background:transparent;border:0;padding:16px 20px;font-size:20px;color:#fff;outline:0}
-.spotlight-results{max-height:300px;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.1)}
-.spot-item{padding:12px 20px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.1s}
-.spot-item:hover{background:rgba(57, 118, 255, 0.4)}
+        .dark .glass-panel {
+            background: rgba(30, 30, 30, 0.65);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-/* Notifications */
-.notif-container{position:fixed;top:40px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:10px;pointer-events:none}
-.toast{background:rgba(30, 32, 40, 0.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.15);padding:12px 18px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.5);width:280px;pointer-events:auto;animation:slideIn 0.3s ease}
-@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        .glass-dock {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
 
-/* Browser App Styles */
-.browser-bar{display:flex;gap:8px;padding:8px;background:#252730;border-bottom:1px solid #333}
-.browser-bar input{flex:1;background:#18191e;border:0;border-radius:18px;color:#fff;padding:0 14px;outline:0}
-.browser-bar button{background:#3976ff;border-radius:12px;padding:6px 14px}
-.tabs-header{display:flex;background:#1d1e24;padding:4px 4px 0;gap:4px;overflow-x:auto}
-.tab-item{padding:6px 14px;background:#292a32;border-radius:8px 8px 0 0;font-size:12px;display:flex;align-items:center;gap:8px;cursor:pointer}
-.tab-item.active{background:#383a45;font-weight:bold}
+        .dark .glass-dock {
+            background: rgba(20, 20, 20, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-/* Generic UI Elements */
-input[type="text"], textarea, select{background:#18191e;border:1px solid #333;color:#fff;padding:8px 12px;border-radius:6px;outline:0}
-button.btn{background:#3976ff;color:#fff;padding:8px 16px;border-radius:6px;transition:0.15s}
-button.btn:hover{background:#285edb}
-.grid-apps{display:grid;grid-template-columns:repeat(auto-fill, minmax(100px, 1fr));gap:20px;padding:10px}
-.app-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border-radius:12px;cursor:pointer;transition:background 0.2s}
-.app-card:hover{background:rgba(255,255,255,0.15)}
-.app-card i{font-style:normal;font-size:36px}
-</style>
+        /* Wallpapers */
+        .wp-aurora {
+            background: linear-gradient(135deg, #051937 0%, #004d7a 30%, #008793 70%, #00bf72 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 18s ease infinite;
+        }
+
+        .wp-sunset {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        .wp-midnight {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+        }
+
+        .wp-space {
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* macOS Dock Hover Effects */
+        .dock-item {
+            transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .dock-item:hover {
+            transform: scale(1.3) translateY(-12px);
+        }
+        .dock-item:hover + .dock-item,
+        .dock-item:has(+ .dock-item:hover) {
+            transform: scale(1.15) translateY(-6px);
+        }
+
+        /* Window Resizing Cursor Handles */
+        .win-resize-handle {
+            position: absolute;
+            z-index: 10;
+        }
+        .res-e { right: 0; top: 0; bottom: 0; width: 6px; cursor: e-resize; }
+        .res-s { bottom: 0; left: 0; right: 0; height: 6px; cursor: s-resize; }
+        .res-se { right: 0; bottom: 0; width: 10px; height: 10px; cursor: se-resize; }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(150, 150, 150, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 100, 100, 0.6);
+        }
+    </style>
 </head>
-<body>
+<body class="h-screen w-screen overflow-hidden wp-aurora select-none text-gray-800 dark:text-gray-100">
 
-<div class="desk" id="desk">
-  <!-- Top Bar -->
-  <div class="top">
-    <b> WebBook</b>
-    <span class="item" onclick="openApp('browser')">Browser</span>
-    <span class="item" onclick="openApp('store')">App Store</span>
-    <span class="item" onclick="openSpotlight()">Spotlight</span>
-    <div class="top-right">
-      <span id="wifi">📶 WiFi</span>
-      <span id="battery">🔋 100%</span>
-      <span id="clock">00:00 AM</span>
+    <!-- TOP MENU BAR -->
+    <header class="fixed top-0 left-0 right-0 h-7 glass-panel z-50 flex items-center justify-between px-3 text-xs font-medium text-white shadow-sm">
+        <!-- Left Menu -->
+        <div class="flex items-center space-x-3">
+            <div id="apple-menu-btn" class="cursor-pointer hover:opacity-80 px-1 py-0.5 rounded transition">
+                <i class="fa-brands fa-apple text-base"></i>
+            </div>
+            <span class="font-bold cursor-pointer" id="active-app-name">Finder</span>
+            <div class="hidden md:flex items-center space-x-3 text-gray-200">
+                <span class="cursor-pointer hover:text-white transition">File</span>
+                <span class="cursor-pointer hover:text-white transition">Edit</span>
+                <span class="cursor-pointer hover:text-white transition">View</span>
+                <span class="cursor-pointer hover:text-white transition">Go</span>
+                <span class="cursor-pointer hover:text-white transition">Window</span>
+                <span class="cursor-pointer hover:text-white transition">Help</span>
+            </div>
+        </div>
+
+        <!-- Right Menu Indicator Status -->
+        <div class="flex items-center space-x-3 text-gray-100">
+            <span class="hover:bg-white/10 px-1.5 py-0.5 rounded cursor-pointer"><i class="fa-solid fa-wifi"></i></span>
+            <span class="hover:bg-white/10 px-1.5 py-0.5 rounded cursor-pointer"><i class="fa-solid fa-battery-three-quarters text-sm"></i></span>
+            <span id="spotlight-btn" class="hover:bg-white/10 px-1.5 py-0.5 rounded cursor-pointer"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <span id="menu-time" class="font-semibold cursor-pointer px-1.5 py-0.5 hover:bg-white/10 rounded">Mon 10:00 AM</span>
+        </div>
+
+        <!-- Apple Dropdown Menu -->
+        <div id="apple-menu-dropdown" class="hidden absolute top-7 left-2 w-52 glass-panel rounded-lg shadow-2xl py-1 text-xs z-50 text-gray-800 dark:text-gray-100">
+            <div onclick="openApp('settings')" class="px-3 py-1.5 hover:bg-blue-600 hover:text-white cursor-pointer flex items-center justify-between">
+                <span>About This WebBook</span><i class="fa-solid fa-circle-info"></i>
+            </div>
+            <div onclick="openApp('settings')" class="px-3 py-1.5 hover:bg-blue-600 hover:text-white cursor-pointer flex items-center justify-between">
+                <span>System Settings...</span><i class="fa-solid fa-gear"></i>
+            </div>
+            <div onclick="openApp('appstore')" class="px-3 py-1.5 hover:bg-blue-600 hover:text-white cursor-pointer flex items-center justify-between">
+                <span>App Store...</span><i class="fa-solid fa-bag-shopping"></i>
+            </div>
+            <hr class="my-1 border-gray-300 dark:border-gray-600 opacity-40">
+            <div onclick="location.reload()" class="px-3 py-1.5 hover:bg-blue-600 hover:text-white cursor-pointer flex items-center justify-between">
+                <span>Restart...</span><i class="fa-solid fa-rotate-right"></i>
+            </div>
+            <div onclick="showToast('Lock Screen Enabled');" class="px-3 py-1.5 hover:bg-blue-600 hover:text-white cursor-pointer flex items-center justify-between">
+                <span>Lock Screen</span><i class="fa-solid fa-lock"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- DESKTOP CONTAINER -->
+    <main id="desktop" class="relative w-full h-full pt-7 pb-20 overflow-hidden">
+        <!-- Desktop Shortcuts -->
+        <div id="desktop-icons" class="p-4 grid grid-cols-1 gap-6 w-28 text-center text-white text-xs drop-shadow-md">
+            <!-- Programmatically initialized or static shortcuts -->
+            <div onclick="openApp('files')" class="flex flex-col items-center group cursor-pointer p-1 rounded hover:bg-white/10 transition">
+                <i class="fa-solid fa-folder text-yellow-400 text-4xl group-hover:scale-105 transition transform"></i>
+                <span class="mt-1 font-medium leading-tight">My Files</span>
+            </div>
+            <div onclick="openApp('notes')" class="flex flex-col items-center group cursor-pointer p-1 rounded hover:bg-white/10 transition">
+                <i class="fa-solid fa-note-sticky text-yellow-300 text-4xl group-hover:scale-105 transition transform"></i>
+                <span class="mt-1 font-medium leading-tight">Quick Notes</span>
+            </div>
+            <div onclick="openApp('snake')" class="flex flex-col items-center group cursor-pointer p-1 rounded hover:bg-white/10 transition">
+                <i class="fa-solid fa-gamepad text-green-400 text-4xl group-hover:scale-105 transition transform"></i>
+                <span class="mt-1 font-medium leading-tight">Snake Game</span>
+            </div>
+        </div>
+
+        <!-- WINDOWS HOST CONTAINER -->
+        <div id="windows-container" class="absolute inset-0 pt-7 pb-20 pointer-events-none">
+            <!-- Dynamic Applications Windows inserted here -->
+        </div>
+    </main>
+
+    <!-- SPOTLIGHT SEARCH POPUP -->
+    <div id="spotlight-modal" class="hidden fixed top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-xl glass-panel rounded-xl shadow-2xl p-3 z-50">
+        <div class="flex items-center space-x-3 px-2 border-b border-gray-300 dark:border-gray-700 pb-2">
+            <i class="fa-solid fa-magnifying-glass text-gray-400 text-lg"></i>
+            <input type="text" id="spotlight-input" placeholder="Spotlight Search or Web Query..." class="w-full bg-transparent border-none outline-none text-lg text-gray-800 dark:text-gray-100 placeholder-gray-400">
+        </div>
+        <div id="spotlight-results" class="mt-2 max-h-60 overflow-y-auto space-y-1 text-sm">
+            <!-- Results populated via JS -->
+        </div>
     </div>
-  </div>
 
-  <!-- Dock -->
-  <div class="dock-container">
-    <div class="dock" id="dock"></div>
-  </div>
-</div>
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-10 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-<!-- Spotlight Overlay -->
-<div class="spotlight-overlay" id="spotlight" onclick="if(event.target===this)closeSpotlight()">
-  <div class="spotlight-box">
-    <input type="text" id="spotlightInput" placeholder="Spotlight Search..." oninput="handleSpotlightSearch()" onkeydown="if(event.key==='Enter')executeSpotlight()">
-    <div class="spotlight-results" id="spotlightResults"></div>
-  </div>
-</div>
-
-<!-- Notifications Container -->
-<div class="notif-container" id="notifContainer"></div>
-
-<!-- Windows Container -->
-<div id="winsContainer"></div>
-
-<script>
-// --- GLOBAL OS STATE ---
-const apps = {
-  browser: { name:'Browser', icon:'🌐', category:'Productivity', default:true },
-  store: { name:'App Store', icon:'🛍️', category:'Utilities', default:true },
-  files: { name:'Files', icon:'📁', category:'Utilities', default:true },
-  notes: { name:'Notes', icon:'📝', category:'Productivity', default:true },
-  texteditor: { name:'TextEditor', icon:'📄', category:'Productivity', default:true },
-  calculator: { name:'Calculator', icon:'🧮', category:'Utilities', default:true },
-  terminal: { name:'Terminal', icon:'⌨️', category:'Utilities', default:true },
-  calendar: { name:'Calendar', icon:'📅', category:'Productivity', default:true },
-  clock: { name:'World Clock', icon:'🕒', category:'Utilities', default:true },
-  timer: { name:'Timer', icon:'⏱️', category:'Utilities', default:true },
-  translator: { name:'Translator', icon:'🈳', category:'Utilities', default:true },
-  maps: { name:'Maps', icon:'🗺️', category:'Utilities', default:true },
-  weather: { name:'Weather', icon:'🌤️', category:'Utilities', default:true },
-  paint: { name:'Paint', icon:'🎨', category:'Creativity', default:true },
-  music: { name:'Music', icon:'🎵', category:'Media', default:true },
-  photos: { name:'Photos', icon:'🖼️', category:'Media', default:true },
-  snake: { name:'Snake', icon:'🐍', category:'Games', default:false },
-  game2048: { name:'2048', icon:'🔢', category:'Games', default:false },
-  tictactoe: { name:'Tic Tac Toe', icon:'❌', category:'Games', default:false },
-  memory: { name:'Memory Match', icon:'🃏', category:'Games', default:false },
-  settings: { name:'Settings', icon:'⚙️', category:'System', default:true }
-};
-
-let installedApps = JSON.parse(localStorage.getItem('installedApps')) || Object.keys(apps).filter(id => apps[id].default);
-let activeZIndex = 1000;
-
-// --- CLOCK & SYSTEM MONITOR ---
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-function showToast(title, body) {
-  const container = document.getElementById('notifContainer');
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.innerHTML = `<b>${title}</b><div style="font-size:12px;margin-top:4px;opacity:0.8">${body}</div>`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
-
-// --- DOCK MANAGEMENT ---
-function renderDock() {
-  const dock = document.getElementById('dock');
-  dock.innerHTML = '';
-  installedApps.forEach(appId => {
-    const app = apps[appId];
-    if (!app) return;
-    const btn = document.createElement('button');
-    btn.innerHTML = `${app.icon}<span class="tooltip">${app.name}</span>`;
-    btn.onclick = () => openApp(appId);
-    dock.appendChild(btn);
-  });
-}
-renderDock();
-
-// --- WINDOW MANAGEMENT (DRAG, RESIZE, CONTROLS) ---
-function openApp(id) {
-  let win = document.getElementById(`win-${id}`);
-  if (win) {
-    bringToFront(win);
-    win.classList.add('show');
-    return;
-  }
-
-  const app = apps[id];
-  win = document.createElement('div');
-  win.id = `win-${id}`;
-  win.className = 'window show';
-  win.style.left = `${80 + Math.random() * 40}px`;
-  win.style.top = `${60 + Math.random() * 40}px`;
-  win.onclick = () => bringToFront(win);
-
-  win.innerHTML = `
-    <div class="wbar" onmousedown="startDrag(event, '${id}')" ondblclick="toggleMaximize('${id}')">
-      <div class="traffic-lights">
-        <i class="r" onclick="closeApp('${id}')"></i>
-        <i class="y" onclick="minimizeApp('${id}')"></i>
-        <i class="g" onclick="toggleMaximize('${id}')"></i>
-      </div>
-      <b>${app.name}</b>
+    <!-- MACOS DOCK -->
+    <div class="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-40">
+        <div id="dock-bar" class="glass-dock px-3 py-2 rounded-2xl flex items-end space-x-2 shadow-2xl transition-all">
+            <!-- Dock items loaded dynamically -->
+        </div>
     </div>
-    <div class="wbody" id="body-${id}"></div>
-    <div class="resize-handle" onmousedown="startResize(event, '${id}')"></div>
-  `;
 
-  document.getElementById('winsContainer').appendChild(win);
-  bringToFront(win);
-  loadAppContent(id);
-}
+    <script>
+        /* APP DEFINITIONS DATABASE */
+        const ALL_APPS = {
+            browser: { id: 'browser', name: 'Browser', icon: 'fa-compass', color: 'bg-blue-500', category: 'Productivity' },
+            appstore: { id: 'appstore', name: 'App Store', icon: 'fa-bag-shopping', color: 'bg-blue-600', category: 'System' },
+            files: { id: 'files', name: 'Files', icon: 'fa-folder', color: 'bg-yellow-500', category: 'Utilities' },
+            notes: { id: 'notes', name: 'Notes', icon: 'fa-note-sticky', color: 'bg-amber-400', category: 'Productivity' },
+            texteditor: { id: 'texteditor', name: 'Text Editor', icon: 'fa-file-lines', color: 'bg-gray-600', category: 'Productivity' },
+            calculator: { id: 'calculator', name: 'Calculator', icon: 'fa-calculator', color: 'bg-orange-500', category: 'Utilities' },
+            terminal: { id: 'terminal', name: 'Terminal', icon: 'fa-terminal', color: 'bg-black', category: 'Utilities' },
+            calendar: { id: 'calendar', name: 'Calendar', icon: 'fa-calendar-days', color: 'bg-red-500', category: 'Productivity' },
+            worldclock: { id: 'worldclock', name: 'World Clock', icon: 'fa-globe', color: 'bg-indigo-600', category: 'Utilities' },
+            timer: { id: 'timer', name: 'Timer & Stop Watch', icon: 'fa-stopwatch', color: 'bg-orange-600', category: 'Utilities' },
+            translator: { id: 'translator', name: 'Translator', icon: 'fa-language', color: 'bg-teal-500', category: 'Utilities' },
+            maps: { id: 'maps', name: 'Maps', icon: 'fa-map-location-dot', color: 'bg-emerald-500', category: 'Utilities' },
+            weather: { id: 'weather', name: 'Weather', icon: 'fa-cloud-sun', color: 'bg-sky-400', category: 'Utilities' },
+            paint: { id: 'paint', name: 'Paint', icon: 'fa-palette', color: 'bg-pink-500', category: 'Media' },
+            music: { id: 'music', name: 'Music Player', icon: 'fa-music', color: 'bg-rose-500', category: 'Media' },
+            photos: { id: 'photos', name: 'Photos', icon: 'fa-images', color: 'bg-purple-500', category: 'Media' },
+            snake: { id: 'snake', name: 'Snake Game', icon: 'fa-gamepad', color: 'bg-green-600', category: 'Games' },
+            game2048: { id: 'game2048', name: '2048', icon: 'fa-cubes', color: 'bg-amber-600', category: 'Games' },
+            tictactoe: { id: 'tictactoe', name: 'Tic Tac Toe', icon: 'fa-xmark', color: 'bg-violet-600', category: 'Games' },
+            memory: { id: 'memory', name: 'Memory Match', icon: 'fa-brain', color: 'bg-pink-600', category: 'Games' },
+            settings: { id: 'settings', name: 'Settings', icon: 'fa-gear', color: 'bg-gray-500', category: 'System' }
+        };
 
-function bringToFront(win) {
-  activeZIndex++;
-  document.querySelectorAll('.window').forEach(w => w.classList.remove('active'));
-  win.style.zIndex = activeZIndex;
-  win.classList.add('active');
-}
+        // State Management
+        let installedApps = JSON.parse(localStorage.getItem('wb_installed_apps')) || Object.keys(ALL_APPS);
+        let openWindows = {}; // track open window states
+        let highestZIndex = 100;
+        let activeAppId = 'Finder';
 
-function closeApp(id) {
-  const win = document.getElementById(`win-${id}`);
-  if (win) win.remove();
-}
+        window.addEventListener('DOMContentLoaded', () => {
+            initClock();
+            renderDock();
+            setupEventListeners();
+            initSpotlight();
+        });
 
-function minimizeApp(id) {
-  const win = document.getElementById(`win-${id}`);
-  if (win) win.classList.remove('show');
-}
+        // Dynamic Top Bar Time
+        function initClock() {
+            const timeEl = document.getElementById('menu-time');
+            const update = () => {
+                const now = new Date();
+                timeEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+            };
+            update();
+            setInterval(update, 1000);
+        }
 
-function toggleMaximize(id) {
-  const win = document.getElementById(`win-${id}`);
-  if (!win) return;
-  if (win.dataset.maximized === 'true') {
-    win.style.left = win.dataset.prevLeft;
-    win.style.top = win.dataset.prevTop;
-    win.style.width = win.dataset.prevWidth;
-    win.style.height = win.dataset.prevHeight;
-    win.dataset.maximized = 'false';
-  } else {
-    win.dataset.prevLeft = win.style.left;
-    win.dataset.prevTop = win.style.top;
-    win.dataset.prevWidth = win.style.width;
-    win.dataset.prevHeight = win.style.height;
-    win.style.left = '0px';
-    win.style.top = '30px';
-    win.style.width = '100vw';
-    win.style.height = 'calc(100vh - 30px)';
-    win.dataset.maximized = 'true';
-  }
-}
+        // Render Dock Icons
+        function renderDock() {
+            const dock = document.getElementById('dock-bar');
+            dock.innerHTML = '';
 
-function startDrag(e, id) {
-  if (e.target.tagName === 'I') return;
-  const win = document.getElementById(`win-${id}`);
-  bringToFront(win);
-  let startX = e.clientX - win.offsetLeft;
-  let startY = e.clientY - win.offsetTop;
+            installedApps.forEach(appId => {
+                const app = ALL_APPS[appId];
+                if (!app) return;
 
-  function move(ev) {
-    win.style.left = `${ev.clientX - startX}px`;
-    win.style.top = `${ev.clientY - startY}px`;
-  }
-  function stop() {
-    window.removeEventListener('mousemove', move);
-    window.removeEventListener('mouseup', stop);
-  }
-  window.addEventListener('mousemove', move);
-  window.addEventListener('mouseup', stop);
-}
+                const isOpen = !!openWindows[appId];
+                const item = document.createElement('div');
+                item.className = 'dock-item relative group cursor-pointer flex flex-col items-center';
+                item.onclick = () => toggleAppWindow(appId);
 
-function startResize(e, id) {
-  e.stopPropagation();
-  const win = document.getElementById(`win-${id}`);
-  let startW = win.offsetWidth;
-  let startH = win.offsetHeight;
-  let startX = e.clientX;
-  let startY = e.clientY;
+                item.innerHTML = `
+                    <div class="w-12 h-12 ${app.color} rounded-xl shadow-lg flex items-center justify-center text-white text-xl transition-all duration-150 group-active:scale-95">
+                        <i class="fa-solid ${app.icon}"></i>
+                    </div>
+                    <!-- Tooltip -->
+                    <span class="absolute -top-10 scale-0 group-hover:scale-100 transition-all bg-gray-900/90 text-white text-xs px-2 py-1 rounded shadow-md pointer-events-none whitespace-nowrap">
+                        ${app.name}
+                    </span>
+                    <!-- Active Dot -->
+                    <div class="w-1.5 h-1.5 rounded-full bg-white mt-1 opacity-${isOpen ? '100' : '0'}"></div>
+                `;
+                dock.appendChild(item);
+            });
+        }
 
-  function move(ev) {
-    win.style.width = `${Math.max(300, startW + (ev.clientX - startX))}px`;
-    win.style.height = `${Math.max(200, startH + (ev.clientY - startY))}px`;
-  }
-  function stop() {
-    window.removeEventListener('mousemove', move);
-    window.removeEventListener('mouseup', stop);
-  }
-  window.addEventListener('mousemove', move);
-  window.addEventListener('mouseup', stop);
-}
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto glass-panel border border-white/20 px-4 py-2.5 rounded-xl shadow-xl flex items-center space-x-3 text-sm text-white transform translate-x-full transition-all duration-300';
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-red-400' : 'fa-bell text-blue-400'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
 
-// --- SPOTLIGHT SEARCH ---
-function openSpotlight() {
-  document.getElementById('spotlight').classList.add('show');
-  const input = document.getElementById('spotlightInput');
-  input.value = '';
-  input.focus();
-  handleSpotlightSearch();
-}
-function closeSpotlight() { document.getElementById('spotlight').classList.remove('show'); }
+            setTimeout(() => toast.classList.remove('translate-x-full'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
-function handleSpotlightSearch() {
-  const query = document.getElementById('spotlightInput').value.toLowerCase().trim();
-  const container = document.getElementById('spotlightResults');
-  container.innerHTML = '';
+        function setupEventListeners() {
+            // Apple Menu Toggle
+            document.getElementById('apple-menu-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('apple-menu-dropdown').classList.toggle('hidden');
+            });
 
-  Object.keys(apps).forEach(id => {
-    if (apps[id].name.toLowerCase().includes(query)) {
-      const item = document.createElement('div');
-      item.className = 'spot-item';
-      item.innerHTML = `<span>${apps[id].icon}</span> <b>${apps[id].name}</b> <small style="margin-left:auto;opacity:0.6">${apps[id].category}</small>`;
-      item.onclick = () => { openApp(id); closeSpotlight(); };
-      container.appendChild(item);
-    }
-  });
-}
+            document.addEventListener('click', () => {
+                document.getElementById('apple-menu-dropdown').classList.add('hidden');
+            });
 
-function executeSpotlight() {
-  const query = document.getElementById('spotlightInput').value.trim();
-  if (!query) return;
-  closeSpotlight();
-  openApp('browser');
-  setTimeout(() => navigateBrowser(`https://duckduckgo.com/?q=${encodeURIComponent(query)}`), 100);
-}
+            // Spotlight Hotkey
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.code === 'Space') {
+                    e.preventDefault();
+                    toggleSpotlight();
+                }
+            });
 
-window.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
-    e.preventDefault();
-    openSpotlight();
-  }
-});
+            document.getElementById('spotlight-btn').addEventListener('click', toggleSpotlight);
+        }
 
-// --- APP CONTENT LOADERS ---
-function loadAppContent(id) {
-  const body = document.getElementById(`body-${id}`);
-  body.innerHTML = '';
+        function toggleSpotlight() {
+            const modal = document.getElementById('spotlight-modal');
+            const input = document.getElementById('spotlight-input');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                input.value = '';
+                input.focus();
+                renderSpotlightResults('');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
 
-  switch (id) {
-    case 'browser':
-      body.style.padding = '0';
-      body.style.display = 'flex';
-      body.style.flexDirection = 'column';
-      body.innerHTML = `
-        <div class="tabs-header">
-          <div class="tab-item active">DuckDuckGo</div>
-        </div>
-        <div class="browser-bar">
-          <input type="text" id="browserAddr" value="https://duckduckgo.com" onkeydown="if(event.key==='Enter')navigateBrowser(this.value)">
-          <button onclick="navigateBrowser(document.getElementById('browserAddr').value)">Go</button>
-        </div>
-        <div style="padding:4px;background:#252730;display:flex;gap:10px;font-size:12px">
-          <button onclick="navigateBrowser('https://duckduckgo.com')">DuckDuckGo</button>
-          <button onclick="navigateBrowser('https://wikipedia.org')">Wikipedia</button>
-          <button onclick="navigateBrowser('https://bing.com')">Bing</button>
-          <button onclick="navigateBrowser('https://archive.org')">Archive</button>
-          <button onclick="navigateBrowser('https://news.ycombinator.com')">Hacker News</button>
-          <button onclick="navigateBrowser('https://old.reddit.com')">Reddit</button>
-        </div>
-        <iframe id="browserFrame" src="/proxy?url=${encodeURIComponent('https://duckduckgo.com')}" style="flex:1;width:100%;border:0;background:#fff"></iframe>
-      `;
-      break;
+        function initSpotlight() {
+            const input = document.getElementById('spotlight-input');
+            input.addEventListener('input', (e) => renderSpotlightResults(e.target.value));
+        }
 
-    case 'store':
-      body.innerHTML = `
-        <h2>App Store</h2>
-        <div class="grid-apps" id="storeGrid"></div>
-      `;
-      renderStore();
-      break;
+        function renderSpotlightResults(query) {
+            const container = document.getElementById('spotlight-results');
+            container.innerHTML = '';
+            const q = query.toLowerCase().trim();
 
-    case 'notes':
-      body.innerHTML = `<textarea style="width:100%;height:100%;resize:none;background:transparent;color:#fff;border:0;outline:0;font-size:16px" oninput="localStorage.setItem('savedNotes', this.value)" placeholder="Start typing...">${localStorage.getItem('savedNotes')||''}</textarea>`;
-      break;
+            const filtered = Object.values(ALL_APPS).filter(app => app.name.toLowerCase().includes(q));
 
-    case 'texteditor':
-      body.innerHTML = `
-        <div style="margin-bottom:8px;display:flex;gap:10px">
-          <button class="btn" onclick="document.getElementById('textEditorArea').value=''">New</button>
-          <button class="btn" onclick="showToast('Saved', 'File saved locally')">Save</button>
-        </div>
-        <textarea id="textEditorArea" style="width:100%;height:calc(100% - 40px);background:#111;color:#0f0;font-family:monospace;border:0;padding:10px"></textarea>
-      `;
-      break;
+            filtered.forEach(app => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between p-2 hover:bg-blue-600 hover:text-white rounded-lg cursor-pointer transition';
+                row.onclick = () => {
+                    openApp(app.id);
+                    toggleSpotlight();
+                };
+                row.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-7 h-7 ${app.color} rounded flex items-center justify-center text-white text-xs">
+                            <i class="fa-solid ${app.icon}"></i>
+                        </div>
+                        <span class="font-medium">${app.name}</span>
+                    </div>
+                    <span class="text-xs opacity-60">Application</span>
+                `;
+                container.appendChild(row);
+            });
 
-    case 'calculator':
-      body.innerHTML = `
-        <input type="text" id="calcDisplay" readonly style="width:100%;font-size:24px;text-align:right;margin-bottom:10px">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-          ${['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'].map(char => 
-            `<button class="btn" style="font-size:18px;padding:15px" onclick="calcInput('${char}')">${char}</button>`
-          ).join('')}
-          <button class="btn" style="grid-column:span 4;background:#e0443e" onclick="calcInput('C')">Clear</button>
-        </div>
-      `;
-      break;
+            if (q.length > 0) {
+                const webRow = document.createElement('div');
+                webRow.className = 'flex items-center justify-between p-2 hover:bg-blue-600 hover:text-white rounded-lg cursor-pointer transition border-t border-gray-500/20 mt-1';
+                webRow.onclick = () => {
+                    openApp('browser');
+                    setTimeout(() => {
+                        const iframe = document.getElementById('browser-iframe');
+                        if (iframe) iframe.src = `https://duckduckgo.com/?q=${encodeURIComponent(q)}`;
+                    }, 300);
+                    toggleSpotlight();
+                };
+                webRow.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-globe text-blue-400"></i>
+                        <span>Search Web for "${q}"</span>
+                    </div>
+                    <i class="fa-solid fa-arrow-right text-xs opacity-60"></i>
+                `;
+                container.appendChild(webRow);
+            }
+        }
 
-    case 'terminal':
-      body.style.background = '#050805';
-      body.style.color = '#55ff70';
-      body.style.fontFamily = 'monospace';
-      body.innerHTML = `
-        <div id="termOut">WebBook OS Terminal v2.0<br>Type 'help' for available commands.<br><br></div>
-        <div style="display:flex">$ <input type="text" id="termInput" style="flex:1;background:transparent;border:0;color:#55ff70;outline:0;font-family:monospace" onkeydown="if(event.key==='Enter')handleTermCommand(this.value)"></div>
-      `;
-      break;
+        function toggleAppWindow(appId) {
+            if (openWindows[appId]) {
+                const win = document.getElementById(`win-${appId}`);
+                if (win.classList.contains('hidden')) {
+                    win.classList.remove('hidden');
+                    bringToFront(appId);
+                } else if (parseInt(win.style.zIndex) === highestZIndex) {
+                    win.classList.add('hidden'); // Minimize toggle
+                } else {
+                    bringToFront(appId);
+                }
+            } else {
+                openApp(appId);
+            }
+        }
 
-    case 'calendar':
-      body.innerHTML = `<h3>📅 ${new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h3><p>No upcoming events scheduled.</p>`;
-      break;
+        function bringToFront(appId) {
+            highestZIndex++;
+            const win = document.getElementById(`win-${appId}`);
+            if (win) {
+                win.style.zIndex = highestZIndex;
+                document.getElementById('active-app-name').textContent = ALL_APPS[appId]?.name || 'Finder';
+            }
+        }
 
-    case 'clock':
-      body.innerHTML = `
-        <h3>World Clocks</h3>
-        <p><b>London:</b> ${new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London' })}</p>
-        <p><b>New York:</b> ${new Date().toLocaleTimeString('en-US', { timeZone: 'America/New_York' })}</p>
-        <p><b>Tokyo:</b> ${new Date().toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo' })}</p>
-      `;
-      break;
+        function openApp(appId) {
+            if (openWindows[appId]) {
+                const win = document.getElementById(`win-${appId}`);
+                win.classList.remove('hidden');
+                bringToFront(appId);
+                return;
+            }
 
-    case 'paint':
-      body.style.padding = '0';
-      body.innerHTML = `
-        <div style="padding:5px;background:#222;display:flex;gap:10px">
-          <input type="color" id="paintColor" value="#ffffff">
-          <input type="range" id="paintSize" min="1" max="20" value="5">
-          <button class="btn" onclick="clearCanvas()">Clear</button>
-        </div>
-        <canvas id="paintCanvas" style="width:100%;height:calc(100% - 40px);background:#000;cursor:crosshair"></canvas>
-      `;
-      setTimeout(initPaint, 50);
-      break;
+            const app = ALL_APPS[appId];
+            if (!app) return;
 
-    case 'weather':
-      body.innerHTML = `
-        <h3>🌤️ Local Weather</h3>
-        <p>Temperature: 21°C</p>
-        <p>Condition: Partly Cloudy</p>
-        <p>Humidity: 55%</p>
-      `;
-      break;
+            const win = document.createElement('div');
+            win.id = `win-${appId}`;
+            win.className = 'pointer-events-auto absolute glass-panel rounded-xl shadow-2xl flex flex-col overflow-hidden transition-shadow duration-200 border border-white/20';
+            
+            // Initial positioning
+            const offset = (Object.keys(openWindows).length % 6) * 30;
+            win.style.width = '700px';
+            win.style.height = '480px';
+            win.style.top = `${60 + offset}px`;
+            win.style.left = `${100 + offset}px`;
+            win.style.zIndex = ++highestZIndex;
 
-    case 'maps':
-      body.style.padding = '0';
-      body.innerHTML = `<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-0.15%2C51.5%2C-0.05%2C51.52&layer=mapnik" style="width:100%;height:100%;border:0"></iframe>`;
-      break;
+            win.innerHTML = `
+                <!-- Window Header -->
+                <div class="win-header h-9 bg-gray-200/50 dark:bg-gray-800/50 backdrop-blur-md flex items-center justify-between px-3 cursor-move border-b border-gray-300/30 dark:border-gray-700/30">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="closeApp('${appId}')" class="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-[8px] text-red-900 group">
+                            <i class="fa-solid fa-xmark opacity-0 group-hover:opacity-100"></i>
+                        </button>
+                        <button onclick="minimizeApp('${appId}')" class="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center text-[8px] text-yellow-900 group">
+                            <i class="fa-solid fa-minus opacity-0 group-hover:opacity-100"></i>
+                        </button>
+                        <button onclick="maximizeApp('${appId}')" class="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center text-[8px] text-green-900 group">
+                            <i class="fa-solid fa-expand opacity-0 group-hover:opacity-100"></i>
+                        </button>
+                    </div>
+                    <div class="text-xs font-semibold opacity-80 flex items-center space-x-2">
+                        <i class="fa-solid ${app.icon}"></i>
+                        <span>${app.name}</span>
+                    </div>
+                    <div class="w-12"></div>
+                </div>
 
-    case 'snake':
-      body.innerHTML = `<canvas id="snakeCanvas" width="300" height="300" style="background:#000;display:block;margin:auto"></canvas>`;
-      setTimeout(initSnake, 50);
-      break;
+                <!-- Window Content Body -->
+                <div id="content-${appId}" class="flex-1 overflow-auto bg-white/50 dark:bg-gray-900/50 backdrop-blur-md relative">
+                    <!-- Dynamic App HTML -->
+                </div>
 
-    case 'settings':
-      body.innerHTML = `
-        <h3>System Settings</h3>
-        <hr style="border-color:rgba(255,255,255,0.1)">
-        <p><button class="btn" onclick="localStorage.clear();location.reload()">Reset All Data</button></p>
-      `;
-      break;
+                <!-- Resize Handles -->
+                <div class="win-resize-handle res-e"></div>
+                <div class="win-resize-handle res-s"></div>
+                <div class="win-resize-handle res-se"></div>
+            `;
 
-    default:
-      body.innerHTML = `<h3>${apps[id].name}</h3><p>App running seamlessly.</p>`;
-  }
-}
+            win.onmousedown = () => bringToFront(appId);
+            document.getElementById('windows-container').appendChild(win);
 
-// --- BROWSER NAVIGATION (Proxy-based) ---
-function navigateBrowser(url) {
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    url = 'https://duckduckgo.com/?q=' + encodeURIComponent(url);
-  }
-  document.getElementById('browserAddr').value = url;
-  document.getElementById('browserFrame').src = `/proxy?url=${encodeURIComponent(url)}`;
-}
+            openWindows[appId] = true;
+            renderDock();
+            bringToFront(appId);
 
-// --- APP STORE LOGIC ---
-function renderStore() {
-  const grid = document.getElementById('storeGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
+            // Attach Window Draggable & Resizable Handlers
+            makeDraggable(win);
+            makeResizable(win);
 
-  Object.keys(apps).forEach(id => {
-    const isInstalled = installedApps.includes(id);
-    const card = document.createElement('div');
-    card.className = 'app-card';
-    card.innerHTML = `
-      <i>${apps[id].icon}</i>
-      <b>${apps[id].name}</b>
-      <small style="opacity:0.6">${apps[id].category}</small>
-      <button class="btn" style="margin-top:5px;width:100%;font-size:12px;background:${isInstalled ? '#e0443e' : '#3976ff'}">
-        ${isInstalled ? 'Uninstall' : 'Install'}
-      </button>
-    `;
-    card.querySelector('button').onclick = (e) => {
-      e.stopPropagation();
-      toggleAppInstall(id);
-    };
-    grid.appendChild(card);
-  });
-}
+            // Mount Specific App Code
+            mountAppContent(appId);
+        }
 
-function toggleAppInstall(id) {
-  if (installedApps.includes(id)) {
-    installedApps = installedApps.filter(appId => appId !== id);
-    closeApp(id);
-    showToast('Uninstalled', `${apps[id].name} was removed`);
-  } else {
-    installedApps.push(id);
-    showToast('Installed', `${apps[id].name} added to Dock`);
-  }
-  localStorage.setItem('installedApps', JSON.stringify(installedApps));
-  renderDock();
-  renderStore();
-}
+        function closeApp(appId) {
+            const win = document.getElementById(`win-${appId}`);
+            if (win) win.remove();
+            delete openWindows[appId];
+            renderDock();
+        }
 
-// --- APP INTERACTIVE LOGIC ---
-function calcInput(char) {
-  const display = document.getElementById('calcDisplay');
-  if (char === 'C') display.value = '';
-  else if (char === '=') {
-    try { display.value = eval(display.value); } catch { display.value = 'Error'; }
-  } else display.value += char;
-}
+        function minimizeApp(appId) {
+            const win = document.getElementById(`win-${appId}`);
+            if (win) win.classList.add('hidden');
+        }
 
-function handleTermCommand(cmd) {
-  const out = document.getElementById('termOut');
-  document.getElementById('termInput').value = '';
-  out.innerHTML += `$ ${cmd}<br>`;
-  
-  const cleanCmd = cmd.trim().toLowerCase();
-  if (cleanCmd === 'help') out.innerHTML += 'Commands: help, clear, date, echo, apps<br>';
-  else if (cleanCmd === 'clear') out.innerHTML = '';
-  else if (cleanCmd === 'date') out.innerHTML += `${new Date().toString()}<br>`;
-  else if (cleanCmd === 'apps') out.innerHTML += `Installed: ${installedApps.join(', ')}<br>`;
-  else if (cleanCmd.startsWith('echo ')) out.innerHTML += `${cmd.substring(5)}<br>`;
-  else out.innerHTML += `Command not found: ${cmd}<br>`;
-}
+        function maximizeApp(appId) {
+            const win = document.getElementById(`win-${appId}`);
+            if (win.style.width === '100%') {
+                win.style.width = win.dataset.prevWidth || '700px';
+                win.style.height = win.dataset.prevHeight || '480px';
+                win.style.top = win.dataset.prevTop || '60px';
+                win.style.left = win.dataset.prevLeft || '100px';
+            } else {
+                win.dataset.prevWidth = win.style.width;
+                win.dataset.prevHeight = win.style.height;
+                win.dataset.prevTop = win.style.top;
+                win.dataset.prevLeft = win.style.left;
 
-function initPaint() {
-  const canvas = document.getElementById('paintCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight - 40;
-  let drawing = false;
+                win.style.width = '100%';
+                win.style.height = 'calc(100% - 28px)';
+                win.style.top = '28px';
+                win.style.left = '0px';
+            }
+        }
 
-  canvas.onmousedown = () => drawing = true;
-  canvas.onmouseup = () => { drawing = false; ctx.beginPath(); };
-  canvas.onmousemove = (e) => {
-    if (!drawing) return;
-    const rect = canvas.getBoundingClientRect();
-    ctx.lineWidth = document.getElementById('paintSize').value;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = document.getElementById('paintColor').value;
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-  };
-}
-function clearCanvas() {
-  const canvas = document.getElementById('paintCanvas');
-  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-}
+        function makeDraggable(win) {
+            const header = win.querySelector('.win-header');
+            let isDragging = false, startX, startY, initialLeft, initialTop;
 
-function initSnake() {
-  const canvas = document.getElementById('snakeCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  let snake = [{x: 10, y: 10}];
-  let food = {x: 15, y: 15};
-  let dx = 1, dy = 0;
+            header.onmousedown = (e) => {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = win.offsetLeft;
+                initialTop = win.offsetTop;
 
-  const loop = setInterval(() => {
-    if (!document.getElementById('snakeCanvas')) return clearInterval(loop);
-    const head = {x: snake[0].x + dx, y: snake[0].y + dy};
-    snake.unshift(head);
-    if (head.x === food.x && head.y === food.y) {
-      food = {x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20)};
-    } else snake.pop();
+                document.onmousemove = (e) => {
+                    if (!isDragging) return;
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    win.style.left = `${initialLeft + dx}px`;
+                    win.style.top = `${initialTop + dy}px`;
+                };
 
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, 300, 300);
-    ctx.fillStyle = '#f00';
-    ctx.fillRect(food.x * 15, food.y * 15, 14, 14);
-    ctx.fillStyle = '#0f0';
-    snake.forEach(p => ctx.fillRect(p.x * 15, p.y * 15, 14, 14));
-  }, 100);
+                document.onmouseup = () => { isDragging = false; };
+            };
+        }
 
-  window.onkeydown = (e) => {
-    if (e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -1; }
-    if (e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 1; }
-    if (e.key === 'ArrowLeft' && dx === 0) { dx = -1; dy = 0; }
-    if (e.key === 'ArrowRight' && dx === 0) { dx = 1; dy = 0; }
-  };
-}
-</script>
+        function makeResizable(win) {
+            const handles = win.querySelectorAll('.win-resize-handle');
+            handles.forEach(handle => {
+                handle.onmousedown = (e) => {
+                    e.stopPropagation();
+                    let startX = e.clientX, startY = e.clientY;
+                    let startW = win.offsetWidth, startH = win.offsetHeight;
+
+                    document.onmousemove = (e) => {
+                        if (handle.classList.contains('res-e') || handle.classList.contains('res-se')) {
+                            win.style.width = `${Math.max(320, startW + (e.clientX - startX))}px`;
+                        }
+                        if (handle.classList.contains('res-s') || handle.classList.contains('res-se')) {
+                            win.style.height = `${Math.max(200, startH + (e.clientY - startY))}px`;
+                        }
+                    };
+
+                    document.onmouseup = () => { document.onmousemove = null; };
+                };
+            });
+        }
+
+        function mountAppContent(appId) {
+            const container = document.getElementById(`content-${appId}`);
+            if (!container) return;
+
+            switch (appId) {
+                case 'browser': renderBrowser(container); break;
+                case 'appstore': renderAppStore(container); break;
+                case 'files': renderFiles(container); break;
+                case 'notes': renderNotes(container); break;
+                case 'texteditor': renderTextEditor(container); break;
+                case 'calculator': renderCalculator(container); break;
+                case 'terminal': renderTerminal(container); break;
+                case 'calendar': renderCalendar(container); break;
+                case 'worldclock': renderWorldClock(container); break;
+                case 'timer': renderTimer(container); break;
+                case 'translator': renderTranslator(container); break;
+                case 'maps': renderMaps(container); break;
+                case 'weather': renderWeather(container); break;
+                case 'paint': renderPaint(container); break;
+                case 'music': renderMusic(container); break;
+                case 'photos': renderPhotos(container); break;
+                case 'snake': renderSnake(container); break;
+                case 'game2048': render2048(container); break;
+                case 'tictactoe': renderTicTacToe(container); break;
+                case 'memory': renderMemory(container); break;
+                case 'settings': renderSettings(container); break;
+            }
+        }
+
+        function renderBrowser(c) {
+            c.innerHTML = `
+                <div class="flex flex-col h-full">
+                    <div class="flex items-center space-x-2 p-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
+                        <button id="b-back" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button id="b-reload" class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"><i class="fa-solid fa-rotate-right"></i></button>
+                        <input id="b-url" type="text" value="https://duckduckgo.com" class="flex-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-full px-4 py-1 text-xs outline-none">
+                        <button id="b-go" class="bg-blue-600 text-white px-3 py-1 rounded-full text-xs hover:bg-blue-700">Go</button>
+                    </div>
+                    <div class="flex items-center space-x-2 px-3 py-1 bg-gray-50 dark:bg-gray-850 text-xs border-b border-gray-200 dark:border-gray-800">
+                        <span class="text-gray-400 font-semibold">Bookmarks:</span>
+                        <button onclick="navigateBrowser('https://duckduckgo.com')" class="hover:underline">DuckDuckGo</button> |
+                        <button onclick="navigateBrowser('https://wikipedia.org')" class="hover:underline">Wikipedia</button> |
+                        <button onclick="navigateBrowser('https://bing.com')" class="hover:underline">Bing</button>
+                    </div>
+                    <iframe id="browser-iframe" src="https://duckduckgo.com" class="w-full flex-1 border-none"></iframe>
+                </div>
+            `;
+
+            const iframe = c.querySelector('#browser-iframe');
+            const urlInput = c.querySelector('#b-url');
+
+            window.navigateBrowser = (url) => {
+                urlInput.value = url;
+                iframe.src = url;
+            };
+
+            c.querySelector('#b-go').onclick = () => {
+                let val = urlInput.value.trim();
+                if (!val.startsWith('http://') && !val.startsWith('https://')) {
+                    val = 'https://' + val;
+                }
+                iframe.src = val;
+            };
+            c.querySelector('#b-reload').onclick = () => { iframe.src = iframe.src; };
+        }
+
+        function renderAppStore(c) {
+            c.innerHTML = `
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold mb-4">WebBook App Store</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="appstore-grid"></div>
+                </div>
+            `;
+
+            const grid = c.querySelector('#appstore-grid');
+            Object.values(ALL_APPS).forEach(app => {
+                const isInstalled = installedApps.includes(app.id);
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-4 rounded-xl flex flex-col items-center text-center shadow-sm hover:shadow-md transition';
+                card.innerHTML = `
+                    <div class="w-12 h-12 ${app.color} rounded-xl flex items-center justify-center text-white text-xl mb-2">
+                        <i class="fa-solid ${app.icon}"></i>
+                    </div>
+                    <h3 class="font-semibold text-sm">${app.name}</h3>
+                    <span class="text-xs text-gray-400 mb-3">${app.category}</span>
+                    <button class="app-install-btn px-4 py-1 text-xs font-semibold rounded-full ${isInstalled ? 'bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-200' : 'bg-blue-600 text-white hover:bg-blue-700'}">
+                        ${isInstalled ? 'Installed' : 'GET'}
+                    </button>
+                `;
+
+                const btn = card.querySelector('.app-install-btn');
+                btn.onclick = () => {
+                    if (installedApps.includes(app.id)) {
+                        installedApps = installedApps.filter(id => id !== app.id);
+                        showToast(`Uninstalled ${app.name}`);
+                    } else {
+                        installedApps.push(app.id);
+                        showToast(`Installed ${app.name}`);
+                    }
+                    localStorage.setItem('wb_installed_apps', JSON.stringify(installedApps));
+                    renderDock();
+                    renderAppStore(c);
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function renderFiles(c) {
+            let files = JSON.parse(localStorage.getItem('wb_files')) || [
+                { name: 'Welcome.txt', content: 'Welcome to WebBook OS desktop environment!' },
+                { name: 'Notes.txt', content: 'You can create and manage text files here.' }
+            ];
+
+            const saveFiles = () => localStorage.setItem('wb_files', JSON.stringify(files));
+
+            const updateUI = () => {
+                c.innerHTML = `
+                    <div class="flex h-full">
+                        <div class="w-1/3 border-r border-gray-300 dark:border-gray-700 p-3 space-y-2 bg-gray-100/40 dark:bg-gray-800/40">
+                            <button id="add-file-btn" class="w-full bg-blue-600 text-white py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-plus"></i><span>New Text File</span>
+                            </button>
+                            <div class="space-y-1 mt-4" id="file-list"></div>
+                        </div>
+                        <div class="flex-1 p-4 flex flex-col" id="file-preview">
+                            <p class="text-sm text-gray-400">Select a file to view or edit</p>
+                        </div>
+                    </div>
+                `;
+
+                const list = c.querySelector('#file-list');
+                files.forEach((file, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-xs';
+                    item.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-file-lines text-blue-500"></i>
+                            <span class="font-medium">${file.name}</span>
+                        </div>
+                        <button onclick="deleteFile(${idx})" class="text-red-400 hover:text-red-600 px-1"><i class="fa-solid fa-trash"></i></button>
+                    `;
+                    item.onclick = (e) => {
+                        if (e.target.closest('button')) return;
+                        showPreview(idx);
+                    };
+                    list.appendChild(item);
+                });
+
+                c.querySelector('#add-file-btn').onclick = () => {
+                    const name = prompt('File name:', 'Untitled.txt');
+                    if (name) {
+                        files.push({ name, content: '' });
+                        saveFiles();
+                        updateUI();
+                    }
+                };
+            };
+
+            window.deleteFile = (idx) => {
+                files.splice(idx, 1);
+                saveFiles();
+                updateUI();
+            };
+
+            const showPreview = (idx) => {
+                const prev = c.querySelector('#file-preview');
+                prev.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-sm">${files[idx].name}</h3>
+                        <button id="save-file-content" class="bg-green-600 text-white px-3 py-1 rounded text-xs">Save</button>
+                    </div>
+                    <textarea id="file-text-area" class="w-full flex-1 p-2 rounded bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-xs font-mono outline-none resize-none">${files[idx].content}</textarea>
+                `;
+                prev.querySelector('#save-file-content').onclick = () => {
+                    files[idx].content = prev.querySelector('#file-text-area').value;
+                    saveFiles();
+                    showToast('File Saved!');
+                };
+            };
+
+            updateUI();
+        }
+
+        function renderNotes(c) {
+            const savedNote = localStorage.getItem('wb_notes') || '';
+            c.innerHTML = `
+                <div class="p-4 h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-semibold text-gray-500">Auto-saving Notepad</span>
+                        <span id="note-char-count" class="text-xs text-gray-400">0 characters</span>
+                    </div>
+                    <textarea id="notes-area" class="w-full flex-1 p-3 rounded-lg bg-yellow-50 dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-yellow-200 dark:border-gray-700 outline-none resize-none font-sans leading-relaxed">${savedNote}</textarea>
+                </div>
+            `;
+
+            const textarea = c.querySelector('#notes-area');
+            const count = c.querySelector('#note-char-count');
+
+            const updateCount = () => { count.textContent = `${textarea.value.length} characters`; };
+            updateCount();
+
+            textarea.oninput = () => {
+                localStorage.setItem('wb_notes', textarea.value);
+                updateCount();
+            };
+        }
+
+        function renderTextEditor(c) {
+            c.innerHTML = `
+                <div class="flex flex-col h-full">
+                    <div class="p-2 border-b border-gray-300 dark:border-gray-700 flex space-x-2 bg-gray-100 dark:bg-gray-800">
+                        <button id="te-export" class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">Export .txt</button>
+                    </div>
+                    <textarea id="te-text" class="flex-1 w-full p-3 font-mono text-xs bg-white dark:bg-gray-900 border-none outline-none resize-none" placeholder="Start typing code or text..."></textarea>
+                </div>
+            `;
+
+            c.querySelector('#te-export').onclick = () => {
+                const text = c.querySelector('#te-text').value;
+                const blob = new Blob([text], { type: 'text/plain' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'document.txt';
+                a.click();
+            };
+        }
+
+        function renderCalculator(c) {
+            c.innerHTML = `
+                <div class="p-4 h-full flex flex-col justify-between max-w-xs mx-auto">
+                    <div id="calc-display" class="bg-gray-200 dark:bg-gray-800 p-3 rounded-lg text-right font-mono text-2xl mb-4 overflow-x-auto">0</div>
+                    <div class="grid grid-cols-4 gap-2 text-sm font-semibold">
+                        <button class="calc-btn bg-gray-300 dark:bg-gray-700 p-3 rounded-lg" data-v="C">C</button>
+                        <button class="calc-btn bg-gray-300 dark:bg-gray-700 p-3 rounded-lg" data-v="DEL"><i class="fa-solid fa-delete-left"></i></button>
+                        <button class="calc-btn bg-gray-300 dark:bg-gray-700 p-3 rounded-lg" data-v="/">/</button>
+                        <button class="calc-btn bg-orange-500 text-white p-3 rounded-lg" data-v="*">*</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="7">7</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="8">8</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="9">9</button>
+                        <button class="calc-btn bg-orange-500 text-white p-3 rounded-lg" data-v="-">-</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="4">4</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="5">5</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="6">6</button>
+                        <button class="calc-btn bg-orange-500 text-white p-3 rounded-lg" data-v="+">+</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="1">1</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="2">2</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v="3">3</button>
+                        <button class="calc-btn bg-orange-500 text-white p-3 rounded-lg row-span-2 flex items-center justify-center" data-v="=">=</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg col-span-2" data-v="0">0</button>
+                        <button class="calc-btn bg-gray-100 dark:bg-gray-800 p-3 rounded-lg" data-v=".">.</button>
+                    </div>
+                </div>
+            `;
+
+            let expr = '';
+            const disp = c.querySelector('#calc-display');
+
+            c.querySelectorAll('.calc-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const v = btn.getAttribute('data-v');
+                    if (v === 'C') expr = '';
+                    else if (v === 'DEL') expr = expr.slice(0, -1);
+                    else if (v === '=') {
+                        try { expr = eval(expr).toString(); } catch { expr = 'Error'; }
+                    } else {
+                        expr += v;
+                    }
+                    disp.textContent = expr || '0';
+                };
+            });
+        }
+
+        function renderTerminal(c) {
+            c.innerHTML = `
+                <div class="h-full bg-black text-green-400 p-3 font-mono text-xs flex flex-col">
+                    <div id="term-out" class="flex-1 overflow-y-auto space-y-1 mb-2">
+                        <div>WebBook OS CLI v1.0. Type 'help' for commands.</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span>$</span>
+                        <input id="term-in" type="text" class="flex-1 bg-transparent border-none outline-none text-green-400 font-mono">
+                    </div>
+                </div>
+            `;
+
+            const out = c.querySelector('#term-out');
+            const input = c.querySelector('#term-in');
+
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    const cmd = input.value.trim();
+                    input.value = '';
+                    out.innerHTML += `<div>$ ${cmd}</div>`;
+
+                    if (cmd === 'help') {
+                        out.innerHTML += `<div>Available: help, ls, clear, date, whoami, apps</div>`;
+                    } else if (cmd === 'ls') {
+                        out.innerHTML += `<div>Documents/ Downloads/ System/ Desktop/</div>`;
+                    } else if (cmd === 'clear') {
+                        out.innerHTML = '';
+                    } else if (cmd === 'date') {
+                        out.innerHTML += `<div>${new Date().toString()}</div>`;
+                    } else if (cmd === 'whoami') {
+                        out.innerHTML += `<div>user@webbook-os</div>`;
+                    } else if (cmd === 'apps') {
+                        out.innerHTML += `<div>${Object.keys(ALL_APPS).join(', ')}</div>`;
+                    } else if (cmd !== '') {
+                        out.innerHTML += `<div class="text-red-400">Command not found: ${cmd}</div>`;
+                    }
+                    out.scrollTop = out.scrollHeight;
+                }
+            };
+        }
+
+        function renderCalendar(c) {
+            const today = new Date();
+            c.innerHTML = `
+                <div class="p-4 h-full flex flex-col">
+                    <div class="text-center font-bold text-lg mb-4">${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}</div>
+                    <div class="grid grid-cols-7 gap-1 text-center font-semibold text-xs mb-2">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div id="cal-grid" class="grid grid-cols-7 gap-1 flex-1 text-xs"></div>
+                </div>
+            `;
+
+            const grid = c.querySelector('#cal-grid');
+            const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const day = document.createElement('div');
+                const isToday = i === today.getDate();
+                day.className = `p-2 rounded flex flex-col items-center justify-center border border-gray-200 dark:border-gray-700 ${isToday ? 'bg-blue-600 text-white font-bold' : 'hover:bg-gray-200 dark:hover:bg-gray-800'}`;
+                day.textContent = i;
+                grid.appendChild(day);
+            }
+        }
+
+        function renderWorldClock(c) {
+            c.innerHTML = `
+                <div class="p-4 grid grid-cols-2 gap-4">
+                    <div class="glass-panel p-3 rounded-xl text-center">
+                        <div class="text-xs text-gray-400">London</div>
+                        <div id="wc-london" class="text-lg font-bold font-mono">--:--:--</div>
+                    </div>
+                    <div class="glass-panel p-3 rounded-xl text-center">
+                        <div class="text-xs text-gray-400">New York</div>
+                        <div id="wc-ny" class="text-lg font-bold font-mono">--:--:--</div>
+                    </div>
+                    <div class="glass-panel p-3 rounded-xl text-center">
+                        <div class="text-xs text-gray-400">Tokyo</div>
+                        <div id="wc-tokyo" class="text-lg font-bold font-mono">--:--:--</div>
+                    </div>
+                    <div class="glass-panel p-3 rounded-xl text-center">
+                        <div class="text-xs text-gray-400">San Francisco</div>
+                        <div id="wc-sf" class="text-lg font-bold font-mono">--:--:--</div>
+                    </div>
+                </div>
+            `;
+
+            const update = () => {
+                const getTime = (tz) => new Date().toLocaleTimeString('en-US', { timeZone: tz });
+                if (c.querySelector('#wc-london')) {
+                    c.querySelector('#wc-london').textContent = getTime('Europe/London');
+                    c.querySelector('#wc-ny').textContent = getTime('America/New_York');
+                    c.querySelector('#wc-tokyo').textContent = getTime('Asia/Tokyo');
+                    c.querySelector('#wc-sf').textContent = getTime('America/Los_Angeles');
+                }
+            };
+            update();
+            setInterval(update, 1000);
+        }
+
+        function renderTimer(c) {
+            c.innerHTML = `
+                <div class="p-4 text-center h-full flex flex-col justify-center items-center">
+                    <div id="sw-display" class="text-4xl font-mono font-bold mb-4">00:00:00</div>
+                    <div class="space-x-2">
+                        <button id="sw-start" class="bg-green-600 text-white px-4 py-1.5 rounded-full text-xs font-semibold">Start</button>
+                        <button id="sw-stop" class="bg-red-600 text-white px-4 py-1.5 rounded-full text-xs font-semibold">Stop</button>
+                        <button id="sw-reset" class="bg-gray-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold">Reset</button>
+                    </div>
+                </div>
+            `;
+
+            let timer = null, elapsed = 0;
+            const disp = c.querySelector('#sw-display');
+
+            const fmt = (s) => new Date(s * 1000).toISOString().substr(11, 8);
+
+            c.querySelector('#sw-start').onclick = () => {
+                if (!timer) {
+                    timer = setInterval(() => {
+                        elapsed++;
+                        disp.textContent = fmt(elapsed);
+                    }, 1000);
+                }
+            };
+
+            c.querySelector('#sw-stop').onclick = () => {
+                clearInterval(timer);
+                timer = null;
+            };
+
+            c.querySelector('#sw-reset').onclick = () => {
+                clearInterval(timer);
+                timer = null;
+                elapsed = 0;
+                disp.textContent = '00:00:00';
+            };
+        }
+
+        function renderTranslator(c) {
+            c.innerHTML = `
+                <div class="p-4 space-y-3 h-full flex flex-col">
+                    <textarea id="tr-in" placeholder="Type text to translate..." class="w-full h-24 p-2 text-xs rounded bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 outline-none resize-none"></textarea>
+                    <button id="tr-btn" class="bg-blue-600 text-white py-1.5 rounded text-xs font-semibold hover:bg-blue-700">Simulate Translation</button>
+                    <div id="tr-out" class="flex-1 p-2 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 text-xs font-sans text-gray-600 dark:text-gray-300">
+                        Translation output...
+                    </div>
+                </div>
+            `;
+
+            c.querySelector('#tr-btn').onclick = () => {
+                const val = c.querySelector('#tr-in').value;
+                c.querySelector('#tr-out').textContent = `[Translated]: ${val.split('').reverse().join('')}`;
+            };
+        }
+
+        function renderMaps(c) {
+            c.innerHTML = `
+                <div class="h-full flex flex-col">
+                    <div class="p-2 bg-gray-100 dark:bg-gray-800 flex space-x-2">
+                        <input id="map-search" type="text" placeholder="Search location..." class="flex-1 px-3 py-1 text-xs rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 outline-none">
+                        <button id="map-btn" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">Search</button>
+                    </div>
+                    <iframe id="map-frame" src="https://www.openstreetmap.org/export/embed.html" class="flex-1 w-full border-none"></iframe>
+                </div>
+            `;
+        }
+
+        function renderWeather(c) {
+            c.innerHTML = `
+                <div class="p-6 text-center h-full flex flex-col items-center justify-center">
+                    <i class="fa-solid fa-cloud-sun text-6xl text-yellow-400 mb-2"></i>
+                    <h2 class="text-3xl font-bold">72°F</h2>
+                    <p class="text-sm text-gray-400">Sunny - San Francisco, CA</p>
+                    <div class="grid grid-cols-3 gap-4 mt-6 w-full text-xs">
+                        <div class="glass-panel p-2 rounded">Mon: 70°F</div>
+                        <div class="glass-panel p-2 rounded">Tue: 74°F</div>
+                        <div class="glass-panel p-2 rounded">Wed: 68°F</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPaint(c) {
+            c.innerHTML = `
+                <div class="flex flex-col h-full">
+                    <div class="p-2 bg-gray-100 dark:bg-gray-800 flex items-center space-x-3 border-b border-gray-300 dark:border-gray-700">
+                        <input type="color" id="paint-color" value="#000000" class="w-6 h-6 rounded cursor-pointer border-none">
+                        <input type="range" id="paint-size" min="1" max="20" value="3" class="w-24">
+                        <button id="paint-clear" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Clear</button>
+                    </div>
+                    <canvas id="paint-canvas" class="flex-1 bg-white cursor-crosshair"></canvas>
+                </div>
+            `;
+
+            const canvas = c.querySelector('#paint-canvas');
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
+
+            // Resize canvas dynamically
+            setTimeout(() => {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight - 40;
+            }, 100);
+
+            canvas.onmousedown = () => drawing = true;
+            canvas.onmouseup = () => { drawing = false; ctx.beginPath(); };
+            canvas.onmousemove = (e) => {
+                if (!drawing) return;
+                const rect = canvas.getBoundingClientRect();
+                ctx.lineWidth = c.querySelector('#paint-size').value;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = c.querySelector('#paint-color').value;
+
+                ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+            };
+
+            c.querySelector('#paint-clear').onclick = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function renderMusic(c) {
+            c.innerHTML = `
+                <div class="p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div class="w-32 h-32 bg-gradient-to-tr from-pink-500 to-rose-500 rounded-2xl shadow-xl flex items-center justify-center text-white text-4xl mb-4">
+                        <i class="fa-solid fa-music"></i>
+                    </div>
+                    <h3 class="font-bold text-base">Chill Synthwave Beats</h3>
+                    <p class="text-xs text-gray-400 mb-4">WebBook Audio Player</p>
+                    <div class="flex items-center space-x-4">
+                        <button class="text-lg hover:scale-110 transition"><i class="fa-solid fa-backward-step"></i></button>
+                        <button class="w-10 h-10 bg-blue-600 rounded-full text-white flex items-center justify-center shadow hover:scale-105 transition"><i class="fa-solid fa-play"></i></button>
+                        <button class="text-lg hover:scale-110 transition"><i class="fa-solid fa-forward-step"></i></button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPhotos(c) {
+            c.innerHTML = `
+                <div class="p-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <img src="https://picsum.photos/300/200?random=1" class="rounded-lg shadow hover:opacity-90 transition cursor-pointer">
+                    <img src="https://picsum.photos/300/200?random=2" class="rounded-lg shadow hover:opacity-90 transition cursor-pointer">
+                    <img src="https://picsum.photos/300/200?random=3" class="rounded-lg shadow hover:opacity-90 transition cursor-pointer">
+                    <img src="https://picsum.photos/300/200?random=4" class="rounded-lg shadow hover:opacity-90 transition cursor-pointer">
+                </div>
+            `;
+        }
+
+        function renderSnake(c) {
+            c.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full p-2">
+                    <div class="text-xs font-semibold mb-1">Score: <span id="snake-score">0</span></div>
+                    <canvas id="snake-canvas" width="300" height="300" class="bg-black rounded-lg border border-gray-700"></canvas>
+                </div>
+            `;
+
+            const canvas = c.querySelector('#snake-canvas');
+            const ctx = canvas.getContext('2d');
+            let score = 0, snake = [{x: 10, y: 10}], food = {x: 15, y: 15}, dx = 1, dy = 0;
+
+            const gameLoop = setInterval(() => {
+                const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+                snake.unshift(head);
+
+                if (head.x === food.x && head.y === food.y) {
+                    score += 10;
+                    c.querySelector('#snake-score').textContent = score;
+                    food = {Math.floor(Math.random()*20), Math.floor(Math.random()*20)};
+                } else {
+                    snake.pop();
+                }
+
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0, 0, 300, 300);
+
+                ctx.fillStyle = 'red';
+                ctx.fillRect(food.x * 15, food.y * 15, 14, 14);
+
+                ctx.fillStyle = 'green';
+                snake.forEach(s => ctx.fillRect(s.x * 15, s.y * 15, 14, 14));
+            }, 150);
+
+            const handleKey = (e) => {
+                if (e.key === 'ArrowUp' && dy === 0) { dx = 0; dy = -1; }
+                if (e.key === 'ArrowDown' && dy === 0) { dx = 0; dy = 1; }
+                if (e.key === 'ArrowLeft' && dx === 0) { dx = -1; dy = 0; }
+                if (e.key === 'ArrowRight' && dx === 0) { dx = 1; dy = 0; }
+            };
+            document.addEventListener('keydown', handleKey);
+        }
+
+        function render2048(c) {
+            c.innerHTML = `
+                <div class="p-6 text-center h-full flex flex-col items-center justify-center">
+                    <h2 class="text-2xl font-bold mb-2">2048 Game</h2>
+                    <div class="grid grid-cols-4 gap-2 bg-amber-800 p-2 rounded-xl w-64 h-64">
+                        <div class="bg-amber-100 rounded flex items-center justify-center text-xl font-bold">2</div>
+                        <div class="bg-amber-200 rounded flex items-center justify-center text-xl font-bold">4</div>
+                        <div class="bg-amber-100 rounded flex items-center justify-center text-xl font-bold">2</div>
+                        <div class="bg-amber-300 rounded flex items-center justify-center text-xl font-bold">8</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTicTacToe(c) {
+            c.innerHTML = `
+                <div class="p-6 text-center h-full flex flex-col items-center justify-center">
+                    <div class="grid grid-cols-3 gap-2 w-48 h-48 mb-4">
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                        <button class="ttt-b bg-gray-200 dark:bg-gray-800 text-xl font-bold rounded"></button>
+                    </div>
+                    <button id="ttt-reset" class="bg-blue-600 text-white text-xs px-3 py-1 rounded">Reset Game</button>
+                </div>
+            `;
+
+            let turn = 'X';
+            const btns = c.querySelectorAll('.ttt-b');
+            btns.forEach(b => {
+                b.onclick = () => {
+                    if (!b.textContent) {
+                        b.textContent = turn;
+                        turn = turn === 'X' ? 'O' : 'X';
+                    }
+                };
+            });
+            c.querySelector('#ttt-reset').onclick = () => btns.forEach(b => b.textContent = '');
+        }
+
+        function renderMemory(c) {
+            c.innerHTML = `
+                <div class="p-6 text-center h-full flex flex-col items-center justify-center">
+                    <h3 class="font-bold mb-3">Memory Match</h3>
+                    <div class="grid grid-cols-4 gap-2 w-64">
+                        <div class="h-12 bg-blue-600 rounded flex items-center justify-center text-white cursor-pointer">?</div>
+                        <div class="h-12 bg-blue-600 rounded flex items-center justify-center text-white cursor-pointer">?</div>
+                        <div class="h-12 bg-blue-600 rounded flex items-center justify-center text-white cursor-pointer">?</div>
+                        <div class="h-12 bg-blue-600 rounded flex items-center justify-center text-white cursor-pointer">?</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSettings(c) {
+            c.innerHTML = `
+                <div class="p-6 space-y-6">
+                    <div>
+                        <h3 class="font-bold text-sm mb-2">Wallpaper Preset</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="setWallpaper('aurora')" class="w-12 h-12 rounded-lg wp-aurora shadow-md"></button>
+                            <button onclick="setWallpaper('sunset')" class="w-12 h-12 rounded-lg wp-sunset shadow-md"></button>
+                            <button onclick="setWallpaper('midnight')" class="w-12 h-12 rounded-lg wp-midnight shadow-md"></button>
+                            <button onclick="setWallpaper('space')" class="w-12 h-12 rounded-lg wp-space shadow-md"></button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm mb-2">Appearance</h3>
+                        <button id="toggle-dark" class="bg-gray-700 text-white text-xs px-4 py-2 rounded-lg">Toggle Dark/Light Mode</button>
+                    </div>
+                    <div class="border-t border-gray-300 dark:border-gray-700 pt-4">
+                        <button onclick="localStorage.clear(); location.reload();" class="bg-red-600 text-white text-xs px-4 py-2 rounded-lg">Factory Reset System</button>
+                    </div>
+                </div>
+            `;
+
+            c.querySelector('#toggle-dark').onclick = () => {
+                document.documentElement.classList.toggle('dark');
+            };
+
+            window.setWallpaper = (wp) => {
+                document.body.className = `h-screen w-screen overflow-hidden select-none text-gray-800 dark:text-gray-100 wp-${wp}`;
+                showToast(`Wallpaper changed to ${wp}`);
+            };
+        }
+    </script>
 </body>
-</html>`;
+</html>
