@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER_SEARCH // Multi-Source Engine & Video Terminal</title>
+  <title>CYBER_SEARCH v7.0 // Multi-Source Engine & YouTube Video Terminal</title>
   
   <!-- Tailwind CSS & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -49,6 +49,10 @@
       box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
     }
 
+    .glow-red {
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+    }
+
     .tab-active {
       background: linear-gradient(180deg, rgba(6, 182, 212, 0.25) 0%, rgba(15, 23, 42, 0.95) 100%);
       border-bottom: 2px solid #06b6d4;
@@ -75,8 +79,7 @@
     .source-tag-ddg { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
     .source-tag-wiki { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
     .source-tag-hn { background: rgba(234, 88, 12, 0.15); color: #f97316; border: 1px solid rgba(234, 88, 12, 0.4); }
-    .source-tag-searx { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
-    .source-tag-openlib { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .source-tag-yt { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
   </style>
 </head>
 <body class="h-full w-screen overflow-hidden flex flex-col grid-bg select-none">
@@ -85,7 +88,7 @@
     <div class="flex items-center space-x-3">
       <div onclick="goHome()" class="cursor-pointer flex items-center text-cyan-400 font-bold tracking-widest text-xs px-2.5 py-1 rounded bg-cyan-950/60 border border-cyan-500/40 hover:bg-cyan-900/50 transition">
         <i data-lucide="cpu" class="w-4 h-4 mr-2 text-cyan-400 animate-pulse"></i>
-        <span class="font-orbitron font-black">CYBER<span class="text-sky-300">_SEARCH</span> <span class="text-[9px] text-cyan-400/70 border border-cyan-500/30 px-1 py-0.5 rounded ml-1 font-mono">v6.0</span></span>
+        <span class="font-orbitron font-black">CYBER<span class="text-sky-300">_SEARCH</span> <span class="text-[9px] text-cyan-400/70 border border-cyan-500/30 px-1 py-0.5 rounded ml-1 font-mono">v7.0</span></span>
       </div>
     </div>
 
@@ -100,7 +103,7 @@
         <input 
           id="omnibox" 
           type="text" 
-          placeholder="Search query or enter direct URL (e.g., https://youtube.com/watch?v=...)" 
+          placeholder="Search query or enter direct URL (e.g., youtube.com, https://youtube.com/watch?v=...)" 
           class="w-full bg-slate-950/90 border border-cyan-500/40 rounded px-9 py-1.5 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan transition"
           onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
         >
@@ -123,6 +126,7 @@
   <!-- TAB STRIP BAR -->
   <div id="tabBar" class="bg-slate-950/80 border-b border-cyan-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs"></div>
 
+  <!-- MAIN VIEWPORT DISPLAY AREA -->
   <main id="viewportContainer" class="flex-1 relative bg-slate-950/90 overflow-hidden"></main>
 
   <!-- IN-APP VIDEO MODAL OVERLAY -->
@@ -153,7 +157,7 @@
     <div class="flex items-center space-x-3">
       <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> AGGREGATOR ENGINE: ACTIVE</span>
       <span class="hidden md:inline text-slate-600">|</span>
-      <span class="hidden md:inline text-slate-400">SOURCES: DuckDuckGo, Wikipedia, SearXNG, HackerNews, OpenLibrary</span>
+      <span class="hidden md:inline text-slate-400">SOURCES: DuckDuckGo, Wikipedia, HackerNews, YouTube Direct Player</span>
     </div>
     <div class="flex items-center space-x-4">
       <span>ACTIVE TABS: <span id="tabCount" class="text-cyan-300">1</span></span>
@@ -166,15 +170,15 @@
 
     let tabs = [];
     let activeTabId = null;
-    let searchPageState = {}; // Stores offset and existing results per tab
+    let searchPageState = {}; // Stores page offset & results per tab
 
     const SPEED_DIALS = [
       { name: 'Wikipedia', query: 'site:wikipedia.org Quantum Computing', icon: 'book-open', color: 'text-slate-300' },
-      { name: 'YouTube Tech', query: 'site:youtube.com Artificial Intelligence 2026', icon: 'video', color: 'text-red-400' },
+      { name: 'YouTube Tech', query: 'Artificial Intelligence 2026', icon: 'video', color: 'text-red-400' },
       { name: 'GitHub Search', query: 'GitHub open source web scrapers', icon: 'code', color: 'text-purple-400' },
       { name: 'HackerNews', query: 'Cybersecurity zero day exploits', icon: 'newspaper', color: 'text-orange-400' },
       { name: 'Tech Reviews', query: 'Cyberpunk tech aesthetic hardware review', icon: 'cpu', color: 'text-cyan-400' },
-      { name: 'Open Library', query: 'Computer Networks and Internet Protocols', icon: 'archive', color: 'text-emerald-400' }
+      { name: 'YouTube Direct', query: 'youtube.com', icon: 'play-circle', color: 'text-red-500' }
     ];
 
     window.onload = () => {
@@ -188,17 +192,51 @@
       document.getElementById('clock').innerText = new Date().toTimeString().split(' ')[0];
     }
 
+    function isYouTubeDomain(url) {
+      if (!url) return false;
+      const clean = url.trim().toLowerCase();
+      // Detect youtube domain homepage/root without exact video parameters
+      const ytDomainRegex = /^(https?:\/\/)?(www\.)?youtube\.com\/?$/i;
+      const ytShortRegex = /^youtube(\.com)?\/?$/i;
+      return ytDomainRegex.test(clean) || ytShortRegex.test(clean);
+    }
+
+    function extractYouTubeVideoId(url) {
+      if (!url) return null;
+      try {
+        if (url.includes('youtube.com/watch')) {
+          const u = new URL(url.startsWith('http') ? url : 'https://' + url);
+          return u.searchParams.get('v');
+        }
+        if (url.includes('youtu.be/')) {
+          const parts = url.split('youtu.be/')[1].split('?')[0].split('/');
+          return parts[0];
+        }
+        if (url.includes('youtube.com/embed/')) {
+          const parts = url.split('youtube.com/embed/')[1].split('?')[0].split('/');
+          return parts[0];
+        }
+      } catch (e) {
+        console.warn("Failed to parse YouTube ID:", e);
+      }
+      return null;
+    }
+
     function openNewTab(url = 'nexus://newtab') {
       const id = 'tab_' + Date.now();
       const isSearch = url.startsWith('search://');
-      const searchTerms = isSearch ? decodeURIComponent(url.replace('search://', '')) : '';
+      const isYtPortal = isYouTubeDomain(url);
 
-      const tab = {
-        id: id,
-        title: isSearch ? `Search: ${searchTerms}` : (url === 'nexus://newtab' ? 'Cyber Launchpad' : getDomainName(url)),
-        url: url
-      };
-      
+      let title = 'Cyber Launchpad';
+      if (isSearch) {
+        title = `Search: ${decodeURIComponent(url.replace('search://', ''))}`;
+      } else if (isYtPortal) {
+        title = 'YouTube Portal';
+      } else if (url !== 'nexus://newtab') {
+        title = getDomainName(url);
+      }
+
+      const tab = { id, title, url };
       tabs.push(tab);
       renderTabs();
       switchTab(id);
@@ -256,11 +294,11 @@
         let iconName = 'globe';
         if (tab.url === 'nexus://newtab') iconName = 'layout-grid';
         if (tab.url.startsWith('search://')) iconName = 'search';
-        if (isMediaUrl(tab.url)) iconName = 'video';
+        if (isYouTubeDomain(tab.url) || extractYouTubeVideoId(tab.url)) iconName = 'video';
 
         el.innerHTML = `
           <div class="flex items-center space-x-1.5 overflow-hidden">
-            <i data-lucide="${iconName}" class="w-3.5 h-3.5 shrink-0"></i>
+            <i data-lucide="${iconName}" class="w-3.5 h-3.5 shrink-0 ${iconName === 'video' ? 'text-red-400' : ''}"></i>
             <span class="truncate text-[11px]">${escapeHtml(tab.title)}</span>
           </div>
           <button onclick="closeTab('${tab.id}', event)" class="hover:text-cyan-200 rounded p-0.5">
@@ -293,14 +331,120 @@
       if (tab.url === 'nexus://newtab') {
         element.innerHTML = getNewTabHTML(tab.id);
         attachNewTabEvents(tab.id);
+      } else if (isYouTubeDomain(tab.url)) {
+        element.innerHTML = getYouTubePortalHTML(tab.id);
+        attachYouTubePortalEvents(tab.id);
       } else if (tab.url.startsWith('search://')) {
         const query = decodeURIComponent(tab.url.replace('search://', ''));
-        searchPageState[tab.id] = { page: 0, query: query, totalResults: 0 };
+        searchPageState[tab.id] = { page: 0, query: query };
         renderSearchResultsPage(tab, element, query);
       } else {
         renderWebPageContent(tab, element, tab.url);
       }
       lucide.createIcons();
+    }
+
+    function getYouTubePortalHTML(tabId) {
+      return `
+        <div class="w-full h-full overflow-y-auto p-6 md:p-12 flex flex-col items-center justify-center bg-slate-950">
+          <div class="max-w-2xl w-full glass-panel p-8 rounded-2xl border border-red-500/40 glow-red space-y-6 text-center">
+            
+            <div class="flex items-center justify-center space-x-3 text-red-400">
+              <i data-lucide="video-off" class="w-10 h-10 animate-bounce"></i>
+              <h2 class="text-2xl font-bold font-orbitron tracking-wide text-white">YOUTUBE_FRAMING_NOTICE</h2>
+            </div>
+
+            <div class="bg-red-950/40 border border-red-500/30 p-4 rounded-xl text-left space-y-2">
+              <p class="text-xs text-red-300 font-semibold flex items-center">
+                <i data-lucide="shield-alert" class="w-4 h-4 mr-2 text-red-400 shrink-0"></i>
+                Direct YouTube Homepage Framing Restricted
+              </p>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                YouTube blocks full homepage loading inside third-party web frames via strict <code class="text-red-300 bg-red-950/60 px-1 py-0.5 rounded">X-Frame-Options / CSP</code> security policies. 
+              </p>
+              <p class="text-xs text-cyan-300 leading-relaxed">
+                <strong class="text-white">Solution:</strong> Enter an exact YouTube video link (e.g. <code class="text-cyan-200">https://www.youtube.com/watch?v=...</code>) or type a video title below to launch the video player instantly!
+              </p>
+            </div>
+
+            <!-- Notice Direct Link / Query Input Box -->
+            <div class="space-y-3 pt-2">
+              <div class="relative flex items-center">
+                <i data-lucide="youtube" class="w-5 h-5 absolute left-4 text-red-400"></i>
+                <input 
+                  id="ytPortalInput_${tabId}"
+                  type="text" 
+                  placeholder="Paste video URL (https://youtube.com/watch?v=...) or search video query..." 
+                  class="w-full bg-slate-900 border-2 border-red-500/40 rounded-xl px-12 py-3 text-xs text-cyan-100 placeholder-slate-500 focus:outline-none focus:border-red-400 glow-red transition"
+                >
+              </div>
+
+              <div class="flex items-center justify-center space-x-3">
+                <button 
+                  id="ytPortalBtn_${tabId}" 
+                  class="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 font-orbitron transition"
+                >
+                  <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                  <span>PLAY VIDEO</span>
+                </button>
+                <button 
+                  onclick="goHome()" 
+                  class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl border border-slate-600 transition"
+                >
+                  CANCEL
+                </button>
+              </div>
+            </div>
+
+            <!-- Popular Quick Demo Videos -->
+            <div class="pt-4 border-t border-slate-800 text-left">
+              <p class="text-[10px] text-cyan-400 font-mono mb-2">QUICK_LAUNCH_PRESETS:</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <button 
+                  onclick="navigateCurrentTab('https://www.youtube.com/watch?v=jfKfPfyJRdk')"
+                  class="p-2 bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 rounded text-left flex items-center space-x-2 text-slate-300 hover:text-cyan-200 transition"
+                >
+                  <i data-lucide="music" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+                  <span class="truncate">Lofi Hip Hop Radio - Beats to Relax</span>
+                </button>
+                <button 
+                  onclick="navigateCurrentTab('https://www.youtube.com/watch?v=dQw4w9WgXcQ')"
+                  class="p-2 bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-400 rounded text-left flex items-center space-x-2 text-slate-300 hover:text-cyan-200 transition"
+                >
+                  <i data-lucide="disc" class="w-4 h-4 text-purple-400 shrink-0"></i>
+                  <span class="truncate">Rick Astley - Never Gonna Give You Up</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      `;
+    }
+
+    function attachYouTubePortalEvents(tabId) {
+      const input = document.getElementById(`ytPortalInput_${tabId}`);
+      const btn = document.getElementById(`ytPortalBtn_${tabId}`);
+
+      if (input && btn) {
+        const executeYT = () => {
+          const val = input.value.trim();
+          if (!val) return;
+
+          const videoId = extractYouTubeVideoId(val);
+          if (videoId) {
+            navigateCurrentTab(`https://www.youtube.com/watch?v=${videoId}`);
+          } else if (val.startsWith('http://') || val.startsWith('https://')) {
+            navigateCurrentTab(val);
+          } else {
+            // Treat as query for videos
+            navigateCurrentTab('search://' + encodeURIComponent(val));
+          }
+        };
+
+        btn.onclick = executeYT;
+        input.onkeydown = (e) => { if (e.key === 'Enter') executeYT(); };
+      }
     }
 
     async function fetchViaWorker(targetUrl) {
@@ -330,12 +474,13 @@
               href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
             }
             if (href.startsWith('http')) {
+              const isYt = href.includes('youtube.com') || href.includes('youtu.be');
               parsedResults.push({
-                source: 'DUCKDUCKGO',
-                tagClass: 'source-tag-ddg',
+                source: isYt ? 'YOUTUBE' : 'DUCKDUCKGO',
+                tagClass: isYt ? 'source-tag-yt' : 'source-tag-ddg',
                 title: titleEl.textContent.trim(),
                 url: href,
-                snippet: snippetEl ? snippetEl.textContent.trim() : 'Scraped result via DuckDuckGo pipeline.'
+                snippet: snippetEl ? snippetEl.textContent.trim() : 'Scraped web result via DuckDuckGo engine pipeline.'
               });
             }
           }
@@ -390,49 +535,6 @@
       }
     }
 
-    async function searchOpenLibrary(query, page = 0) {
-      try {
-        const libUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&page=${page + 1}&limit=8`;
-        const res = await fetch(libUrl);
-        const data = await res.json();
-
-        if (!data.docs) return [];
-
-        return data.docs.map(doc => ({
-          source: 'OPENLIBRARY',
-          tagClass: 'source-tag-openlib',
-          title: doc.title + (doc.author_name ? ` - ${doc.author_name.join(', ')}` : ''),
-          url: doc.key ? `https://openlibrary.org${doc.key}` : `https://openlibrary.org/search?q=${encodeURIComponent(query)}`,
-          snippet: `First Published: ${doc.first_publish_year || 'N/A'} | Subjects: ${doc.subject ? doc.subject.slice(0, 3).join(', ') : 'Literature'}`
-        }));
-      } catch (err) {
-        console.warn("OpenLibrary engine error:", err);
-        return [];
-      }
-    }
-
-    async function searchSearXNG(query, page = 0) {
-      try {
-        const pNO = page + 1;
-        const searxUrl = `https://searx.be/search?q=${encodeURIComponent(query)}&pageno=${pNO}&format=json`;
-        const jsonText = await fetchViaWorker(searxUrl);
-        const data = JSON.parse(jsonText);
-
-        if (!data.results) return [];
-
-        return data.results.map(r => ({
-          source: 'SEARXNG',
-          tagClass: 'source-tag-searx',
-          title: r.title,
-          url: r.url,
-          snippet: r.content || 'Aggregated result via SearXNG meta-engine.'
-        }));
-      } catch (err) {
-        console.warn("SearXNG engine error:", err);
-        return [];
-      }
-    }
-
     async function renderSearchResultsPage(tab, element, query) {
       element.innerHTML = `
         <div class="w-full h-full overflow-y-auto p-4 md:p-8">
@@ -444,7 +546,7 @@
               </div>
               <div id="statusIndicator_${tab.id}" class="text-xs text-cyan-400 flex items-center space-x-2">
                 <i data-lucide="loader" class="w-4 h-4 animate-spin text-cyan-400"></i>
-                <span id="engineStatus_${tab.id}" class="font-mono">QUERYING ALL ENGINES...</span>
+                <span id="engineStatus_${tab.id}" class="font-mono">QUERYING ENGINES...</span>
               </div>
             </div>
 
@@ -461,7 +563,7 @@
                 <i data-lucide="arrow-down-circle" class="w-4 h-4 text-cyan-400"></i>
                 <span>GET RESULTS</span>
               </button>
-              <span class="text-[10px] text-slate-500 font-mono">Fetches next page set across DuckDuckGo, Wikipedia, HN & OpenLibrary</span>
+              <span class="text-[10px] text-slate-500 font-mono">Fetches next page set across DuckDuckGo, Wikipedia & HackerNews</span>
             </div>
           </div>
         </div>
@@ -476,20 +578,16 @@
       const statusInd = document.getElementById(`statusIndicator_${tabId}`);
 
       // Query multiple search providers concurrently
-      const [ddgRes, wikiRes, hnRes, openLibRes, searxRes] = await Promise.allSettled([
+      const [ddgRes, wikiRes, hnRes] = await Promise.allSettled([
         searchDuckDuckGo(query),
         searchWikipedia(query, page),
-        searchHackerNews(query, page),
-        searchOpenLibrary(query, page),
-        searchSearXNG(query, page)
+        searchHackerNews(query, page)
       ]);
 
       let combined = [];
       if (ddgRes.status === 'fulfilled') combined.push(...ddgRes.value);
       if (wikiRes.status === 'fulfilled') combined.push(...wikiRes.value);
       if (hnRes.status === 'fulfilled') combined.push(...hnRes.value);
-      if (openLibRes.status === 'fulfilled') combined.push(...openLibRes.value);
-      if (searxRes.status === 'fulfilled') combined.push(...searxRes.value);
 
       // Deduplicate results by URL
       const uniqueMap = new Map();
@@ -509,7 +607,7 @@
             <div class="glass-panel p-6 rounded-xl border border-cyan-500/30 text-center space-y-3">
               <i data-lucide="alert-triangle" class="w-8 h-8 text-amber-400 mx-auto"></i>
               <p class="text-xs text-cyan-300 font-bold">NO RESULTS RETURNED FROM PRIMARY PIPELINES</p>
-              <p class="text-xs text-slate-400 max-w-md mx-auto">Try typing a direct video or site URL into the top omnibox (e.g. <code class="text-cyan-300">https://youtube.com/watch?v=...</code>).</p>
+              <p class="text-xs text-slate-400 max-w-md mx-auto">Try typing a direct video or site URL into the omnibox (e.g. <code class="text-cyan-300">https://youtube.com/watch?v=...</code>).</p>
             </div>
           `;
           lucide.createIcons();
@@ -519,7 +617,7 @@
 
       let itemsHTML = '';
       uniqueResults.forEach(res => {
-        const isVideo = isMediaUrl(res.url);
+        const ytId = extractYouTubeVideoId(res.url);
         
         itemsHTML += `
           <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/60 transition flex flex-col md:flex-row justify-between items-start gap-4">
@@ -538,10 +636,10 @@
 
             <!-- ACTION BUTTONS: IN-APP EMBED, POPUP MODAL, DIRECT LINK -->
             <div class="flex flex-wrap md:flex-col items-stretch gap-1.5 shrink-0 w-full md:w-auto">
-              ${isVideo ? `
+              ${ytId ? `
                 <button onclick="playInModal('${escapeHtml(res.url)}', '${escapeHtml(res.title)}')" class="px-3 py-1.5 bg-red-950/80 border border-red-500/50 text-red-300 text-xs rounded hover:bg-red-900/80 flex items-center justify-center space-x-1.5 font-bold transition">
                   <i data-lucide="play" class="w-3.5 h-3.5 text-red-400"></i>
-                  <span>POPUP PLAYER</span>
+                  <span>PLAY VIDEO</span>
                 </button>
               ` : ''}
 
@@ -583,43 +681,12 @@
       }
     }
 
-    function isMediaUrl(url) {
-      if (!url) return false;
-      return url.includes('youtube.com') || 
-             url.includes('youtu.be') || 
-             url.includes('vimeo.com') || 
-             url.includes('twitch.tv') ||
-             url.endsWith('.mp4') || 
-             url.endsWith('.webm');
-    }
-
-    function convertToEmbedUrl(url) {
-      try {
-        // YouTube URLs conversion to youtube-nocookie.com
-        if (url.includes('youtube.com/watch')) {
-          const videoId = new URL(url).searchParams.get('v');
-          if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0`;
-        }
-        if (url.includes('youtu.be/')) {
-          const videoId = url.split('youtu.be/')[1].split('?')[0];
-          if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0`;
-        }
-        if (url.includes('vimeo.com/')) {
-          const vimeoId = url.split('vimeo.com/')[1].split('?')[0];
-          return `https://player.vimeo.com/video/${vimeoId}?autoplay=1`;
-        }
-      } catch (e) {
-        console.warn("URL Parse exception:", e);
-      }
-      return url;
-    }
-
     function renderWebPageContent(tab, element, url) {
-      const isVideo = isMediaUrl(url);
-      const embedUrl = convertToEmbedUrl(url);
+      const ytId = extractYouTubeVideoId(url);
 
-      if (isVideo) {
-        // High-compatibility inline video frame with multi-fallback bar
+      if (ytId) {
+        // High-compatibility nocookie embed for YouTube videos
+        const embedUrl = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&modestbranding=1&rel=0`;
         element.innerHTML = `
           <div class="w-full h-full bg-slate-950 flex flex-col justify-between">
             <div class="px-4 py-2 bg-slate-900 border-b border-cyan-500/30 flex items-center justify-between text-xs">
@@ -640,7 +707,7 @@
             <div class="flex-1 relative bg-black flex items-center justify-center">
               <iframe 
                 src="${escapeHtml(embedUrl)}" 
-                class="w-full h-full border-0"
+                class="w-full h-full border-0 absolute inset-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowfullscreen
               ></iframe>
@@ -668,7 +735,8 @@
       const titleEl = document.getElementById('videoModalTitle');
       const directLink = document.getElementById('videoModalDirectLink');
 
-      const embedUrl = convertToEmbedUrl(rawUrl);
+      const ytId = extractYouTubeVideoId(rawUrl);
+      const embedUrl = ytId ? `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&modestbranding=1&rel=0` : rawUrl;
 
       titleEl.innerText = title || rawUrl;
       directLink.href = rawUrl;
@@ -700,10 +768,19 @@
     function handleSearchSubmit() {
       const input = document.getElementById('omnibox').value.trim();
       if (!input) return;
-      
-      if (input.startsWith('http://') || input.startsWith('https://') || (input.includes('.') && !input.includes(' '))) {
+
+      if (isYouTubeDomain(input)) {
+        navigateCurrentTab('https://youtube.com');
+      } else if (extractYouTubeVideoId(input)) {
+        const id = extractYouTubeVideoId(input);
+        navigateCurrentTab(`https://www.youtube.com/watch?v=${id}`);
+      } else if (input.startsWith('http://') || input.startsWith('https://') || (input.includes('.') && !input.includes(' '))) {
         let target = input.startsWith('http') ? input : 'https://' + input;
-        navigateCurrentTab(target);
+        if (isYouTubeDomain(target)) {
+          navigateCurrentTab('https://youtube.com');
+        } else {
+          navigateCurrentTab(target);
+        }
       } else {
         navigateCurrentTab('search://' + encodeURIComponent(input));
       }
@@ -714,7 +791,9 @@
       if (!tab) return;
 
       tab.url = url;
-      if (url.startsWith('search://')) {
+      if (isYouTubeDomain(url)) {
+        tab.title = 'YouTube Portal';
+      } else if (url.startsWith('search://')) {
         const query = decodeURIComponent(url.replace('search://', ''));
         tab.title = `Search: ${query}`;
       } else {
@@ -738,10 +817,10 @@
             <div class="text-center my-6">
               <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span class="font-mono">MULTI-ENGINE WEB & MEDIA TERMINAL</span>
+                <span class="font-mono">MULTI-ENGINE WEB & YOUTUBE TERMINAL</span>
               </div>
               <h1 class="text-3xl md:text-5xl font-extrabold font-orbitron tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
-                CYBER<span class="text-white">_SEARCH</span>
+                CYBER<span class="text-white">_SEARCH</span> <span class="text-lg text-cyan-400 font-mono">v7.0</span>
               </h1>
               <p class="text-xs font-mono text-cyan-500/70 mt-2">Scrape, Query, and Stream Across Open Web Networks</p>
             </div>
@@ -771,7 +850,7 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 ${SPEED_DIALS.map(dial => `
                   <button 
-                    onclick="navigateCurrentTab('search://${encodeURIComponent(dial.query)}')"
+                    onclick="navigateCurrentTab('${dial.query === 'youtube.com' ? 'https://youtube.com' : 'search://' + encodeURIComponent(dial.query)}')"
                     class="glass-panel p-3 rounded-lg flex flex-col items-center hover:border-cyan-400 hover:bg-cyan-950/40 transition group"
                   >
                     <div class="p-2.5 rounded-full bg-slate-900/80 mb-2 border border-cyan-500/20 group-hover:scale-110 transition">
@@ -796,7 +875,12 @@
         const execute = () => {
           const val = input.value.trim();
           if (!val) return;
-          if (val.startsWith('http://') || val.startsWith('https://') || (val.includes('.') && !val.includes(' '))) {
+          if (isYouTubeDomain(val)) {
+            navigateCurrentTab('https://youtube.com');
+          } else if (extractYouTubeVideoId(val)) {
+            const id = extractYouTubeVideoId(val);
+            navigateCurrentTab(`https://www.youtube.com/watch?v=${id}`);
+          } else if (val.startsWith('http://') || val.startsWith('https://') || (val.includes('.') && !val.includes(' '))) {
             let target = val.startsWith('http') ? val : 'https://' + val;
             navigateCurrentTab(target);
           } else {
