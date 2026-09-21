@@ -3,49 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER_SEARCH // Engine</title>
+  <title>CYBER_SEARCH // Multi-Source Engine & Video Terminal</title>
+  
+  <!-- Tailwind CSS & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Cyberpunk Typography & Styles -->
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
-    * { font-family: 'Fira Code', monospace; }
-    body { background-color: #030712; color: #06b6d4; }
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap');
+    
+    * {
+      font-family: 'Fira Code', monospace;
+      box-sizing: border-box;
+    }
+    
+    .font-orbitron {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    body {
+      background-color: #030712;
+      color: #06b6d4;
+      overflow: hidden;
+    }
+
+    /* Cyber Matrix Grid Background */
     .grid-bg {
       background-image: 
-        linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
-      background-size: 24px 24px;
+        linear-gradient(to right, rgba(6, 182, 212, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
+      background-size: 28px 28px;
     }
+
+    /* Cyber Glassmorphism Containers */
     .glass-panel {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid rgba(6, 182, 212, 0.25);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
     }
-    .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+    }
+
     .tab-active {
-      background: rgba(6, 182, 212, 0.2);
+      background: linear-gradient(180deg, rgba(6, 182, 212, 0.25) 0%, rgba(15, 23, 42, 0.95) 100%);
       border-bottom: 2px solid #06b6d4;
       color: #38bdf8;
     }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #030712; }
-    ::-webkit-scrollbar-thumb { background: #0891b2; border-radius: 3px; }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #030712;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #0891b2;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #06b6d4;
+    }
+
+    /* Source Tag Styling */
+    .source-tag-ddg { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.4); }
+    .source-tag-wiki { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
+    .source-tag-hn { background: rgba(234, 88, 12, 0.15); color: #f97316; border: 1px solid rgba(234, 88, 12, 0.4); }
+    .source-tag-searx { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .source-tag-openlib { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
   </style>
 </head>
 <body class="h-full w-screen overflow-hidden flex flex-col grid-bg select-none">
 
-  <!-- TOP HEADER OMNIBOX BAR -->
-  <header class="glass-panel px-4 py-2 flex items-center justify-between border-b border-cyan-500/30 z-50">
+  <header class="glass-panel px-4 py-2 flex items-center justify-between border-b border-cyan-500/30 z-40">
     <div class="flex items-center space-x-3">
       <div onclick="goHome()" class="cursor-pointer flex items-center text-cyan-400 font-bold tracking-widest text-xs px-2.5 py-1 rounded bg-cyan-950/60 border border-cyan-500/40 hover:bg-cyan-900/50 transition">
-        <i data-lucide="search" class="w-4 h-4 mr-2 text-cyan-400"></i>
-        <span>CYBER_SEARCH</span>
+        <i data-lucide="cpu" class="w-4 h-4 mr-2 text-cyan-400 animate-pulse"></i>
+        <span class="font-orbitron font-black">CYBER<span class="text-sky-300">_SEARCH</span> <span class="text-[9px] text-cyan-400/70 border border-cyan-500/30 px-1 py-0.5 rounded ml-1 font-mono">v6.0</span></span>
       </div>
     </div>
 
-    <!-- Central Search Bar -->
+    <!-- Central Smart Omnibox -->
     <div class="flex-1 max-w-3xl mx-4 flex items-center space-x-2">
-      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition" title="Home">
+      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition" title="Home Launchpad">
         <i data-lucide="home" class="w-4 h-4"></i>
       </button>
 
@@ -54,39 +100,64 @@
         <input 
           id="omnibox" 
           type="text" 
-          placeholder="Search query or enter web/video URL..." 
+          placeholder="Search query or enter direct URL (e.g., https://youtube.com/watch?v=...)" 
           class="w-full bg-slate-950/90 border border-cyan-500/40 rounded px-9 py-1.5 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan transition"
           onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
         >
       </div>
 
-      <button onclick="handleSearchSubmit()" class="px-4 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 font-semibold transition">
-        EXECUTE
+      <button onclick="handleSearchSubmit()" class="px-4 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 font-semibold transition flex items-center space-x-1">
+        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+        <span>EXECUTE</span>
       </button>
     </div>
 
     <div class="flex items-center space-x-2">
-      <button onclick="openNewTab()" class="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded border border-cyan-400/50 flex items-center text-xs space-x-1">
+      <button onclick="openNewTab()" class="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded border border-cyan-400/50 flex items-center text-xs space-x-1 transition">
         <i data-lucide="plus" class="w-3.5 h-3.5"></i>
         <span class="hidden sm:inline">NEW TAB</span>
       </button>
     </div>
   </header>
 
-  <!-- TAB BAR -->
+  <!-- TAB STRIP BAR -->
   <div id="tabBar" class="bg-slate-950/80 border-b border-cyan-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs"></div>
 
-  <!-- MAIN VIEWPORT CONTAINER -->
   <main id="viewportContainer" class="flex-1 relative bg-slate-950/90 overflow-hidden"></main>
 
-  <!-- STATUS FOOTER -->
+  <!-- IN-APP VIDEO MODAL OVERLAY -->
+  <div id="videoModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl glass-panel rounded-xl overflow-hidden border border-cyan-400/50 shadow-2xl flex flex-col">
+      <div class="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-cyan-500/30 text-xs">
+        <div class="flex items-center space-x-2 text-cyan-300 font-bold truncate">
+          <i data-lucide="video" class="w-4 h-4 text-red-400"></i>
+          <span id="videoModalTitle">CYBER MEDIA PLAYER</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <a id="videoModalDirectLink" href="#" target="_blank" class="px-2 py-1 bg-cyan-950 border border-cyan-500/40 rounded text-[10px] text-cyan-300 hover:bg-cyan-900/50">
+            OPEN EXTERNAL <i data-lucide="external-link" class="w-3 h-3 inline ml-1"></i>
+          </a>
+          <button onclick="closeVideoModal()" class="p-1 text-slate-400 hover:text-white rounded">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <div class="relative w-full aspect-video bg-black flex items-center justify-center" id="videoModalBody">
+        <!-- Dynamic video player inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SYSTEM STATUS FOOTER -->
   <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
     <div class="flex items-center space-x-3">
-      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> SYSTEM: ONLINE // VIDEO EMBED READY</span>
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> AGGREGATOR ENGINE: ACTIVE</span>
+      <span class="hidden md:inline text-slate-600">|</span>
+      <span class="hidden md:inline text-slate-400">SOURCES: DuckDuckGo, Wikipedia, SearXNG, HackerNews, OpenLibrary</span>
     </div>
     <div class="flex items-center space-x-4">
-      <span>TABS: <span id="tabCount">1</span></span>
-      <span id="clock">00:00:00</span>
+      <span>ACTIVE TABS: <span id="tabCount" class="text-cyan-300">1</span></span>
+      <span id="clock" class="font-mono">00:00:00</span>
     </div>
   </footer>
 
@@ -95,15 +166,15 @@
 
     let tabs = [];
     let activeTabId = null;
-    let searchOffsets = {};
+    let searchPageState = {}; // Stores offset and existing results per tab
 
     const SPEED_DIALS = [
-      { name: 'Wikipedia', query: 'Wikipedia Free Encyclopedia', icon: 'book-open' },
-      { name: 'YouTube Tech', query: 'site:youtube.com tech review', icon: 'video' },
-      { name: 'GitHub Search', query: 'GitHub open source projects', icon: 'code' },
-      { name: 'Reddit Discussions', query: 'Reddit technology trends', icon: 'message-square' },
-      { name: 'Tech News', query: 'Latest Artificial Intelligence News', icon: 'newspaper' },
-      { name: 'Internet Archive', query: 'Internet Archive digital library', icon: 'archive' }
+      { name: 'Wikipedia', query: 'site:wikipedia.org Quantum Computing', icon: 'book-open', color: 'text-slate-300' },
+      { name: 'YouTube Tech', query: 'site:youtube.com Artificial Intelligence 2026', icon: 'video', color: 'text-red-400' },
+      { name: 'GitHub Search', query: 'GitHub open source web scrapers', icon: 'code', color: 'text-purple-400' },
+      { name: 'HackerNews', query: 'Cybersecurity zero day exploits', icon: 'newspaper', color: 'text-orange-400' },
+      { name: 'Tech Reviews', query: 'Cyberpunk tech aesthetic hardware review', icon: 'cpu', color: 'text-cyan-400' },
+      { name: 'Open Library', query: 'Computer Networks and Internet Protocols', icon: 'archive', color: 'text-emerald-400' }
     ];
 
     window.onload = () => {
@@ -142,6 +213,8 @@
       }
 
       tabs = tabs.filter(t => t.id !== id);
+      delete searchPageState[id];
+
       const container = document.getElementById('viewport_' + id);
       if (container) container.remove();
 
@@ -183,7 +256,7 @@
         let iconName = 'globe';
         if (tab.url === 'nexus://newtab') iconName = 'layout-grid';
         if (tab.url.startsWith('search://')) iconName = 'search';
-        if (tab.url.includes('youtube.com') || tab.url.includes('youtu.be')) iconName = 'video';
+        if (isMediaUrl(tab.url)) iconName = 'video';
 
         el.innerHTML = `
           <div class="flex items-center space-x-1.5 overflow-hidden">
@@ -222,7 +295,7 @@
         attachNewTabEvents(tab.id);
       } else if (tab.url.startsWith('search://')) {
         const query = decodeURIComponent(tab.url.replace('search://', ''));
-        searchOffsets[tab.id] = 0;
+        searchPageState[tab.id] = { page: 0, query: query, totalResults: 0 };
         renderSearchResultsPage(tab, element, query);
       } else {
         renderWebPageContent(tab, element, tab.url);
@@ -233,150 +306,250 @@
     async function fetchViaWorker(targetUrl) {
       const proxyUrl = `${WORKER_PROXY_URL}?url=${encodeURIComponent(targetUrl)}`;
       const response = await fetch(proxyUrl);
-      if (!response.ok) throw new Error("HTTP Error: " + response.status);
+      if (!response.ok) throw new Error("Proxy Error: " + response.status);
       return await response.text();
     }
 
-    function getEmbeddableVideoUrl(url) {
-      if (url.includes('youtube.com/watch?v=')) {
-        const videoId = url.split('v=')[1].split('&')[0];
-        return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-      } else if (url.includes('youtu.be/')) {
-        const videoId = url.split('youtu.be/')[1].split('?')[0];
-        return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-      }
-      return url;
-    }
-
-    async function searchWikipedia(query, offset = 0) {
-      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=15&sroffset=${offset}&format=json&origin=*`;
-      const res = await fetch(wikiUrl);
-      const data = await res.json();
-      
-      if (!data.query || !data.query.search) return [];
-
-      return data.query.search.map(item => ({
-        title: item.title,
-        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title.replace(/ /g, '_'))}`,
-        snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, "") + "..."
-      }));
-    }
-
     async function searchDuckDuckGo(query) {
-      const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-      const htmlText = await fetchViaWorker(targetSearchUrl);
-      
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlText, 'text/html');
-      const results = doc.querySelectorAll('.result');
+      try {
+        const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+        const htmlText = await fetchViaWorker(targetSearchUrl);
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        const results = doc.querySelectorAll('.result');
 
-      const parsedResults = [];
-      results.forEach((res, i) => {
-        if (i >= 15) return;
-        const titleEl = res.querySelector('.result__title a');
-        const snippetEl = res.querySelector('.result__snippet');
+        const parsedResults = [];
+        results.forEach((res) => {
+          const titleEl = res.querySelector('.result__title a');
+          const snippetEl = res.querySelector('.result__snippet');
 
-        if (titleEl) {
-          let href = titleEl.getAttribute('href') || '';
-          if (href.includes('uddg=')) {
-            href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
+          if (titleEl) {
+            let href = titleEl.getAttribute('href') || '';
+            if (href.includes('uddg=')) {
+              href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
+            }
+            if (href.startsWith('http')) {
+              parsedResults.push({
+                source: 'DUCKDUCKGO',
+                tagClass: 'source-tag-ddg',
+                title: titleEl.textContent.trim(),
+                url: href,
+                snippet: snippetEl ? snippetEl.textContent.trim() : 'Scraped result via DuckDuckGo pipeline.'
+              });
+            }
           }
-          parsedResults.push({
-            title: titleEl.textContent.trim(),
-            url: href,
-            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to load live website inside CYBER_SEARCH.'
-          });
-        }
-      });
-      return parsedResults;
+        });
+        return parsedResults;
+      } catch (err) {
+        console.warn("DuckDuckGo engine fetch error:", err);
+        return [];
+      }
+    }
+
+    async function searchWikipedia(query, page = 0) {
+      try {
+        const offset = page * 10;
+        const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=10&sroffset=${offset}&format=json&origin=*`;
+        const res = await fetch(wikiUrl);
+        const data = await res.json();
+        
+        if (!data.query || !data.query.search) return [];
+
+        return data.query.search.map(item => ({
+          source: 'WIKIPEDIA',
+          tagClass: 'source-tag-wiki',
+          title: item.title,
+          url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title.replace(/ /g, '_'))}`,
+          snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, "") + "..."
+        }));
+      } catch (err) {
+        console.warn("Wikipedia engine error:", err);
+        return [];
+      }
+    }
+
+    async function searchHackerNews(query, page = 0) {
+      try {
+        const hnUrl = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&page=${page}&hitsPerPage=10`;
+        const res = await fetch(hnUrl);
+        const data = await res.json();
+
+        if (!data.hits) return [];
+
+        return data.hits.filter(item => item.url || item.story_url).map(item => ({
+          source: 'HACKERNEWS',
+          tagClass: 'source-tag-hn',
+          title: item.title || item.story_title || 'Hacker News Thread',
+          url: item.url || item.story_url,
+          snippet: `Points: ${item.points || 0} | Author: ${item.author || 'anon'} | Comments: ${item.num_comments || 0}`
+        }));
+      } catch (err) {
+        console.warn("HackerNews engine error:", err);
+        return [];
+      }
+    }
+
+    async function searchOpenLibrary(query, page = 0) {
+      try {
+        const libUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&page=${page + 1}&limit=8`;
+        const res = await fetch(libUrl);
+        const data = await res.json();
+
+        if (!data.docs) return [];
+
+        return data.docs.map(doc => ({
+          source: 'OPENLIBRARY',
+          tagClass: 'source-tag-openlib',
+          title: doc.title + (doc.author_name ? ` - ${doc.author_name.join(', ')}` : ''),
+          url: doc.key ? `https://openlibrary.org${doc.key}` : `https://openlibrary.org/search?q=${encodeURIComponent(query)}`,
+          snippet: `First Published: ${doc.first_publish_year || 'N/A'} | Subjects: ${doc.subject ? doc.subject.slice(0, 3).join(', ') : 'Literature'}`
+        }));
+      } catch (err) {
+        console.warn("OpenLibrary engine error:", err);
+        return [];
+      }
+    }
+
+    async function searchSearXNG(query, page = 0) {
+      try {
+        const pNO = page + 1;
+        const searxUrl = `https://searx.be/search?q=${encodeURIComponent(query)}&pageno=${pNO}&format=json`;
+        const jsonText = await fetchViaWorker(searxUrl);
+        const data = JSON.parse(jsonText);
+
+        if (!data.results) return [];
+
+        return data.results.map(r => ({
+          source: 'SEARXNG',
+          tagClass: 'source-tag-searx',
+          title: r.title,
+          url: r.url,
+          snippet: r.content || 'Aggregated result via SearXNG meta-engine.'
+        }));
+      } catch (err) {
+        console.warn("SearXNG engine error:", err);
+        return [];
+      }
     }
 
     async function renderSearchResultsPage(tab, element, query) {
       element.innerHTML = `
         <div class="w-full h-full overflow-y-auto p-4 md:p-8">
-          <div class="max-w-4xl mx-auto space-y-6">
-            <div class="border-b border-cyan-500/20 pb-4 flex items-center justify-between">
+          <div class="max-w-5xl mx-auto space-y-6 pb-12">
+            <div class="border-b border-cyan-500/30 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-2">
               <div>
-                <p class="text-xs text-cyan-500/70">SEARCH RESULTS FOR</p>
-                <h2 class="text-lg font-bold text-cyan-200">"${escapeHtml(query)}"</h2>
+                <p class="text-[10px] font-mono text-cyan-400 tracking-wider">AGGREGATED MULTI-SOURCE SEARCH RESULTS FOR</p>
+                <h2 class="text-xl font-bold font-orbitron text-cyan-200">"${escapeHtml(query)}"</h2>
               </div>
-              <div id="statusIndicator_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
-                <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-                <span id="engineStatus_${tab.id}">FETCHING SEARCH RESULTS...</span>
+              <div id="statusIndicator_${tab.id}" class="text-xs text-cyan-400 flex items-center space-x-2">
+                <i data-lucide="loader" class="w-4 h-4 animate-spin text-cyan-400"></i>
+                <span id="engineStatus_${tab.id}" class="font-mono">QUERYING ALL ENGINES...</span>
               </div>
             </div>
 
+            <!-- Merged Search Stream -->
             <div id="resultsList_${tab.id}" class="space-y-4"></div>
 
-            <div class="pt-4 flex justify-center">
-              <button id="getResultsBtn_${tab.id}" onclick="getMoreResults('${tab.id}', '${escapeHtml(query)}')" class="px-6 py-2 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 rounded-lg text-xs hover:bg-cyan-900/60 font-semibold transition flex items-center space-x-2 glow-cyan">
-                <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
+            <!-- DYNAMIC PAGINATION: "GET RESULTS" BUTTON -->
+            <div class="pt-6 flex flex-col items-center justify-center space-y-2">
+              <button 
+                id="getResultsBtn_${tab.id}" 
+                onclick="getMoreResults('${tab.id}')" 
+                class="px-8 py-2.5 bg-cyan-950/90 border border-cyan-400/60 text-cyan-300 rounded-xl text-xs hover:bg-cyan-900/80 hover:border-cyan-300 font-bold tracking-wider transition flex items-center space-x-2 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+              >
+                <i data-lucide="arrow-down-circle" class="w-4 h-4 text-cyan-400"></i>
                 <span>GET RESULTS</span>
               </button>
+              <span class="text-[10px] text-slate-500 font-mono">Fetches next page set across DuckDuckGo, Wikipedia, HN & OpenLibrary</span>
             </div>
           </div>
         </div>
       `;
       lucide.createIcons();
 
-      await fetchAndDisplayResults(tab.id, query, 0, false);
+      await fetchAndStreamResults(tab.id, query, 0, false);
     }
 
-    async function fetchAndDisplayResults(tabId, query, offset, append = false) {
+    async function fetchAndStreamResults(tabId, query, page, append = false) {
       const listContainer = document.getElementById(`resultsList_${tabId}`);
       const statusInd = document.getElementById(`statusIndicator_${tabId}`);
-      
-      let results = [];
 
-      if (offset === 0) {
-        try {
-          results = await searchDuckDuckGo(query);
-        } catch (err) {
-          console.warn("DuckDuckGo failed, falling back to Wikipedia API...", err);
-        }
-      }
+      // Query multiple search providers concurrently
+      const [ddgRes, wikiRes, hnRes, openLibRes, searxRes] = await Promise.allSettled([
+        searchDuckDuckGo(query),
+        searchWikipedia(query, page),
+        searchHackerNews(query, page),
+        searchOpenLibrary(query, page),
+        searchSearXNG(query, page)
+      ]);
 
-      if (results.length === 0) {
-        try {
-          results = await searchWikipedia(query, offset);
-        } catch (err) {
-          console.error("Wikipedia search failed:", err);
+      let combined = [];
+      if (ddgRes.status === 'fulfilled') combined.push(...ddgRes.value);
+      if (wikiRes.status === 'fulfilled') combined.push(...wikiRes.value);
+      if (hnRes.status === 'fulfilled') combined.push(...hnRes.value);
+      if (openLibRes.status === 'fulfilled') combined.push(...openLibRes.value);
+      if (searxRes.status === 'fulfilled') combined.push(...searxRes.value);
+
+      // Deduplicate results by URL
+      const uniqueMap = new Map();
+      combined.forEach(item => {
+        if (item.url && !uniqueMap.has(item.url)) {
+          uniqueMap.set(item.url, item);
         }
-      }
+      });
+
+      const uniqueResults = Array.from(uniqueMap.values());
 
       if (statusInd) statusInd.style.display = 'none';
 
-      if (!results || results.length === 0) {
+      if (uniqueResults.length === 0) {
         if (!append) {
           listContainer.innerHTML = `
-            <div class="glass-panel p-6 rounded-xl border border-cyan-500/30">
-              <p class="text-xs text-cyan-300 mb-2 font-bold">NO RESULTS FOUND</p>
-              <p class="text-xs text-slate-400">Try typing a direct URL in the omnibox above (e.g., <code class="text-cyan-400">https://youtube.com</code> or <code class="text-cyan-400">https://wikipedia.org</code>).</p>
+            <div class="glass-panel p-6 rounded-xl border border-cyan-500/30 text-center space-y-3">
+              <i data-lucide="alert-triangle" class="w-8 h-8 text-amber-400 mx-auto"></i>
+              <p class="text-xs text-cyan-300 font-bold">NO RESULTS RETURNED FROM PRIMARY PIPELINES</p>
+              <p class="text-xs text-slate-400 max-w-md mx-auto">Try typing a direct video or site URL into the top omnibox (e.g. <code class="text-cyan-300">https://youtube.com/watch?v=...</code>).</p>
             </div>
           `;
+          lucide.createIcons();
         }
         return;
       }
 
       let itemsHTML = '';
-      results.forEach(res => {
-        const isVideo = res.url.includes('youtube.com') || res.url.includes('youtu.be') || res.url.includes('.mp4');
+      uniqueResults.forEach(res => {
+        const isVideo = isMediaUrl(res.url);
         
         itemsHTML += `
-          <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition flex justify-between items-start space-x-4">
-            <div class="flex-1">
-              <span class="text-[10px] text-cyan-400/80 block truncate mb-1">${escapeHtml(res.url)}</span>
+          <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/60 transition flex flex-col md:flex-row justify-between items-start gap-4">
+            <div class="flex-1 space-y-1.5">
+              <div class="flex items-center space-x-2">
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded ${res.tagClass}">${res.source}</span>
+                <span class="text-[10px] text-cyan-400/70 truncate max-w-md font-mono">${escapeHtml(res.url)}</span>
+              </div>
+
               <a href="#" onclick="openResultUrl('${escapeHtml(res.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition underline underline-offset-4 decoration-cyan-500/40">
                 ${escapeHtml(res.title)}
               </a>
-              <p class="text-xs text-slate-300 mt-2 leading-relaxed">${escapeHtml(res.snippet)}</p>
+              
+              <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(res.snippet)}</p>
             </div>
-            ${isVideo ? `
-              <button onclick="openResultUrl('${escapeHtml(res.url)}')" class="shrink-0 px-3 py-1.5 bg-red-600/30 border border-red-400 text-red-300 text-xs rounded hover:bg-red-500/40 flex items-center space-x-1">
-                <i data-lucide="play" class="w-3.5 h-3.5"></i>
-                <span>PLAY</span>
+
+            <!-- ACTION BUTTONS: IN-APP EMBED, POPUP MODAL, DIRECT LINK -->
+            <div class="flex flex-wrap md:flex-col items-stretch gap-1.5 shrink-0 w-full md:w-auto">
+              ${isVideo ? `
+                <button onclick="playInModal('${escapeHtml(res.url)}', '${escapeHtml(res.title)}')" class="px-3 py-1.5 bg-red-950/80 border border-red-500/50 text-red-300 text-xs rounded hover:bg-red-900/80 flex items-center justify-center space-x-1.5 font-bold transition">
+                  <i data-lucide="play" class="w-3.5 h-3.5 text-red-400"></i>
+                  <span>POPUP PLAYER</span>
+                </button>
+              ` : ''}
+
+              <button onclick="openResultUrl('${escapeHtml(res.url)}')" class="px-3 py-1.5 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs rounded hover:bg-cyan-900/80 flex items-center justify-center space-x-1.5 transition">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                <span>OPEN TAB</span>
               </button>
-            ` : ''}
+            </div>
           </div>
         `;
       });
@@ -389,32 +562,135 @@
       lucide.createIcons();
     }
 
-    async function getMoreResults(tabId, query) {
-      searchOffsets[tabId] = (searchOffsets[tabId] || 0) + 15;
+    async function getMoreResults(tabId) {
+      if (!searchPageState[tabId]) return;
+
+      searchPageState[tabId].page += 1;
+      const currentPage = searchPageState[tabId].page;
+      const query = searchPageState[tabId].query;
+
       const btn = document.getElementById(`getResultsBtn_${tabId}`);
-      if (btn) btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>FETCHING RESULTS...</span>`;
-      lucide.createIcons();
-      
-      await fetchAndDisplayResults(tabId, query, searchOffsets[tabId], true);
-      
-      if (btn) btn.innerHTML = `<i data-lucide="arrow-down-circle" class="w-4 h-4"></i><span>GET RESULTS</span>`;
-      lucide.createIcons();
+      if (btn) {
+        btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin text-cyan-400"></i><span>FETCHING MORE RESULTS...</span>`;
+        lucide.createIcons();
+      }
+
+      await fetchAndStreamResults(tabId, query, currentPage, true);
+
+      if (btn) {
+        btn.innerHTML = `<i data-lucide="arrow-down-circle" class="w-4 h-4 text-cyan-400"></i><span>GET RESULTS</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    function isMediaUrl(url) {
+      if (!url) return false;
+      return url.includes('youtube.com') || 
+             url.includes('youtu.be') || 
+             url.includes('vimeo.com') || 
+             url.includes('twitch.tv') ||
+             url.endsWith('.mp4') || 
+             url.endsWith('.webm');
+    }
+
+    function convertToEmbedUrl(url) {
+      try {
+        // YouTube URLs conversion to youtube-nocookie.com
+        if (url.includes('youtube.com/watch')) {
+          const videoId = new URL(url).searchParams.get('v');
+          if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0`;
+        }
+        if (url.includes('youtu.be/')) {
+          const videoId = url.split('youtu.be/')[1].split('?')[0];
+          if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&modestbranding=1&rel=0`;
+        }
+        if (url.includes('vimeo.com/')) {
+          const vimeoId = url.split('vimeo.com/')[1].split('?')[0];
+          return `https://player.vimeo.com/video/${vimeoId}?autoplay=1`;
+        }
+      } catch (e) {
+        console.warn("URL Parse exception:", e);
+      }
+      return url;
     }
 
     function renderWebPageContent(tab, element, url) {
-      const formattedUrl = getEmbeddableVideoUrl(url);
+      const isVideo = isMediaUrl(url);
+      const embedUrl = convertToEmbedUrl(url);
 
-      element.innerHTML = `
-        <div class="w-full h-full relative bg-black">
-          <iframe 
-            src="${escapeHtml(formattedUrl)}" 
-            class="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
-          ></iframe>
-        </div>
+      if (isVideo) {
+        // High-compatibility inline video frame with multi-fallback bar
+        element.innerHTML = `
+          <div class="w-full h-full bg-slate-950 flex flex-col justify-between">
+            <div class="px-4 py-2 bg-slate-900 border-b border-cyan-500/30 flex items-center justify-between text-xs">
+              <div class="flex items-center space-x-2 text-cyan-300 font-bold truncate">
+                <i data-lucide="video" class="w-4 h-4 text-red-400"></i>
+                <span class="truncate">${escapeHtml(url)}</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button onclick="playInModal('${escapeHtml(url)}', '${escapeHtml(tab.title)}')" class="px-2.5 py-1 bg-red-950 border border-red-500/40 text-red-300 rounded hover:bg-red-900 text-[10px]">
+                  POPUP MODAL
+                </button>
+                <a href="${escapeHtml(url)}" target="_blank" class="px-2.5 py-1 bg-cyan-950 border border-cyan-500/40 text-cyan-300 rounded hover:bg-cyan-900 text-[10px]">
+                  DIRECT LINK
+                </a>
+              </div>
+            </div>
+
+            <div class="flex-1 relative bg-black flex items-center justify-center">
+              <iframe 
+                src="${escapeHtml(embedUrl)}" 
+                class="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>
+            </div>
+          </div>
+        `;
+      } else {
+        // Standard Web Viewport Frame
+        element.innerHTML = `
+          <div class="w-full h-full relative bg-slate-950">
+            <iframe 
+              src="${escapeHtml(url)}" 
+              class="w-full h-full border-0"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            ></iframe>
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    function playInModal(rawUrl, title) {
+      const modal = document.getElementById('videoModal');
+      const body = document.getElementById('videoModalBody');
+      const titleEl = document.getElementById('videoModalTitle');
+      const directLink = document.getElementById('videoModalDirectLink');
+
+      const embedUrl = convertToEmbedUrl(rawUrl);
+
+      titleEl.innerText = title || rawUrl;
+      directLink.href = rawUrl;
+
+      body.innerHTML = `
+        <iframe 
+          src="${escapeHtml(embedUrl)}" 
+          class="w-full h-full border-0 absolute inset-0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
       `;
+
+      modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeVideoModal() {
+      const modal = document.getElementById('videoModal');
+      const body = document.getElementById('videoModalBody');
+      body.innerHTML = '';
+      modal.classList.add('hidden');
     }
 
     function openResultUrl(url) {
@@ -462,12 +738,12 @@
             <div class="text-center my-6">
               <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>CYBER_SEARCH ONLINE</span>
+                <span class="font-mono">MULTI-ENGINE WEB & MEDIA TERMINAL</span>
               </div>
-              <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
-                CYBER_SEARCH
+              <h1 class="text-3xl md:text-5xl font-extrabold font-orbitron tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
+                CYBER<span class="text-white">_SEARCH</span>
               </h1>
-              <p class="text-xs text-cyan-500/70 mt-2">Embedded Video Player & Live Web Viewport</p>
+              <p class="text-xs font-mono text-cyan-500/70 mt-2">Scrape, Query, and Stream Across Open Web Networks</p>
             </div>
 
             <!-- Central Omnibox Search -->
@@ -477,12 +753,12 @@
                 <input 
                   id="tabSearchInput_${tabId}"
                   type="text" 
-                  placeholder="Type search query or paste website / YouTube URL..." 
+                  placeholder="Type search query or paste YouTube video / web URL..." 
                   class="w-full bg-slate-900/90 border-2 border-cyan-500/50 rounded-xl px-12 py-3 text-sm text-cyan-100 placeholder-cyan-600 focus:outline-none focus:border-cyan-300 glow-cyan transition"
                 >
                 <button 
                   id="tabSearchBtn_${tabId}"
-                  class="absolute right-3 px-4 py-1.5 bg-cyan-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-cyan-400 transition"
+                  class="absolute right-3 px-4 py-1.5 bg-cyan-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-cyan-400 transition font-orbitron"
                 >
                   SEARCH
                 </button>
@@ -491,7 +767,7 @@
 
             <!-- Speed Dial Shortcuts -->
             <div class="w-full max-w-3xl mt-8">
-              <h3 class="text-xs font-semibold text-cyan-500 tracking-wider mb-4 text-left">FAST_QUERIES</h3>
+              <h3 class="text-xs font-semibold text-cyan-500 tracking-wider mb-4 text-left font-mono">POPULAR_SEARCH_PRESETS</h3>
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 ${SPEED_DIALS.map(dial => `
                   <button 
@@ -499,9 +775,9 @@
                     class="glass-panel p-3 rounded-lg flex flex-col items-center hover:border-cyan-400 hover:bg-cyan-950/40 transition group"
                   >
                     <div class="p-2.5 rounded-full bg-slate-900/80 mb-2 border border-cyan-500/20 group-hover:scale-110 transition">
-                      <i data-lucide="${dial.icon}" class="w-5 h-5 text-cyan-400"></i>
+                      <i data-lucide="${dial.icon}" class="w-5 h-5 ${dial.color}"></i>
                     </div>
-                    <span class="text-xs text-cyan-300 font-medium truncate w-full text-center">${dial.name}</span>
+                    <span class="text-xs text-cyan-300 font-medium truncate w-full text-center font-mono">${dial.name}</span>
                   </button>
                 `).join('')}
               </div>
@@ -537,11 +813,12 @@
       try {
         return new URL(url).hostname.replace('www.', '');
       } catch(e) {
-        return url.length > 15 ? url.substring(0, 15) + '...' : url;
+        return url.length > 18 ? url.substring(0, 18) + '...' : url;
       }
     }
 
     function escapeHtml(str) {
+      if (!str) return '';
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
   </script>
