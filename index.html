@@ -237,7 +237,6 @@
       return await response.text();
     }
 
-    // Convert standard YouTube links into embeddable players
     function getEmbeddableVideoUrl(url) {
       if (url.includes('youtube.com/watch?v=')) {
         const videoId = url.split('v=')[1].split('&')[0];
@@ -310,9 +309,9 @@
             <div id="resultsList_${tab.id}" class="space-y-4"></div>
 
             <div class="pt-4 flex justify-center">
-              <button id="loadMoreBtn_${tab.id}" onclick="loadMoreResults('${tab.id}', '${escapeHtml(query)}')" class="px-6 py-2 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 rounded-lg text-xs hover:bg-cyan-900/60 font-semibold transition flex items-center space-x-2">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                <span>LOAD MORE RESULTS</span>
+              <button id="getResultsBtn_${tab.id}" onclick="getMoreResults('${tab.id}', '${escapeHtml(query)}')" class="px-6 py-2 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 rounded-lg text-xs hover:bg-cyan-900/60 font-semibold transition flex items-center space-x-2 glow-cyan">
+                <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
+                <span>GET RESULTS</span>
               </button>
             </div>
           </div>
@@ -351,8 +350,8 @@
         if (!append) {
           listContainer.innerHTML = `
             <div class="glass-panel p-6 rounded-xl border border-cyan-500/30">
-              <p class="text-xs text-cyan-300 mb-2 font-bold">NO MORE RESULTS FOUND</p>
-              <p class="text-xs text-slate-400">Try typing a direct web or video URL in the omnibox above (e.g., <code class="text-cyan-400">https://youtube.com</code> or <code class="text-cyan-400">https://wikipedia.org</code>).</p>
+              <p class="text-xs text-cyan-300 mb-2 font-bold">NO RESULTS FOUND</p>
+              <p class="text-xs text-slate-400">Try typing a direct URL in the omnibox above (e.g., <code class="text-cyan-400">https://youtube.com</code> or <code class="text-cyan-400">https://wikipedia.org</code>).</p>
             </div>
           `;
         }
@@ -390,17 +389,18 @@
       lucide.createIcons();
     }
 
-    async function loadMoreResults(tabId, query) {
+    async function getMoreResults(tabId, query) {
       searchOffsets[tabId] = (searchOffsets[tabId] || 0) + 15;
-      const btn = document.getElementById(`loadMoreBtn_${tabId}`);
-      if (btn) btn.innerText = "FETCHING MORE...";
+      const btn = document.getElementById(`getResultsBtn_${tabId}`);
+      if (btn) btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>FETCHING RESULTS...</span>`;
+      lucide.createIcons();
       
       await fetchAndDisplayResults(tabId, query, searchOffsets[tabId], true);
       
-      if (btn) btn.innerText = "LOAD MORE RESULTS";
+      if (btn) btn.innerHTML = `<i data-lucide="arrow-down-circle" class="w-4 h-4"></i><span>GET RESULTS</span>`;
+      lucide.createIcons();
     }
 
-    // Loads live web pages or embedded video players in full-page frames
     function renderWebPageContent(tab, element, url) {
       const formattedUrl = getEmbeddableVideoUrl(url);
 
