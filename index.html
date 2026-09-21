@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#11131a">
+<title>WebBook — Chromebook Desktop</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{color:#fff;background:#080b12}
+button,input,textarea{font:inherit}button{border:0;cursor:pointer;color:inherit}
+#desktop{position:fixed;inset:0;background:radial-gradient(circle at 18% 20%,#315aa8 0,transparent 34%),radial-gradient(circle at 82% 70%,#713b9d 0,transparent 36%),linear-gradient(135deg,#10182d,#080a12 70%);transition:.35s}
+#desktop.light{color:#111;background:radial-gradient(circle at 18% 20%,#b5ddff,transparent 38%),radial-gradient(circle at 82% 70%,#e1c1ff,transparent 38%),linear-gradient(135deg,#d9e9ff,#f7f1ff)}
+#menu{position:absolute;top:0;left:0;right:0;height:32px;padding:0 12px;display:flex;align-items:center;gap:18px;background:rgba(20,20,25,.58);backdrop-filter:blur(24px);z-index:10000;font-size:13px}
+#desktop.light #menu{background:rgba(255,255,255,.55)}
+#menu .brand{font-weight:700}.menubtn{cursor:pointer}.menubtn:hover{opacity:.65}
+#status{margin-left:auto;display:flex;gap:13px;align-items:center}
+#desktopIcons{position:absolute;right:22px;top:55px;display:flex;flex-direction:column;gap:16px}
+.dicon{width:82px;text-align:center;padding:7px;border-radius:10px;cursor:pointer}
+.dicon:hover{background:#ffffff18}.dicon b{display:block;font-size:38px}.dicon small{text-shadow:0 2px 4px #000}
+#windows{position:absolute;inset:32px 0 92px;pointer-events:none}
+.window{position:absolute;left:10%;top:8%;width:650px;height:450px;min-width:330px;min-height:230px;border:1px solid #ffffff25;border-radius:15px;background:#202126dd;box-shadow:0 28px 80px #0008;backdrop-filter:blur(28px);overflow:hidden;pointer-events:auto;animation:pop .16s ease}
+#desktop.light .window{background:#f4f5f8e8;color:#111;border-color:#0002}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.titlebar{height:43px;display:flex;align-items:center;padding:0 12px;background:#ffffff09;border-bottom:1px solid #ffffff10;cursor:grab}
+.traffic{display:flex;gap:7px;width:70px}.traffic i{display:block;width:13px;height:13px;border-radius:50%}.x{background:#ff5f57}.m{background:#ffbd2e}.g{background:#28c840}
+.wtitle{flex:1;text-align:center;font-size:13px;font-weight:600}.windowbody{height:calc(100% - 43px);overflow:auto}
+.window.max{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0}
+#dock{position:absolute;z-index:12000;left:50%;bottom:14px;transform:translateX(-50%);height:70px;display:flex;align-items:end;gap:8px;padding:7px 10px;background:#24252bcc;border:1px solid #ffffff2b;border-radius:22px;backdrop-filter:blur(28px);box-shadow:0 18px 55px #0007}
+#desktop.light #dock{background:#ffffffa8;color:#111;border-color:#0002}
+.dockitem{position:relative;width:54px;height:54px;border-radius:15px;display:grid;place-items:center;font-size:34px;cursor:pointer;transition:.16s}
+.dockitem:hover{transform:translateY(-13px) scale(1.23)}
+.dockitem.running:after{content:"";position:absolute;bottom:-3px;width:5px;height:5px;border-radius:50%;background:currentColor}
+.app{height:100%;display:flex}.side{width:160px;padding:14px;background:#00000018;border-right:1px solid #ffffff12}.side div{padding:9px;border-radius:7px;margin-bottom:4px;cursor:pointer}.side div:hover{background:#ffffff12}.grid{flex:1;padding:22px;display:grid;grid-template-columns:repeat(auto-fill,95px);align-content:start;gap:18px}.file{text-align:center;padding:9px;border-radius:9px;cursor:pointer}.file:hover{background:#ffffff12}.file span{display:block;font-size:43px;margin-bottom:5px}
+.notes{height:100%;display:flex}.note-list{width:190px;border-right:1px solid #ffffff15;padding:12px}.note{padding:9px;border-radius:7px;background:#ffffff10;margin-top:12px}.noteedit{flex:1;padding:20px}.noteedit textarea{width:100%;height:100%;resize:none;border:0;outline:0;background:none;color:inherit;font-size:17px}
+.calc{padding:18px}.display{width:100%;height:62px;border:0;border-radius:12px;background:#0005;color:#fff;text-align:right;padding:10px;font-size:28px;margin-bottom:12px}.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.keys button{height:54px;border-radius:11px;background:#ffffff12;font-size:17px}.keys button:hover{background:#ffffff25}
+.term{height:100%;padding:14px;background:#070907;color:#57ff70;font:14px monospace}.tout{height:calc(100% - 30px);overflow:auto;white-space:pre-wrap}.tin{display:flex}.tin span{margin-right:7px}.tin input{flex:1;background:none;border:0;outline:0;color:#57ff70;font:inherit}
+.settings{padding:25px}.setting{margin-bottom:22px}.setting label{display:block;font-weight:650;margin-bottom:8px}.setting button,.setting select{padding:9px 13px;border-radius:9px;background:#ffffff15;color:inherit;border:1px solid #ffffff15}.colors{display:flex;gap:9px}.color{width:30px;height:30px;border-radius:50%;border:2px solid #fff4}
+.browser{height:100%;display:flex;flex-direction:column}.bar{display:flex;gap:7px;padding:10px;background:#ffffff08}.bar input{flex:1;border:0;outline:0;border-radius:9px;background:#0004;color:inherit;padding:9px}.bar button{background:#ffffff12;border-radius:8px;padding:0 11px}.webview{flex:1;padding:30px;display:grid;place-items:center;text-align:center}.webview h1{font-size:38px}.webview p{opacity:.7}.webview a{color:#72a9ff}
+.calendar{padding:20px}.calendar h2{margin-top:0}.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{padding:10px;text-align:center;border-radius:7px;background:#ffffff09}.today{background:#3976ff!important}
+.clockapp{height:100%;display:grid;place-items:center;text-align:center}.bigclock{font-size:62px;font-weight:700}.subclock{opacity:.65}
+#spot,#launch,#context{display:none;position:absolute;z-index:30000}
+#spot{inset:0;background:#0005;backdrop-filter:blur(10px);justify-content:center;padding-top:110px}.spotbox{width:min(620px,90vw);background:#282a31f5;border-radius:18px;overflow:hidden;box-shadow:0 30px 100px #000}.spotbox input{width:100%;padding:19px 22px;background:none;border:0;outline:0;color:#fff;font-size:23px}.results{padding:8px}.result{padding:12px;border-radius:8px;cursor:pointer}.result:hover{background:#ffffff12}
+#launch{inset:0;background:#080a14cc;backdrop-filter:blur(30px);padding:80px}.launchgrid{display:grid;grid-template-columns:repeat(auto-fill,100px);justify-content:center;gap:30px}.launchapp{text-align:center;cursor:pointer;padding:8px;border-radius:12px}.launchapp:hover{background:#ffffff15}.launchapp b{display:block;font-size:48px;margin-bottom:7px}
+#context{width:190px;background:#292a31ee;border:1px solid #ffffff20;border-radius:10px;padding:6px;box-shadow:0 15px 50px #000}.ctx{padding:9px;border-radius:6px;cursor:pointer}.ctx:hover{background:#ffffff12}
+#boot{position:fixed;inset:0;z-index:50000;background:#08090d;display:grid;place-items:center}.bootbox{text-align:center}.bootlogo{font-size:70px}.loader{width:180px;height:4px;background:#ffffff15;border-radius:4px;overflow:hidden;margin:22px auto}.loader i{display:block;height:100%;width:0;background:#fff;animation:load 1.2s forwards}@keyframes load{to{width:100%}}
+@media(max-width:700px){#menu .menubtn{display:none}.window{left:8px!important;top:8px!important;width:calc(100% - 16px);height:calc(100% - 16px)}#dock{max-width:96vw;overflow:auto}.dockitem{min-width:48px}.side{width:125px}}
+</style>
+</head>
+<body>
+<div id="boot"><div class="bootbox"><div class="bootlogo"></div><div>WebBook</div><div class="loader"><i></i></div></div></div>
+<div id="desktop">
+<div id="menu"><span class="brand">WebBook</span><span class="menubtn" onclick="openApp('finder')">File</span><span class="menubtn" onclick="openApp('settings')">Edit</span><span class="menubtn" onclick="toggleLaunch()">View</span><span class="menubtn" onclick="about()">Help</span><span id="status">⌁　🔊　🔋　<span id="time"></span></span></div>
+<div id="desktopIcons"><div class="dicon" ondblclick="openApp('finder')"><b>💻</b><small>Computer</small></div><div class="dicon" ondblclick="openApp('trash')"><b>🗑️</b><small>Trash</small></div></div>
+<div id="windows"></div>
+<div id="dock">
+<div class="dockitem" data-app="finder" onclick="openApp('finder')">📁</div><div class="dockitem" data-app="notes" onclick="openApp('notes')">📝</div><div class="dockitem" data-app="calculator" onclick="openApp('calculator')">🧮</div><div class="dockitem" data-app="terminal" onclick="openApp('terminal')">⌨️</div><div class="dockitem" data-app="browser" onclick="openApp('browser')">🌐</div><div class="dockitem" data-app="calendar" onclick="openApp('calendar')">📅</div><div class="dockitem" data-app="settings" onclick="openApp('settings')">⚙️</div><div class="dockitem" onclick="toggleLaunch()">🚀</div>
+</div>
+<div id="spot"><div class="spotbox"><input id="search" placeholder="Search WebBook" oninput="searchApps(this.value)" autofocus><div class="results" id="results"></div></div></div>
+<div id="launch"><div class="launchgrid"><div class="launchapp" onclick="launch('finder')"><b>📁</b>Finder</div><div class="launchapp" onclick="launch('notes')"><b>📝</b>Notes</div><div class="launchapp" onclick="launch('calculator')"><b>🧮</b>Calculator</div><div class="launchapp" onclick="launch('terminal')"><b>⌨️</b>Terminal</div><div class="launchapp" onclick="launch('browser')"><b>🌐</b>Browser</div><div class="launchapp" onclick="launch('calendar')"><b>📅</b>Calendar</div><div class="launchapp" onclick="launch('settings')"><b>⚙️</b>Settings</div></div></div>
+<div id="context"><div class="ctx" onclick="openApp('finder');hideContext()">Open Computer</div><div class="ctx" onclick="openApp('notes');hideContext()">New Note</div><div class="ctx" onclick="openApp('settings');hideContext()">Desktop Settings</div><div class="ctx" onclick="location.reload()">Refresh</div></div>
+</div>
+<script>
+const APPS={finder:['Finder','📁'],notes:['Notes','📝'],calculator:['Calculator','🧮'],terminal:['Terminal','⌨️'],browser:['Browser','🌐'],calendar:['Calendar','📅'],settings:['Settings','⚙️'],trash:['Trash','🗑️'],clock:['Clock','🕐']};
+let z=20,count=0;
+const $=id=>document.getElementById(id);
+function clock(){let d=new Date();$('time').textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});if($('bigclock')){$('bigclock').textContent=d.toLocaleTimeString();$('subclock').textContent=d.toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'})}}setInterval(clock,1000);clock();
+setTimeout(()=>{$('boot').style.display='none'},1400);
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function openApp(app){
+ let old=document.querySelector('.window[data-app="'+app+'"]');if(old){old.style.display='block';old.style.zIndex=++z;return}
+ let w=document.createElement('div');w.className='window';w.dataset.app=app;w.style.left=(8+count*3)+'%';w.style.top=(7+count*3)+'%';w.style.zIndex=++z;count++;
+ w.innerHTML='<div class="titlebar"><div class="traffic"><i class="x" onclick="closeWin(this)"></i><i class="m" onclick="minWin(this)"></i><i class="g" onclick="maxWin(this)"></i></div><div class="wtitle">'+APPS[app][1]+' '+APPS[app][0]+'</div><div style="width:70px"></div></div><div class="windowbody">'+content(app)+'</div>';
+ $('windows').appendChild(w);drag(w);w.addEventListener('mousedown',()=>w.style.zIndex=++z);document.querySelector('.dockitem[data-app="'+app+'"]')?.classList.add('running');
+}
+function closeWin(el){let w=el.closest('.window');let a=w.dataset.app;w.remove();document.querySelector('.dockitem[data-app="'+a+'"]')?.classList.remove('running')}
+function minWin(el){el.closest('.window').style.display='none'}
+function maxWin(el){el.closest('.window').classList.toggle('max')}
+function drag(w){let bar=w.querySelector('.titlebar'),down=false,sx,sy,ox,oy;bar.addEventListener('mousedown',e=>{if(e.target.tagName==='I')return;down=true;sx=e.clientX;sy=e.clientY;ox=w.offsetLeft;oy=w.offsetTop});document.addEventListener('mousemove',e=>{if(!down||w.classList.contains('max'))return;w.style.left=Math.max(0,ox+e.clientX-sx)+'px';w.style.top=Math.max(0,oy+e.clientY-sy)+'px'});document.addEventListener('mouseup',()=>down=false)}
+function content(a){
+if(a==='finder')return '<div class="app"><div class="side"><div>⭐ Recents</div><div>📄 Documents</div><div>⬇️ Downloads</div><div>🖼️ Pictures</div><div>💻 Computer</div></div><div class="grid"><div class="file"><span>📁</span>Documents</div><div class="file"><span>📁</span>Downloads</div><div class="file"><span>📁</span>Pictures</div><div class="file"><span>📁</span>Projects</div><div class="file"><span>📄</span>Welcome.txt</div><div class="file"><span>💾</span>WebBook</div></div></div>';
+if(a==='notes'){let n=localStorage.getItem('note')||'Welcome to WebBook!\\n\\nThis note is saved automatically.';return '<div class="notes"><div class="note-list"><b>Notes</b><div class="note">Welcome</div></div><div class="noteedit"><textarea oninput="localStorage.setItem(\\'note\\',this.value)">'+esc(n)+'</textarea></div></div>'}
+if(a==='calculator')return '<div class="calc"><input class="display" id="calcDisplay" readonly><div class="keys">'+['AC','(',')','/','7','8','9','*','4','5','6','-','1','2','3','+','0','.','⌫','='].map(x=>'<button onclick="calc(\\''+x+'\\')">'+x+'</button>').join('')+'</div></div>';
+if(a==='terminal')return '<div class="term"><div class="tout" id="tout">WebBook Terminal 1.0\\nType "help" for commands.\\n\\n</div><div class="tin"><span>$</span><input id="tin" autofocus onkeydown="termKey(event)"></div></div>';
+if(a==='browser')return '<div class="browser"><div class="bar"><button onclick="browserBack()">←</button><input id="url" value="https://www.google.com" onkeydown="if(event.key===\\'Enter\\')browse()"><button onclick="browse()">Go</button></div><div class="webview" id="webview"><div><h1>WebBook Browser</h1><p>Enter a website above. External sites open in a new tab.</p></div></div></div>';
+if(a==='settings')return '<div class="settings"><h2>Settings</h2><div class="setting"><label>Appearance</label><button onclick="theme(\\'dark\\')">Dark</button> <button onclick="theme(\\'light\\')">Light</button></div><div class="setting"><label>Wallpaper</label><div class="colors"><button class="color" style="background:#172a58" onclick="wall(1)"></button><button class="color" style="background:#502b69" onclick="wall(2)"></button><button class="color" style="background:#204f45" onclick="wall(3)"></button></div></div><div class="setting"><label>Dock size</label><select onchange="dockSize(this.value)"><option value="54">Normal</option><option value="64">Large</option><option value="44">Small</option></select></div><hr><p><b>WebBook</b> is a browser-based desktop designed for Chromebooks.</p><p>It does not replace ChromeOS or macOS.</p></div>';
+if(a==='calendar'){let d=new Date(),y=d.getFullYear(),m=d.getMonth(),first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),cells='';for(let i=0;i<first;i++)cells+='<div></div>';for(let n=1;n<=days;n++)cells+='<div class="day '+(n===d.getDate()?'today':'')+'">'+n+'</div>';return '<div class="calendar"><h2>'+d.toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="calgrid">'+['S','M','T','W','T','F','S'].map(x=>'<b class="day">'+x+'</b>').join('')+cells+'</div></div>'}
+if(a==='clock')return '<div class="clockapp"><div><div class="bigclock" id="bigclock"></div><div class="subclock" id="subclock"></div></div></div>';
+if(a==='trash')return '<div style="padding:35px;text-align:center"><div style="font-size:70px">🗑️</div><h2>Trash is empty</h2></div>';
+return '';
+}
+function calc(x){let d=$('calcDisplay');if(!d)return;if(x==='AC')d.value='';else if(x==='⌫')d.value=d.value.slice(0,-1);else if(x==='='){try{if(!/^[0-9+*/(). -]+$/.test(d.value))throw 0;d.value=String(Function('return '+d.value)())}catch{d.value='Error'}}else d.value+=x}
+function termKey(e){if(e.key!=='Enter')return;let i=$('tin'),cmd=i.value.trim(),o=$('tout');let out='';if(cmd==='help')out='help  ls  pwd  date  clear  neofetch';else if(cmd==='ls')out='Documents  Downloads  Pictures  Projects';else if(cmd==='pwd')out='/home/webbook';else if(cmd==='date')out=new Date().toString();else if(cmd==='neofetch')out='WebBook OS\\nBrowser Desktop\\nChromebook Edition';else if(cmd==='clear')o.textContent='';else out='Command not found: '+cmd;o.textContent+= '$ '+cmd+'\\n'+(out?out+'\\n\\n':'');i.value='';o.scrollTop=o.scrollHeight}
+function browse(){let v=$('url').value.trim();if(!v)return;let u=/^https?:\\/\\//i.test(v)?v:'https://www.google.com/search?q='+encodeURIComponent(v);window.open(u,'_blank');$('webview').innerHTML='<div><h1>Opening…</h1><p>'+esc(u)+'</p></div>'}
+function browserBack(){history.back()}
+function theme(t){$('desktop').classList.toggle('light',t==='light');localStorage.setItem('theme',t)}
+function wall(n){let bg=n===1?'radial-gradient(circle at 18% 20%,#315aa8,transparent 34%),linear-gradient(135deg,#10182d,#080a12)':n===2?'radial-gradient(circle at 80% 70%,#8c45ad,transparent 38%),linear-gradient(135deg,#27133c,#09070d)':'radial-gradient(circle at 20% 70%,#2d967e,transparent 38%),linear-gradient(135deg,#102d29,#070b0b)';$('desktop').style.background=bg;localStorage.setItem('wall',bg)}
+function dockSize(v){document.querySelectorAll('.dockitem').forEach(x=>{x.style.width=v+'px';x.style.height=v+'px';x.style.fontSize=(v*.63)+'px'});localStorage.setItem('dock',v)}
+function toggleLaunch(){$('launch').style.display=$('launch').style.display==='grid'?'none':'grid'}
+function launch(a){openApp(a);toggleLaunch()}
+function toggleSpot(){let s=$('spot');s.style.display=s.style.display==='flex'?'none':'flex';if(s.style.display==='flex'){$('search').value='';$('results').innerHTML='';setTimeout(()=>$('search').focus(),30)}}
+function searchApps(q){let r=$('results');q=q.toLowerCase();r.innerHTML=Object.entries(APPS).filter(([k,v])=>v[0].toLowerCase().includes(q)||k.includes(q)).map(([k,v])=>'<div class="result" onclick="openApp(\\''+k+'\\');toggleSpot()">'+v[1]+'　'+v[0]+'</div>').join('')}
+function hideContext(){$('context').style.display='none'}
+function about(){alert('WebBook\\n\\nA Chromebook-friendly browser desktop.\\n\\nThis is a web application, not macOS and does not replace ChromeOS.')}
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.code==='Space'){e.preventDefault();toggleSpot()}if(e.key==='Escape'){toggleSpot();$('launch').style.display='none';hideContext()}if(e.key==='F4'){e.preventDefault();toggleLaunch()}});
+document.addEventListener('contextmenu',e=>{e.preventDefault();let c=$('context');c.style.display='block';c.style.left=e.clientX+'px';c.style.top=e.clientY+'px'});
+document.addEventListener('click',e=>{if(!e.target.closest('#context'))hideContext()});
+let savedTheme=localStorage.getItem('theme');if(savedTheme)theme(savedTheme);let savedDock=localStorage.getItem('dock');if(savedDock)dockSize(savedDock);let savedWall=localStorage.getItem('wall');if(savedWall)$('desktop').style.background=savedWall;
+</script>
+</body>
+</html>
