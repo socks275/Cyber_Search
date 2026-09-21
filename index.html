@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER_NEXUS // Virtual Web Engine</title>
+  <title>CYBER_NEXUS // Search Engine & Web Virtualizer</title>
+  
+  <!-- CHROME SEARCH ENGINE AUTODISCOVERY (OpenSearch Protocol) -->
+  <link rel="search" type="application/opensearchdescription+xml" title="Cyber Nexus" href="data:application/opensearchdescription+xml;utf8,<OpenSearchDescription xmlns='http://a9.com/-/spec/opensearch/1.1/'><ShortName>CyberNexus</ShortName><Description>Cyber Nexus Virtual Search Engine</Description><InputEncoding>UTF-8</InputEncoding><Url type='text/html' template='https://' + window.location.host + '/?q={searchTerms}'/></OpenSearchDescription>">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -46,20 +50,16 @@
 </head>
 <body class="h-full w-screen overflow-hidden flex flex-col grid-bg select-none">
 
-  <!-- TOP HUD NAVIGATION BAR -->
+  <!-- TOP NAVIGATION BAR -->
   <header class="glass-panel px-3 py-1.5 flex items-center justify-between border-b border-cyan-500/30 z-50">
     <div class="flex items-center space-x-3">
       <div class="flex items-center text-cyan-400 font-bold tracking-widest text-xs px-2 py-1 rounded bg-cyan-950/50 border border-cyan-500/30">
         <i data-lucide="shield-check" class="w-4 h-4 mr-1.5 text-cyan-400"></i>
-        <span>CYBER_NEXUS v5.0</span>
-      </div>
-      <div class="hidden md:flex items-center space-x-3 text-[10px] text-cyan-500/80">
-        <span>LATENCY: <span id="pingVal" class="text-cyan-300">12ms</span></span>
-        <span>PROXY PIPELINE: <span class="text-emerald-400">ACTIVE</span></span>
+        <span>CYBER_NEXUS v6.0</span>
       </div>
     </div>
 
-    <!-- Navigation & Omnibox -->
+    <!-- URL Omnibox -->
     <div class="flex-1 max-w-3xl mx-4 flex items-center space-x-2">
       <button onclick="navBack()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition">
         <i data-lucide="arrow-left" class="w-4 h-4"></i>
@@ -70,27 +70,19 @@
       <button onclick="reloadActiveTab()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition">
         <i data-lucide="rotate-cw" class="w-4 h-4"></i>
       </button>
-      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition" title="Cyber Nexus Start Page">
+      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition">
         <i data-lucide="home" class="w-4 h-4"></i>
       </button>
 
-      <!-- URL Input / Search Omnibox -->
       <div class="relative flex-1 flex items-center">
         <i data-lucide="search" class="w-4 h-4 absolute left-3 text-cyan-500"></i>
         <input 
           id="omnibox" 
           type="text" 
-          placeholder="Search Bing/DuckDuckGo or enter URL..." 
+          placeholder="Search Bing/Google or enter URL..." 
           class="w-full bg-slate-950/90 border border-cyan-500/40 rounded px-9 py-1 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan transition"
           onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
         >
-        
-        <!-- Search Engine Switcher -->
-        <select id="engineSelect" class="absolute right-2 text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-500/40 rounded px-1 py-0.5 focus:outline-none">
-          <option value="bing">Bing Engine</option>
-          <option value="ddg">DuckDuckGo (Proxy)</option>
-          <option value="proxy">CORS Unblocker</option>
-        </select>
       </div>
 
       <button onclick="handleSearchSubmit()" class="px-3 py-1 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 transition">
@@ -106,24 +98,20 @@
     </div>
   </header>
 
-  <!-- TAB MANAGER BAR -->
-  <div id="tabBar" class="bg-slate-950/80 border-b border-cyan-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs">
-    <!-- Dynamic Tabs Render Here -->
-  </div>
+  <!-- TAB BAR -->
+  <div id="tabBar" class="bg-slate-950/80 border-b border-cyan-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs"></div>
 
-  <!-- MAIN VIEWPORT CONTAINER -->
-  <main id="viewportContainer" class="flex-1 relative bg-slate-950/90 overflow-hidden">
-    <!-- Viewports Render Here -->
-  </main>
+  <!-- VIEWPORT CONTAINER -->
+  <main id="viewportContainer" class="flex-1 relative bg-slate-950/90 overflow-hidden"></main>
 
-  <!-- STATUS FOOTER -->
+  <!-- FOOTER STATUS BAR -->
   <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
     <div class="flex items-center space-x-3">
-      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> SYSTEM: ONLINE</span>
-      <span>X-FRAME INTERCEPTOR: ENABLED</span>
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> UNBLOCK ENGINE: ACTIVE</span>
+      <span>CHROME SEARCH PROTOCOL: REGISTERED</span>
     </div>
     <div class="flex items-center space-x-4">
-      <span>TABS: <span id="tabCount">1</span></span>
+      <span>ACTIVE TABS: <span id="tabCount">1</span></span>
       <span id="clock">00:00:00</span>
     </div>
   </footer>
@@ -133,28 +121,32 @@
     let activeTabId = null;
 
     const SPEED_DIALS = [
-      { name: 'Bing Engine', url: 'https://www.bing.com', icon: 'search', color: 'text-cyan-400' },
+      { name: 'Bing Search', url: 'https://www.bing.com', icon: 'search', color: 'text-cyan-400' },
+      { name: 'Google Search', url: 'https://www.google.com', icon: 'globe', color: 'text-blue-400' },
       { name: 'DuckDuckGo', url: 'https://duckduckgo.com', icon: 'shield', color: 'text-yellow-400' },
       { name: 'Wikipedia', url: 'https://www.wikipedia.org', icon: 'book-open', color: 'text-emerald-400' },
-      { name: 'Archive.org', url: 'https://archive.org', icon: 'archive', color: 'text-blue-400' },
-      { name: 'Hacker News', url: 'https://news.ycombinator.com', icon: 'terminal', color: 'text-orange-400' },
-      { name: 'GitHub Search', url: 'https://github.com/search', icon: 'code', color: 'text-purple-400' }
+      { name: 'GitHub', url: 'https://github.com', icon: 'code', color: 'text-purple-400' },
+      { name: 'Archive.org', url: 'https://archive.org', icon: 'archive', color: 'text-amber-400' }
     ];
 
     window.onload = () => {
-      openNewTab();
+      // Check if user came from Chrome address bar search query (?q=query)
+      const urlParams = new URLSearchParams(window.location.search);
+      const query = urlParams.get('q');
+
+      if (query) {
+        openNewTab('https://www.bing.com/search?q=' + encodeURIComponent(query));
+      } else {
+        openNewTab();
+      }
+
       setInterval(updateClock, 1000);
-      setInterval(updatePing, 3000);
       updateClock();
       lucide.createIcons();
     };
 
     function updateClock() {
       document.getElementById('clock').innerText = new Date().toTimeString().split(' ')[0];
-    }
-
-    function updatePing() {
-      document.getElementById('pingVal').innerText = (Math.floor(Math.random() * 6) + 8) + 'ms';
     }
 
     function openNewTab(url = 'nexus://newtab') {
@@ -242,32 +234,20 @@
       });
     }
 
-    function getFormattedUrl(rawUrl) {
-      const engine = document.getElementById('engineSelect').value;
-      
-      if (rawUrl === 'nexus://newtab') return rawUrl;
+    function getProxiedUrl(targetUrl) {
+      if (targetUrl === 'nexus://newtab') return targetUrl;
 
-      let target = rawUrl;
-      if (!rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
-        if (rawUrl.includes('.') && !rawUrl.includes(' ')) {
-          target = 'https://' + rawUrl;
+      let url = targetUrl;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        if (url.includes('.') && !url.includes(' ')) {
+          url = 'https://' + url;
         } else {
-          if (engine === 'bing') {
-            target = 'https://www.bing.com/search?q=' + encodeURIComponent(rawUrl);
-          } else if (engine === 'ddg') {
-            target = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(rawUrl);
-          } else {
-            target = 'https://www.bing.com/search?q=' + encodeURIComponent(rawUrl);
-          }
+          url = 'https://www.bing.com/search?q=' + encodeURIComponent(url);
         }
       }
 
-      // Bypass X-Frame-Options blocking via CORS proxy bridge if selecting CORS Unblocker or forced sites
-      if (engine === 'proxy' || target.includes('google.com') || target.includes('github.com')) {
-        return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(target);
-      }
-
-      return target;
+      // Route all external sites through CORS dynamic unblocker to strip X-Frame-Options restrictions & target="_blank" redirects
+      return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
     }
 
     function loadTabContent(tab, element) {
@@ -275,32 +255,18 @@
         element.innerHTML = getNewTabHTML(tab.id);
         attachNewTabEvents(tab.id);
       } else {
-        const finalUrl = getFormattedUrl(tab.url);
+        const finalUrl = getProxiedUrl(tab.url);
         
         element.innerHTML = `
-          <div class="relative w-full h-full">
-            <div id="unblockNotice_${tab.id}" class="hidden absolute top-2 right-2 bg-slate-900 border border-cyan-500/40 text-cyan-300 text-xs px-3 py-1.5 rounded z-20 flex items-center space-x-2">
-              <span>Website restricted iframe embedding?</span>
-              <button onclick="openWithProxy('${tab.id}')" class="px-2 py-0.5 bg-cyan-600 text-slate-950 font-bold rounded">Unblock via Proxy</button>
-            </div>
-            <iframe 
-              id="iframe_${tab.id}"
-              src="${finalUrl}" 
-              class="w-full h-full border-none bg-slate-900"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
-            ></iframe>
-          </div>
+          <iframe 
+            id="iframe_${tab.id}"
+            src="${finalUrl}" 
+            class="w-full h-full border-none bg-slate-900"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
+          ></iframe>
         `;
       }
       lucide.createIcons();
-    }
-
-    function openWithProxy(tabId) {
-      const tab = tabs.find(t => t.id === tabId);
-      if (!tab) return;
-      tab.url = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(tab.url);
-      const vp = document.getElementById('viewport_' + tab.id);
-      if (vp) loadTabContent(tab, vp);
     }
 
     function handleSearchSubmit() {
@@ -314,7 +280,7 @@
       if (!tab) return;
 
       tab.url = input;
-      tab.title = input.includes('bing.com') ? 'Bing Search' : getDomainName(input);
+      tab.title = getDomainName(input);
       
       document.getElementById('omnibox').value = input;
       
@@ -356,22 +322,22 @@
             <div class="text-center my-6">
               <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>CYBER_NEXUS EMBED ENGINE</span>
+                <span>CYBER_NEXUS SEARCH & UNBLOCK ENGINE</span>
               </div>
               <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
-                CYBER_NET BROWSER
+                CYBER_NET
               </h1>
-              <p class="text-xs text-cyan-500/70 mt-2">Bypass new-tab redirections & embedded iframe restrictions</p>
+              <p class="text-xs text-cyan-500/70 mt-2">X-Frame Unblocked Engine // Addable as Chrome Search Engine</p>
             </div>
 
-            <!-- Central Search Bar -->
+            <!-- Central Omnibox Search -->
             <div class="w-full max-w-2xl relative my-4">
               <div class="relative flex items-center">
                 <i data-lucide="search" class="w-5 h-5 absolute left-4 text-cyan-400"></i>
                 <input 
                   id="tabSearchInput_${tabId}"
                   type="text" 
-                  placeholder="Execute Bing query or paste Web Address..." 
+                  placeholder="Execute Bing/Google query or type website URL..." 
                   class="w-full bg-slate-900/90 border-2 border-cyan-500/50 rounded-xl px-12 py-3 text-sm text-cyan-100 placeholder-cyan-600 focus:outline-none focus:border-cyan-300 glow-cyan transition"
                 >
                 <button 
@@ -383,7 +349,7 @@
               </div>
             </div>
 
-            <!-- Speed Dials -->
+            <!-- Speed Dial Shortcuts -->
             <div class="w-full max-w-3xl mt-8">
               <h3 class="text-xs font-semibold text-cyan-500 tracking-wider mb-4 text-left">UNBLOCKED_NODES</h3>
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
@@ -401,10 +367,6 @@
               </div>
             </div>
 
-          </div>
-
-          <div class="text-[11px] text-cyan-600/60 mt-8 text-center">
-            CYBER_NEXUS OS // Auto-Intercepts target="_blank" links inside the app
           </div>
         </div>
       `;
@@ -437,13 +399,6 @@
     function escapeHtml(str) {
       return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
-
-    // INTERCEPT ALL EXTERNAL LINKS WITHIN THE BROWSING CONTEXT TO PREVENT REAL DESKTOP NEW TABS
-    window.addEventListener('message', function(e) {
-      if (e.data && e.data.type === 'NAVIGATE_NEXUS') {
-        openNewTab(e.data.url);
-      }
-    });
   </script>
 </body>
 </html>
