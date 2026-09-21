@@ -82,7 +82,7 @@
   <!-- STATUS FOOTER -->
   <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
     <div class="flex items-center space-x-3">
-      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> PROXY PROTCOL: ONLINE</span>
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> PROXY CORE: HYBRID AUTO-FALLBACK</span>
     </div>
     <div class="flex items-center space-x-4">
       <span>TABS: <span id="tabCount">1</span></span>
@@ -91,7 +91,6 @@
   </footer>
 
   <script>
-    // CLOUDFLARE WORKER ENDPOINT
     const WORKER_PROXY_URL = "https://small-hill-0227.mac-for-chrome.workers.dev/";
 
     let tabs = [];
@@ -235,6 +234,51 @@
       return await response.text();
     }
 
+    // SEARCH PROVIDER 1: Wikipedia Search Engine API
+    async function searchWikipedia(query) {
+      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+      const res = await fetch(wikiUrl);
+      const data = await res.json();
+      
+      if (!data.query || !data.query.search) return [];
+
+      return data.query.search.map(item => ({
+        title: item.title,
+        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title.replace(/ /g, '_'))}`,
+        snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, "") + "..."
+      }));
+    }
+
+    // SEARCH PROVIDER 2: DuckDuckGo Proxy Scraper
+    async function searchDuckDuckGo(query) {
+      const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+      const htmlText = await fetchViaWorker(targetSearchUrl);
+      
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlText, 'text/html');
+      const results = doc.querySelectorAll('.result');
+
+      const parsedResults = [];
+      results.forEach((res, i) => {
+        if (i >= 10) return;
+        const titleEl = res.querySelector('.result__title a');
+        const snippetEl = res.querySelector('.result__snippet');
+
+        if (titleEl) {
+          let href = titleEl.getAttribute('href') || '';
+          if (href.includes('uddg=')) {
+            href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
+          }
+          parsedResults.push({
+            title: titleEl.textContent.trim(),
+            url: href,
+            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to extract full webpage content, images, and videos.'
+          });
+        }
+      });
+      return parsedResults;
+    }
+
     async function renderSearchResultsPage(tab, element, query) {
       element.innerHTML = `
         <div class="w-full h-full overflow-y-auto p-4 md:p-8">
@@ -246,7 +290,7 @@
               </div>
               <div id="statusIndicator_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
                 <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-                <span>FETCHING RESULTS...</span>
+                <span id="engineStatus_${tab.id}">FETCHING VIA DUCKDUCKGO...</span>
               </div>
             </div>
 
@@ -256,61 +300,55 @@
       `;
       lucide.createIcons();
 
+      const listContainer = document.getElementById(`resultsList_${tab.id}`);
+      const statusInd = document.getElementById(`statusIndicator_${tab.id}`);
+      const statusText = document.getElementById(`engineStatus_${tab.id}`);
+
+      let results = [];
+
+      // 1. Try DuckDuckGo via Proxy
       try {
-        const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-        const htmlText = await fetchViaWorker(targetSearchUrl);
-        
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
-        const results = doc.querySelectorAll('.result');
-
-        const listContainer = document.getElementById(`resultsList_${tab.id}`);
-        const statusInd = document.getElementById(`statusIndicator_${tab.id}`);
-        if (statusInd) statusInd.style.display = 'none';
-
-        if (!results || results.length === 0) {
-          listContainer.innerHTML = `<p class="text-xs text-cyan-400">No results found for this query.</p>`;
-          return;
-        }
-
-        let itemsHTML = '';
-        results.forEach((res, i) => {
-          if (i >= 10) return;
-          const titleEl = res.querySelector('.result__title a');
-          const snippetEl = res.querySelector('.result__snippet');
-
-          if (titleEl) {
-            let href = titleEl.getAttribute('href') || '';
-            if (href.includes('uddg=')) {
-              href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
-            }
-            const title = titleEl.textContent.trim();
-            const snippet = snippetEl ? snippetEl.textContent.trim() : 'Click to extract and view full webpage contents, images, and videos.';
-
-            itemsHTML += `
-              <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition">
-                <span class="text-[10px] text-cyan-400/80 block truncate mb-1">${escapeHtml(href)}</span>
-                <a href="#" onclick="openResultUrl('${escapeHtml(href)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition underline underline-offset-4 decoration-cyan-500/40">
-                  ${escapeHtml(title)}
-                </a>
-                <p class="text-xs text-slate-300 mt-2 leading-relaxed">${escapeHtml(snippet)}</p>
-              </div>
-            `;
-          }
-        });
-
-        listContainer.innerHTML = itemsHTML;
-
+        results = await searchDuckDuckGo(query);
       } catch (err) {
-        const listContainer = document.getElementById(`resultsList_${tab.id}`);
-        if (listContainer) {
-          listContainer.innerHTML = `
-            <div class="glass-panel p-6 rounded-xl border border-red-500/30">
-              <p class="text-xs text-red-400 mb-2">Error loading search results: ${escapeHtml(err.message)}</p>
-            </div>
-          `;
+        console.warn("DuckDuckGo failed, falling back to Wikipedia API...", err);
+      }
+
+      // 2. Fallback to Wikipedia API if DuckDuckGo was blocked or returned zero results
+      if (results.length === 0) {
+        if (statusText) statusText.innerText = "RETRYING VIA WIKIPEDIA CORE...";
+        try {
+          results = await searchWikipedia(query);
+        } catch (err) {
+          console.error("Wikipedia search failed too:", err);
         }
       }
+
+      if (statusInd) statusInd.style.display = 'none';
+
+      if (!results || results.length === 0) {
+        listContainer.innerHTML = `
+          <div class="glass-panel p-6 rounded-xl border border-cyan-500/30">
+            <p class="text-xs text-cyan-300 mb-2 font-bold">NO RESULTS FOUND</p>
+            <p class="text-xs text-slate-400">Search engines blocked the automated proxy request. Try typing a direct webpage URL in the bar (e.g., <code class="text-cyan-400">https://example.com</code> or <code class="text-cyan-400">https://wikipedia.org</code>).</p>
+          </div>
+        `;
+        return;
+      }
+
+      let itemsHTML = '';
+      results.forEach(res => {
+        itemsHTML += `
+          <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition">
+            <span class="text-[10px] text-cyan-400/80 block truncate mb-1">${escapeHtml(res.url)}</span>
+            <a href="#" onclick="openResultUrl('${escapeHtml(res.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition underline underline-offset-4 decoration-cyan-500/40">
+              ${escapeHtml(res.title)}
+            </a>
+            <p class="text-xs text-slate-300 mt-2 leading-relaxed">${escapeHtml(res.snippet)}</p>
+          </div>
+        `;
+      });
+
+      listContainer.innerHTML = itemsHTML;
     }
 
     async function renderWebPageContent(tab, element, url) {
@@ -351,8 +389,10 @@
           .map(src => {
             if (src.startsWith('//')) return 'https:' + src;
             if (src.startsWith('/')) {
-              const base = new URL(url);
-              return base.origin + src;
+              try {
+                const base = new URL(url);
+                return base.origin + src;
+              } catch(e) { return src; }
             }
             return src;
           })
@@ -363,7 +403,7 @@
         const textBlocks = Array.from(doc.querySelectorAll('h1, h2, h3, p, li'))
           .map(el => el.textContent.trim())
           .filter(text => text.length > 25)
-          .slice(0, 20);
+          .slice(0, 25);
 
         // Extract Video Sources
         const videos = Array.from(doc.querySelectorAll('iframe, video, source'))
@@ -374,7 +414,6 @@
 
         let outputHTML = '';
 
-        // Render Media - Images
         if (imgs.length > 0) {
           outputHTML += `
             <div>
@@ -393,7 +432,6 @@
           `;
         }
 
-        // Render Media - Videos
         if (videos.length > 0) {
           outputHTML += `
             <div>
@@ -415,13 +453,12 @@
           `;
         }
 
-        // Render Text Content
         if (textBlocks.length > 0) {
           outputHTML += `
             <div>
               <h3 class="text-xs font-bold text-cyan-400 tracking-wider mb-3 flex items-center">
                 <i data-lucide="file-text" class="w-4 h-4 mr-1.5"></i>
-                PARSED CONTENT
+                PARSED WEBPAGE TEXT
               </h3>
               <div class="glass-panel p-6 rounded-xl border border-cyan-500/20 space-y-3 text-xs text-slate-200 leading-relaxed">
                 ${textBlocks.map(text => `<p>${escapeHtml(text)}</p>`).join('')}
@@ -429,7 +466,7 @@
             </div>
           `;
         } else {
-          outputHTML += `<p class="text-xs text-cyan-400">Page loaded successfully, but no readable text blocks were detected.</p>`;
+          outputHTML += `<p class="text-xs text-cyan-400">Page loaded successfully, but no body text was detected.</p>`;
         }
 
         contentDiv.innerHTML = outputHTML;
@@ -492,12 +529,12 @@
             <div class="text-center my-6">
               <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>CYBER_SEARCH ONLINE</span>
+                <span>CYBER_SEARCH v3.2 ACTIVE</span>
               </div>
               <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
                 CYBER_SEARCH
               </h1>
-              <p class="text-xs text-cyan-500/70 mt-2">Cloudflare Proxy Active // Text, Image & Video Extractor</p>
+              <p class="text-xs text-cyan-500/70 mt-2">Cloudflare Proxy Active // Multi-Engine Fallback Extractor</p>
             </div>
 
             <!-- Central Omnibox Search -->
