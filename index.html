@@ -3,104 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER_SEARCH // Universal Search & Media Engine</title>
+  <title>CYBER_SEARCH // Universal Search & Proxy Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
-    * { font-family: 'Fira Code', monospace; }
-    body { background-color: #030712; color: #06b6d4; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap');
+    
+    * { font-family: 'Inter', sans-serif; }
+    code, pre, .font-mono { font-family: 'Fira Code', monospace; }
+
+    body { background-color: #080c14; color: #cbd5e1; }
+    
     .grid-bg {
       background-image: 
-        linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
-      background-size: 24px 24px;
+        linear-gradient(to right, rgba(6, 182, 212, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+      background-size: 28px 28px;
     }
+
     .glass-panel {
       background: rgba(15, 23, 42, 0.85);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(6, 182, 212, 0.25);
+      border: 1px solid rgba(56, 189, 248, 0.2);
     }
-    .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+
     .tab-active {
-      background: rgba(6, 182, 212, 0.2);
-      border-bottom: 2px solid #06b6d4;
+      background: rgba(14, 165, 233, 0.15);
+      border-bottom: 2px solid #0ea5e9;
       color: #38bdf8;
     }
-    .reader-mode img {
+
+    /* CLEAN WEB READER STYLING FOR PROXIED SITES */
+    .proxy-styled-content {
+      color: #e2e8f0;
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
+    .proxy-styled-content h1, .proxy-styled-content h2, .proxy-styled-content h3 {
+      color: #f8fafc;
+      font-weight: 700;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      line-height: 1.3;
+    }
+    .proxy-styled-content h1 { font-size: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
+    .proxy-styled-content h2 { font-size: 1.25rem; }
+    .proxy-styled-content h3 { font-size: 1.1rem; }
+    .proxy-styled-content p { margin-bottom: 1rem; color: #cbd5e1; }
+    .proxy-styled-content a { color: #38bdf8; text-decoration: underline; cursor: pointer; word-break: break-all; }
+    .proxy-styled-content a:hover { color: #7dd3fc; }
+    .proxy-styled-content ul, .proxy-styled-content ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+    .proxy-styled-content li { margin-bottom: 0.375rem; }
+    .proxy-styled-content img {
       max-width: 100%;
       height: auto;
       border-radius: 0.5rem;
-      border: 1px solid rgba(6, 182, 212, 0.3);
+      border: 1px solid rgba(255,255,255,0.1);
       margin: 1rem 0;
       display: inline-block;
     }
-    .reader-mode video, .reader-mode audio {
-      width: 100%;
-      margin: 1rem 0;
+    .proxy-styled-content form {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 1rem;
       border-radius: 0.5rem;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      margin: 1rem 0;
     }
-    .reader-mode a {
-      color: #38bdf8;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-    .reader-mode form input, .reader-mode form button, .reader-mode form select {
-      background: #090d16;
-      border: 1px solid #06b6d4;
-      color: #ecfeff;
-      padding: 0.4rem 0.8rem;
+    .proxy-styled-content input[type="text"], 
+    .proxy-styled-content input[type="search"],
+    .proxy-styled-content input[type="email"],
+    .proxy-styled-content input[type="password"] {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 0.5rem 0.75rem;
       border-radius: 0.375rem;
-      margin: 0.25rem 0;
+      margin-right: 0.5rem;
+      outline: none;
     }
-    .reader-mode form button, .reader-mode input[type="submit"] {
-      background: rgba(6, 182, 212, 0.3);
+    .proxy-styled-content input:focus { border-color: #0ea5e9; }
+    .proxy-styled-content button, .proxy-styled-content input[type="submit"] {
+      background: #0284c7;
+      color: #ffffff;
       font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
       cursor: pointer;
+      border: none;
+      transition: background 0.2s;
     }
-    .reader-mode form button:hover, .reader-mode input[type="submit"]:hover {
-      background: rgba(6, 182, 212, 0.6);
-    }
+    .proxy-styled-content button:hover, .proxy-styled-content input[type="submit"]:hover { background: #0369a1; }
+
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #030712; }
-    ::-webkit-scrollbar-thumb { background: #0891b2; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: #080c14; }
+    ::-webkit-scrollbar-thumb { background: #0284c7; border-radius: 3px; }
   </style>
 </head>
 <body class="h-full w-screen overflow-hidden flex flex-col grid-bg select-none">
 
   <!-- TOP HEADER OMNIBOX -->
-  <header class="glass-panel px-4 py-2 flex items-center justify-between border-b border-cyan-500/30 z-50">
+  <header class="glass-panel px-4 py-2 flex items-center justify-between border-b border-sky-500/20 z-50">
     <div class="flex items-center space-x-3">
-      <div onclick="goHome()" class="cursor-pointer flex items-center text-cyan-400 font-bold tracking-widest text-xs px-2.5 py-1 rounded bg-cyan-950/60 border border-cyan-500/40 hover:bg-cyan-900/50 transition">
-        <i data-lucide="search" class="w-4 h-4 mr-2 text-cyan-400"></i>
+      <div onclick="goHome()" class="cursor-pointer flex items-center text-sky-400 font-bold tracking-widest text-xs px-2.5 py-1 rounded bg-sky-950/60 border border-sky-500/30 hover:bg-sky-900/50 transition">
+        <i data-lucide="search" class="w-4 h-4 mr-2 text-sky-400"></i>
         <span>CYBER_SEARCH</span>
       </div>
     </div>
 
-    <!-- Central Search Input -->
+    <!-- Central Search Bar -->
     <div class="flex-1 max-w-3xl mx-4 flex items-center space-x-2">
-      <button onclick="goHome()" class="p-1.5 hover:bg-cyan-950/60 rounded text-cyan-400 border border-cyan-800/40 transition" title="Home">
+      <button onclick="goHome()" class="p-1.5 hover:bg-sky-950/60 rounded text-sky-400 border border-sky-800/30 transition" title="Home">
         <i data-lucide="home" class="w-4 h-4"></i>
       </button>
 
       <div class="relative flex-1 flex items-center">
-        <i data-lucide="globe" class="w-4 h-4 absolute left-3 text-cyan-500"></i>
+        <i data-lucide="globe" class="w-4 h-4 absolute left-3 text-sky-500"></i>
         <input 
           id="omnibox" 
           type="text" 
           placeholder="Search topics, news, images, videos or paste website/YouTube URL..." 
-          class="w-full bg-slate-950/90 border border-cyan-500/40 rounded px-9 py-1.5 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan transition"
+          class="w-full bg-slate-950/90 border border-sky-500/30 rounded-lg px-9 py-1.5 text-xs text-sky-100 focus:outline-none focus:border-sky-400 transition"
           onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
         >
       </div>
 
-      <button onclick="handleSearchSubmit()" class="px-4 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 font-semibold transition">
+      <button onclick="handleSearchSubmit()" class="px-4 py-1.5 bg-sky-600/30 border border-sky-400/50 text-sky-200 rounded-lg text-xs hover:bg-sky-500/40 font-semibold transition">
         EXECUTE
       </button>
     </div>
 
     <div class="flex items-center space-x-2">
-      <button onclick="openNewTab()" class="p-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded border border-cyan-400/50 flex items-center text-xs space-x-1">
+      <button onclick="openNewTab()" class="p-1.5 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 rounded-lg border border-sky-400/40 flex items-center text-xs space-x-1">
         <i data-lucide="plus" class="w-3.5 h-3.5"></i>
         <span class="hidden sm:inline">NEW TAB</span>
       </button>
@@ -108,15 +141,15 @@
   </header>
 
   <!-- TAB BAR -->
-  <div id="tabBar" class="bg-slate-950/80 border-b border-cyan-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs"></div>
+  <div id="tabBar" class="bg-slate-950/90 border-b border-sky-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs"></div>
 
   <!-- MAIN VIEWPORT CONTAINER -->
   <main id="viewportContainer" class="flex-1 relative bg-slate-950/90 overflow-hidden"></main>
 
   <!-- MODAL CONTAINER FOR IMAGE LIGHTBOX -->
   <div id="modalContainer" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass-panel p-4 rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-cyan-500/50 relative">
-      <button onclick="closeModal()" class="absolute top-3 right-3 text-cyan-400 hover:text-white p-1 rounded-lg bg-slate-900 border border-cyan-500/40">
+    <div class="glass-panel p-4 rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-sky-500/40 relative">
+      <button onclick="closeModal()" class="absolute top-3 right-3 text-sky-400 hover:text-white p-1 rounded-lg bg-slate-900 border border-sky-500/30">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
       <div id="modalContent" class="flex-1 overflow-y-auto mt-6"></div>
@@ -124,7 +157,7 @@
   </div>
 
   <!-- STATUS FOOTER -->
-  <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
+  <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-sky-500/70 border-t border-sky-500/20">
     <div class="flex items-center space-x-3">
       <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> PROXY ROUTER: ONLINE (searchhubio)</span>
     </div>
@@ -135,10 +168,7 @@
   </footer>
 
   <script>
-    // Primary Proxy Worker requested
     const PRIMARY_PROXY = "https://small-hill-0227.searchhubio.workers.dev/?url=";
-    
-    // Fallback proxies if primary site is strict or times out
     const FALLBACK_PROXIES = [
       "https://api.allorigins.win/raw?url=",
       "https://corsproxy.io/?"
@@ -156,11 +186,6 @@
       { name: 'Reddit Discussions', query: 'Reddit technology trends', icon: 'message-square' },
       { name: 'Wikipedia', query: 'Wikipedia Free Encyclopedia', icon: 'book-open' },
       { name: 'Internet Archive', query: 'Internet Archive digital library', icon: 'archive' }
-    ];
-
-    const NATIVE_EMBED_DOMAINS = [
-      'youtube.com', 'youtu.be', 'vimeo.com', 'wikipedia.org', 
-      'archive.org', 'codepen.io', 'jsfiddle.net', 'soundcloud.com', 'spotify.com'
     ];
 
     window.onload = () => {
@@ -191,18 +216,15 @@
       switchTab(id);
     }
 
-    // FIXED CLOSE TAB HANDLER
     function closeTab(id, e) {
       if (e) {
         e.preventDefault();
         e.stopPropagation();
       }
 
-      // Remove tab DOM viewport
       const vp = document.getElementById('viewport_' + id);
       if (vp) vp.remove();
 
-      // Filter tabs array
       const targetIndex = tabs.findIndex(t => t.id === id);
       tabs = tabs.filter(t => t.id !== id);
       delete activeCategory[id];
@@ -212,7 +234,6 @@
         return;
       }
 
-      // If closed tab was active, activate adjacent tab
       if (activeTabId === id) {
         const nextActiveIndex = Math.max(0, targetIndex - 1);
         switchTab(tabs[nextActiveIndex].id);
@@ -246,7 +267,7 @@
       tabs.forEach(tab => {
         const isActive = tab.id === activeTabId;
         const el = document.createElement('div');
-        el.className = `flex items-center space-x-2 px-3 py-1 rounded-t border-t border-x border-cyan-500/20 cursor-pointer min-w-[140px] max-w-[210px] justify-between transition ${isActive ? 'tab-active font-semibold' : 'text-cyan-500/70 hover:bg-slate-900/50'}`;
+        el.className = `flex items-center space-x-2 px-3 py-1 rounded-t-lg border-t border-x border-sky-500/20 cursor-pointer min-w-[140px] max-w-[210px] justify-between transition ${isActive ? 'tab-active font-semibold' : 'text-sky-400/70 hover:bg-slate-900/50'}`;
         el.onclick = () => switchTab(tab.id);
 
         let iconName = 'globe';
@@ -259,7 +280,7 @@
             <i data-lucide="${iconName}" class="w-3.5 h-3.5 shrink-0"></i>
             <span class="truncate text-[11px]">${escapeHtml(tab.title)}</span>
           </div>
-          <button onclick="closeTab('${tab.id}', event)" class="hover:text-cyan-200 rounded p-0.5 hover:bg-cyan-500/20">
+          <button onclick="closeTab('${tab.id}', event)" class="hover:text-sky-200 rounded p-0.5 hover:bg-sky-500/20">
             <i data-lucide="x" class="w-3 h-3"></i>
           </button>
         `;
@@ -299,18 +320,16 @@
       lucide.createIcons();
     }
 
-    /* WEBPAGE & MEDIA RENDERER WITH MULTI-PROXY PIPELINE TO PREVENT "REFUSED TO CONNECT" */
     function processWebOrMediaUrl(tab, element, url) {
-      // YouTube Handler
       if (url.includes('youtube.com') || url.includes('youtu.be')) {
         const videoId = extractYouTubeId(url);
         if (videoId) {
           const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
           element.innerHTML = `
             <div class="w-full h-full flex flex-col bg-black">
-              <div class="bg-slate-900 border-b border-cyan-500/30 px-4 py-2 flex justify-between items-center text-xs">
-                <span class="text-cyan-400 font-bold flex items-center"><i data-lucide="play-circle" class="w-4 h-4 mr-2"></i> YOUTUBE EMBEDDED PLAYER</span>
-                <a href="${escapeHtml(url)}" target="_blank" class="text-cyan-500 hover:underline flex items-center space-x-1">
+              <div class="bg-slate-900 border-b border-sky-500/30 px-4 py-2 flex justify-between items-center text-xs">
+                <span class="text-sky-400 font-bold flex items-center"><i data-lucide="play-circle" class="w-4 h-4 mr-2"></i> YOUTUBE EMBEDDED PLAYER</span>
+                <a href="${escapeHtml(url)}" target="_blank" class="text-sky-400 hover:underline flex items-center space-x-1">
                   <span>Open Direct</span> <i data-lucide="external-link" class="w-3 h-3"></i>
                 </a>
               </div>
@@ -328,16 +347,15 @@
         } else {
           element.innerHTML = `
             <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-              <div class="glass-panel p-8 rounded-xl max-w-xl border border-yellow-500/40 glow-cyan">
+              <div class="glass-panel p-8 rounded-xl max-w-xl border border-yellow-500/40">
                 <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-400 mx-auto mb-4"></i>
                 <h2 class="text-lg font-bold text-yellow-300 mb-2">Direct Video URL Required</h2>
                 <p class="text-xs text-slate-300 mb-6 leading-relaxed">
-                  YouTube homepages or channel pages restrict framing. 
-                  Please enter a specific video URL (e.g. <code class="text-cyan-300">https://www.youtube.com/watch?v=...</code>).
+                  YouTube channel pages restrict framing. Please enter a specific video URL (e.g. <code class="text-sky-300">https://www.youtube.com/watch?v=...</code>).
                 </p>
                 <div class="flex justify-center space-x-3">
-                  <button onclick="goHome()" class="px-4 py-2 bg-slate-800 border border-cyan-500/40 text-cyan-300 rounded text-xs hover:bg-slate-700">Back to Launchpad</button>
-                  <a href="${escapeHtml(url)}" target="_blank" class="px-4 py-2 bg-cyan-600 border border-cyan-400 text-slate-950 font-bold rounded text-xs hover:bg-cyan-500 flex items-center space-x-1">
+                  <button onclick="goHome()" class="px-4 py-2 bg-slate-800 border border-sky-500/40 text-sky-300 rounded text-xs hover:bg-slate-700">Back to Launchpad</button>
+                  <a href="${escapeHtml(url)}" target="_blank" class="px-4 py-2 bg-sky-600 text-slate-950 font-bold rounded text-xs hover:bg-sky-500 flex items-center space-x-1">
                     <span>Open YouTube Direct</span> <i data-lucide="external-link" class="w-3 h-3"></i>
                   </a>
                 </div>
@@ -349,7 +367,6 @@
         return;
       }
 
-      // Proxy Reader Mode for All Other Websites (Bypasses Frame-Ancestors / Refused To Connect)
       renderReaderModePage(element, url);
     }
 
@@ -379,16 +396,16 @@
           console.warn("Proxy attempt failed:", proxy, e);
         }
       }
-      throw new Error("All proxy nodes failed or target website blocked proxy request.");
+      throw new Error("Proxy connection failed");
     }
 
-    /* INTERACTIVE READER ENGINE: REWRITES LINKS AND SIGN-UP FORMS */
+    /* CLEANER PROXY RENDER ENGINE FOR XIFRAME SITES */
     async function renderReaderModePage(element, url) {
       element.innerHTML = `
         <div class="w-full h-full flex flex-col items-center justify-center p-8">
           <div class="text-center space-y-3">
-            <i data-lucide="loader" class="w-8 h-8 text-cyan-400 animate-spin mx-auto"></i>
-            <p class="text-xs text-cyan-300 tracking-wider">CONNECTING THROUGH PROXY (small-hill-0227.searchhubio)...</p>
+            <i data-lucide="loader" class="w-8 h-8 text-sky-400 animate-spin mx-auto"></i>
+            <p class="text-xs text-sky-300 tracking-wider">FETCHING SITE DATA VIA PROXY...</p>
             <p class="text-[10px] text-slate-400 max-w-md truncate mx-auto">${escapeHtml(url)}</p>
           </div>
         </div>
@@ -402,21 +419,17 @@
 
         const baseUrl = new URL(url);
 
-        // Rewrite Image, Video, & Media URLs
+        // Process images with clean fallback containers
         doc.querySelectorAll('img').forEach(img => {
           try {
             const src = img.getAttribute('src');
             if (src) img.src = new URL(src, baseUrl).href;
-          } catch(e){}
-        });
-        doc.querySelectorAll('video, audio, source').forEach(media => {
-          try {
-            const src = media.getAttribute('src');
-            if (src) media.src = new URL(src, baseUrl).href;
+            img.style.maxHeight = '400px';
+            img.style.objectFit = 'contain';
           } catch(e){}
         });
 
-        // Intercept All Web Links so they open inside CYBER_SEARCH instead of getting blocked
+        // Rewrite links for in-app proxy navigation
         doc.querySelectorAll('a').forEach(a => {
           try {
             const href = a.getAttribute('href');
@@ -428,32 +441,41 @@
         });
 
         const title = doc.querySelector('title')?.innerText || url;
-        const mainContent = doc.body ? doc.body.innerHTML : rawHtml;
+        const favicon = `https://www.google.com/s2/favicons?domain=${baseUrl.hostname}&sz=32`;
+
+        // Strip scripts to prevent breakages, preserve HTML elements cleanly
+        doc.querySelectorAll('script, style, link[rel="stylesheet"]').forEach(el => el.remove());
+        const cleanBodyContent = doc.body ? doc.body.innerHTML : rawHtml;
 
         element.innerHTML = `
           <div class="w-full h-full overflow-y-auto p-4 md:p-8 bg-slate-950">
-            <div class="max-w-4xl mx-auto space-y-6">
+            <div class="max-w-5xl mx-auto space-y-4">
               
-              <div class="glass-panel p-4 rounded-xl border border-cyan-500/40 flex justify-between items-center">
-                <div>
-                  <span class="text-[10px] text-cyan-400 font-bold tracking-widest block mb-1">[INTERACTIVE WEB READER]</span>
-                  <h1 class="text-base font-bold text-cyan-100 truncate max-w-xl">${escapeHtml(title)}</h1>
+              <!-- CLEAN TOP HEADER BAR -->
+              <div class="glass-panel px-5 py-3 rounded-xl border border-sky-500/30 flex items-center justify-between">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                  <img src="${favicon}" class="w-5 h-5 rounded" onerror="this.src='https://lucide.dev/favicon.ico'">
+                  <div class="truncate">
+                    <h1 class="text-sm font-bold text-slate-100 truncate">${escapeHtml(title)}</h1>
+                    <p class="text-[11px] text-sky-400/80 truncate">${escapeHtml(baseUrl.href)}</p>
+                  </div>
                 </div>
-                <a href="${escapeHtml(url)}" target="_blank" class="px-3 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 flex items-center space-x-1 shrink-0">
-                  <span>Open External</span>
+                <a href="${escapeHtml(url)}" target="_blank" class="px-3 py-1.5 bg-sky-600/30 border border-sky-400/50 text-sky-200 rounded-lg text-xs hover:bg-sky-500/40 flex items-center space-x-1 shrink-0 ml-4">
+                  <span>Open Direct</span>
                   <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                 </a>
               </div>
 
-              <div id="proxyBody_${activeTabId}" class="glass-panel p-6 md:p-10 rounded-xl border border-cyan-500/20 reader-mode text-slate-300 text-sm leading-relaxed space-y-4 select-text">
-                ${mainContent}
+              <!-- FORMATTED READABLE BODY CONTAINER -->
+              <div id="proxyBody_${activeTabId}" class="glass-panel p-6 md:p-8 rounded-xl border border-sky-500/20 proxy-styled-content select-text">
+                ${cleanBodyContent}
               </div>
 
             </div>
           </div>
         `;
 
-        // Intercept Sign-Up, Login & Dynamic Search Forms
+        // Attach Form Handlers for Interactive Submit/Sign Up buttons
         const proxyBody = document.getElementById(`proxyBody_${activeTabId}`);
         if (proxyBody) {
           proxyBody.querySelectorAll('form').forEach(form => {
@@ -461,21 +483,20 @@
               e.preventDefault();
               const action = form.getAttribute('action') || url;
               const targetUrl = new URL(action, baseUrl).href;
-              alert(`[CYBER_SEARCH Form Action Submitted]\nForm routed through proxy: ${targetUrl}`);
+              alert(`[Form Interceptor] Submitting through proxy to: ${targetUrl}`);
               navigateCurrentTab(targetUrl);
             });
           });
         }
 
       } catch (err) {
-        console.error("Reader Mode Error:", err);
         element.innerHTML = `
           <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center">
             <div class="glass-panel p-8 rounded-xl max-w-lg border border-red-500/40">
               <i data-lucide="shield-alert" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
-              <h2 class="text-sm font-bold text-red-300 mb-2">TARGET WEBSITE BLOCKED CONNECTION</h2>
-              <p class="text-xs text-slate-400 mb-4">This website explicitly blocks cross-origin proxy requests. You can view it directly in a new tab.</p>
-              <a href="${escapeHtml(url)}" target="_blank" class="px-4 py-2 bg-cyan-600 border border-cyan-400 text-slate-950 font-bold rounded text-xs hover:bg-cyan-500 inline-flex items-center space-x-1">
+              <h2 class="text-sm font-bold text-red-300 mb-2">TARGET WEBSITE RESTRICTED</h2>
+              <p class="text-xs text-slate-400 mb-4">This website explicitly blocks external proxy connections. You can view it directly in a new tab.</p>
+              <a href="${escapeHtml(url)}" target="_blank" class="px-4 py-2 bg-sky-600 text-slate-950 font-bold rounded-lg text-xs hover:bg-sky-500 inline-flex items-center space-x-1">
                 <span>Open Direct in Browser</span> <i data-lucide="external-link" class="w-3 h-3"></i>
               </a>
             </div>
@@ -485,7 +506,7 @@
       lucide.createIcons();
     }
 
-    /* SEARCH ENGINE CATEGORY PIPELINES */
+    /* EXPANDED GOOGLE-STYLE MULTI-SOURCE SEARCH ENGINE PIPELINES */
     async function searchDuckDuckGo(query) {
       const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
       const rawHtml = await fetchProxyData(targetSearchUrl);
@@ -496,7 +517,7 @@
 
       const parsed = [];
       results.forEach((res, i) => {
-        if (i >= 10) return;
+        if (i >= 12) return;
         const titleEl = res.querySelector('.result__title a');
         const snippetEl = res.querySelector('.result__snippet');
 
@@ -517,7 +538,7 @@
     }
 
     async function searchWikipedia(query, offset = 0) {
-      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=8&sroffset=${offset}&format=json&origin=*`;
+      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=6&sroffset=${offset}&format=json&origin=*`;
       const res = await fetch(wikiUrl);
       const data = await res.json();
       if (!data.query || !data.query.search) return [];
@@ -530,8 +551,40 @@
       }));
     }
 
+    async function searchReddit(query) {
+      try {
+        const res = await fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=5`);
+        const data = await res.json();
+        if (!data.data || !data.data.children) return [];
+        return data.data.children.map(child => ({
+          title: child.data.title,
+          url: `https://www.reddit.com${child.data.permalink}`,
+          snippet: `r/${child.data.subreddit} • Upvotes: ${child.data.score} • Comments: ${child.data.num_comments}`,
+          source: 'REDDIT'
+        }));
+      } catch(e) { return []; }
+    }
+
+    async function searchDictionary(query) {
+      try {
+        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(query.trim())}`);
+        const data = await res.json();
+        if (Array.isArray(data) && data[0]) {
+          const entry = data[0];
+          const def = entry.meanings?.[0]?.definitions?.[0]?.definition || '';
+          return [{
+            title: `Definition of "${entry.word}"`,
+            url: `https://en.wiktionary.org/wiki/${entry.word}`,
+            snippet: `[${entry.meanings?.[0]?.partOfSpeech || 'noun'}] ${def}`,
+            source: 'DICTIONARY'
+          }];
+        }
+      } catch(e){}
+      return [];
+    }
+
     async function searchImagesWikimedia(query) {
-      const imgUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=16&prop=pageimages|imageinfo&iiprop=url|extmetadata&pithumbsize=500&format=json&origin=*`;
+      const imgUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=20&prop=pageimages|imageinfo&iiprop=url|extmetadata&pithumbsize=500&format=json&origin=*`;
       const res = await fetch(imgUrl);
       const data = await res.json();
       if (!data.query || !data.query.pages) return [];
@@ -546,7 +599,7 @@
               title: page.title.replace('File:', ''),
               thumbUrl: thumb,
               fullUrl: full,
-              source: 'IMAGE ENGINE'
+              source: 'IMAGES'
             });
           }
         }
@@ -555,16 +608,16 @@
     }
 
     async function searchHackerNews(query) {
-      const hnUrl = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&hitsPerPage=8`;
+      const hnUrl = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&hitsPerPage=6`;
       const res = await fetch(hnUrl);
       const data = await res.json();
       if (!data.hits) return [];
 
       return data.hits.map(item => ({
-        title: item.title || item.story_title || 'Web Discussion',
+        title: item.title || item.story_title || 'Web Article',
         url: item.url || `https://news.ycombinator.com/item?id=${item.objectID}`,
         snippet: `Points: ${item.points || 0} | Author: ${item.author} | Comments: ${item.num_comments || 0}`,
-        source: 'NEWS & DISCUSSIONS'
+        source: 'NEWS'
       }));
     }
 
@@ -575,44 +628,44 @@
         <div class="w-full h-full overflow-y-auto p-4 md:p-8">
           <div class="max-w-4xl mx-auto space-y-5">
             
-            <div class="border-b border-cyan-500/20 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="border-b border-sky-500/20 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <p class="text-[10px] text-cyan-500/70 uppercase">CYBER_SEARCH AGGREGATOR</p>
-                <h2 class="text-lg font-bold text-cyan-200">"${escapeHtml(query)}"</h2>
+                <p class="text-[10px] text-sky-500/70 uppercase font-mono">CYBER_SEARCH MULTI-ENGINE</p>
+                <h2 class="text-xl font-bold text-sky-100">"${escapeHtml(query)}"</h2>
               </div>
 
-              <!-- CATEGORY BUTTONS -->
-              <div class="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-lg border border-cyan-500/30">
-                <button onclick="setCategory('${tab.id}', 'ALL', '${escapeHtml(query)}')" class="px-3 py-1 rounded text-xs font-semibold flex items-center space-x-1 transition ${cat === 'ALL' ? 'bg-cyan-500 text-slate-950' : 'text-cyan-400 hover:bg-cyan-950'}">
+              <!-- GOOGLE-STYLE CATEGORY TABS -->
+              <div class="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-lg border border-sky-500/30">
+                <button onclick="setCategory('${tab.id}', 'ALL', '${escapeHtml(query)}')" class="px-3 py-1 rounded-md text-xs font-semibold flex items-center space-x-1 transition ${cat === 'ALL' ? 'bg-sky-500 text-slate-950' : 'text-sky-400 hover:bg-sky-950'}">
                   <i data-lucide="globe" class="w-3.5 h-3.5"></i>
                   <span>ALL</span>
                 </button>
-                <button onclick="setCategory('${tab.id}', 'IMAGES', '${escapeHtml(query)}')" class="px-3 py-1 rounded text-xs font-semibold flex items-center space-x-1 transition ${cat === 'IMAGES' ? 'bg-cyan-500 text-slate-950' : 'text-cyan-400 hover:bg-cyan-950'}">
+                <button onclick="setCategory('${tab.id}', 'IMAGES', '${escapeHtml(query)}')" class="px-3 py-1 rounded-md text-xs font-semibold flex items-center space-x-1 transition ${cat === 'IMAGES' ? 'bg-sky-500 text-slate-950' : 'text-sky-400 hover:bg-sky-950'}">
                   <i data-lucide="image" class="w-3.5 h-3.5"></i>
                   <span>IMAGES</span>
                 </button>
-                <button onclick="setCategory('${tab.id}', 'VIDEOS', '${escapeHtml(query)}')" class="px-3 py-1 rounded text-xs font-semibold flex items-center space-x-1 transition ${cat === 'VIDEOS' ? 'bg-cyan-500 text-slate-950' : 'text-cyan-400 hover:bg-cyan-950'}">
+                <button onclick="setCategory('${tab.id}', 'VIDEOS', '${escapeHtml(query)}')" class="px-3 py-1 rounded-md text-xs font-semibold flex items-center space-x-1 transition ${cat === 'VIDEOS' ? 'bg-sky-500 text-slate-950' : 'text-cyan-400 hover:bg-sky-950'}">
                   <i data-lucide="video" class="w-3.5 h-3.5"></i>
                   <span>VIDEOS</span>
                 </button>
-                <button onclick="setCategory('${tab.id}', 'NEWS', '${escapeHtml(query)}')" class="px-3 py-1 rounded text-xs font-semibold flex items-center space-x-1 transition ${cat === 'NEWS' ? 'bg-cyan-500 text-slate-950' : 'text-cyan-400 hover:bg-cyan-950'}">
+                <button onclick="setCategory('${tab.id}', 'NEWS', '${escapeHtml(query)}')" class="px-3 py-1 rounded-md text-xs font-semibold flex items-center space-x-1 transition ${cat === 'NEWS' ? 'bg-sky-500 text-slate-950' : 'text-sky-400 hover:bg-sky-950'}">
                   <i data-lucide="newspaper" class="w-3.5 h-3.5"></i>
                   <span>NEWS</span>
                 </button>
               </div>
             </div>
 
-            <div id="statusIndicator_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
+            <div id="statusIndicator_${tab.id}" class="text-xs text-sky-400 animate-pulse flex items-center space-x-1.5">
               <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-              <span>SCANNING FOR ${cat} RESULTS...</span>
+              <span>AGGREGATING RESULTS FROM WEB, WIKIPEDIA, REDDIT & NEWS...</span>
             </div>
 
             <div id="resultsList_${tab.id}"></div>
 
             <div class="pt-4 flex justify-center">
-              <button id="getResultsBtn_${tab.id}" onclick="getMoreResults('${tab.id}', '${escapeHtml(query)}')" class="px-6 py-2 bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 rounded-lg text-xs hover:bg-cyan-900/60 font-semibold transition flex items-center space-x-2 glow-cyan">
+              <button id="getResultsBtn_${tab.id}" onclick="getMoreResults('${tab.id}', '${escapeHtml(query)}')" class="px-6 py-2.5 bg-sky-950 border border-sky-500/40 text-sky-300 rounded-lg text-xs hover:bg-sky-900/60 font-semibold transition flex items-center space-x-2">
                 <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
-                <span>GET RESULTS</span>
+                <span>GET MORE RESULTS</span>
               </button>
             </div>
           </div>
@@ -639,35 +692,50 @@
       let html = '';
 
       if (cat === 'ALL') {
-        const results = await Promise.allSettled([searchDuckDuckGo(query), searchWikipedia(query, offset), searchHackerNews(query)]);
+        const [ddg, wiki, reddit, dict, news] = await Promise.allSettled([
+          searchDuckDuckGo(query),
+          searchWikipedia(query, offset),
+          searchReddit(query),
+          searchDictionary(query),
+          searchHackerNews(query)
+        ]);
+
         let combined = [];
-        results.forEach(r => { if(r.status === 'fulfilled' && Array.isArray(r.value)) combined = combined.concat(r.value); });
-        
-        html = `<div class="space-y-4">` + combined.map(res => `
-          <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition flex justify-between items-start space-x-4">
-            <div class="flex-1">
-              <div class="flex items-center space-x-2 mb-1">
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold">${res.source}</span>
-                <span class="text-[10px] text-cyan-400/80 truncate">${escapeHtml(res.url)}</span>
+        if (dict.status === 'fulfilled' && dict.value) combined = combined.concat(dict.value);
+        if (ddg.status === 'fulfilled' && ddg.value) combined = combined.concat(ddg.value);
+        if (wiki.status === 'fulfilled' && wiki.value) combined = combined.concat(wiki.value);
+        if (reddit.status === 'fulfilled' && reddit.value) combined = combined.concat(reddit.value);
+        if (news.status === 'fulfilled' && news.value) combined = combined.concat(news.value);
+
+        html = `<div class="space-y-3.5">` + combined.map(res => {
+          const domain = getDomainName(res.url);
+          const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+          
+          return `
+            <div class="glass-panel p-4 rounded-xl border border-sky-500/20 hover:border-sky-400/50 transition">
+              <div class="flex items-center space-x-2 mb-1.5">
+                <img src="${favicon}" class="w-4 h-4 rounded" onerror="this.style.display='none'">
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-950 border border-sky-500/40 text-sky-300 font-bold font-mono">${res.source}</span>
+                <span class="text-[11px] text-sky-400/80 truncate">${escapeHtml(domain)}</span>
               </div>
-              <a href="#" onclick="openResultUrl('${escapeHtml(res.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition underline underline-offset-4 decoration-cyan-500/40">
+              <a href="#" onclick="openResultUrl('${escapeHtml(res.url)}'); return false;" class="text-base font-bold text-sky-300 hover:text-sky-100 transition">
                 ${escapeHtml(res.title)}
               </a>
-              <p class="text-xs text-slate-300 mt-2 leading-relaxed">${escapeHtml(res.snippet)}</p>
+              <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">${escapeHtml(res.snippet)}</p>
             </div>
-          </div>
-        `).join('') + `</div>`;
+          `;
+        }).join('') + `</div>`;
 
       } else if (cat === 'IMAGES') {
         const images = await searchImagesWikimedia(query);
         html = `
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             ${images.map(img => `
-              <div onclick="openImageLightbox('${escapeHtml(img.fullUrl)}', '${escapeHtml(img.title)}')" class="glass-panel p-2 rounded-xl border border-cyan-500/20 hover:border-cyan-400 group cursor-pointer transition">
+              <div onclick="openImageLightbox('${escapeHtml(img.fullUrl)}', '${escapeHtml(img.title)}')" class="glass-panel p-2 rounded-xl border border-sky-500/20 hover:border-sky-400 group cursor-pointer transition">
                 <div class="aspect-square w-full overflow-hidden rounded-lg bg-black flex items-center justify-center">
                   <img src="${escapeHtml(img.thumbUrl)}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy">
                 </div>
-                <span class="text-[10px] text-cyan-300 block truncate mt-2 font-medium">${escapeHtml(img.title)}</span>
+                <span class="text-[10px] text-sky-300 block truncate mt-2 font-medium">${escapeHtml(img.title)}</span>
               </div>
             `).join('')}
           </div>
@@ -684,12 +752,12 @@
               if (!videoId) return '';
               const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
               return `
-                <div class="glass-panel p-4 rounded-xl border border-cyan-500/30 space-y-3">
+                <div class="glass-panel p-4 rounded-xl border border-sky-500/30 space-y-3">
                   <div class="flex justify-between items-center text-xs">
-                    <span class="font-bold text-cyan-300 truncate">${escapeHtml(vid.title)}</span>
-                    <button onclick="openResultUrl('${escapeHtml(vid.url)}')" class="px-2.5 py-1 bg-cyan-950 border border-cyan-500/40 text-cyan-300 rounded hover:bg-cyan-900 text-[10px] shrink-0">Full Tab</button>
+                    <span class="font-bold text-sky-300 truncate">${escapeHtml(vid.title)}</span>
+                    <button onclick="openResultUrl('${escapeHtml(vid.url)}')" class="px-2.5 py-1 bg-sky-950 border border-sky-500/40 text-sky-300 rounded hover:bg-sky-900 text-[10px] shrink-0">Full Tab</button>
                   </div>
-                  <div class="w-full aspect-video rounded-lg overflow-hidden border border-cyan-500/20 bg-black">
+                  <div class="w-full aspect-video rounded-lg overflow-hidden border border-sky-500/20 bg-black">
                     <iframe 
                       src="${embedUrl}" 
                       class="w-full h-full border-0" 
@@ -709,9 +777,9 @@
         html = `
           <div class="space-y-3">
             ${news.map(item => `
-              <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400 transition">
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold block w-max mb-1">NEWS</span>
-                <a href="#" onclick="openResultUrl('${escapeHtml(item.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition">
+              <div class="glass-panel p-4 rounded-xl border border-sky-500/20 hover:border-sky-400 transition">
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-950 border border-sky-500/40 text-sky-300 font-bold block w-max mb-1 font-mono">NEWS</span>
+                <a href="#" onclick="openResultUrl('${escapeHtml(item.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-sky-100 transition">
                   ${escapeHtml(item.title)}
                 </a>
                 <p class="text-xs text-slate-400 mt-1">${escapeHtml(item.snippet)}</p>
@@ -739,7 +807,7 @@
       
       await fetchAndDisplayCategoryResults(tabId, query, searchOffsets[tabId], true);
       
-      if (btn) btn.innerHTML = `<i data-lucide="arrow-down-circle" class="w-4 h-4"></i><span>GET RESULTS</span>`;
+      if (btn) btn.innerHTML = `<i data-lucide="arrow-down-circle" class="w-4 h-4"></i><span>GET MORE RESULTS</span>`;
       lucide.createIcons();
     }
 
@@ -748,9 +816,9 @@
       const content = document.getElementById('modalContent');
       content.innerHTML = `
         <div class="flex flex-col items-center space-y-4">
-          <img src="${escapeHtml(fullUrl)}" class="max-h-[70vh] w-auto rounded-lg border border-cyan-500/40 object-contain">
-          <h3 class="text-sm font-bold text-cyan-200 text-center">${escapeHtml(title)}</h3>
-          <a href="${escapeHtml(fullUrl)}" target="_blank" class="px-4 py-2 bg-cyan-500 text-slate-950 font-bold rounded text-xs hover:bg-cyan-400 flex items-center space-x-1">
+          <img src="${escapeHtml(fullUrl)}" class="max-h-[70vh] w-auto rounded-lg border border-sky-500/40 object-contain">
+          <h3 class="text-sm font-bold text-sky-200 text-center">${escapeHtml(title)}</h3>
+          <a href="${escapeHtml(fullUrl)}" target="_blank" class="px-4 py-2 bg-sky-500 text-slate-950 font-bold rounded-lg text-xs hover:bg-sky-400 flex items-center space-x-1">
             <span>Open High Resolution Image</span> <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
           </a>
         </div>
@@ -806,29 +874,29 @@
           <div class="w-full max-w-4xl flex flex-col items-center">
             
             <div class="text-center my-6">
-              <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
-                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>CYBER_SEARCH PROXY ENGINE</span>
+              <div class="inline-flex items-center space-x-2 bg-sky-950/60 border border-sky-500/30 px-3 py-1 rounded-full text-xs text-sky-400 mb-3 font-mono">
+                <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                <span>CYBER_SEARCH MULTI-ENGINE</span>
               </div>
-              <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
+              <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-500">
                 CYBER_SEARCH
               </h1>
-              <p class="text-xs text-cyan-500/70 mt-2">Universal Search, Media Grid & Interactive Proxy Engine</p>
+              <p class="text-xs text-sky-400/70 mt-2">Universal Multi-Source Search & Web Reader Engine</p>
             </div>
 
             <!-- Central Search Bar -->
             <div class="w-full max-w-2xl relative my-4">
               <div class="relative flex items-center">
-                <i data-lucide="search" class="w-5 h-5 absolute left-4 text-cyan-400"></i>
+                <i data-lucide="search" class="w-5 h-5 absolute left-4 text-sky-400"></i>
                 <input 
                   id="tabSearchInput_${tabId}"
                   type="text" 
                   placeholder="Search any topic, images, videos or paste direct URL..." 
-                  class="w-full bg-slate-900/90 border-2 border-cyan-500/50 rounded-xl px-12 py-3 text-sm text-cyan-100 placeholder-cyan-600 focus:outline-none focus:border-cyan-300 glow-cyan transition"
+                  class="w-full bg-slate-900/90 border border-sky-500/40 rounded-xl px-12 py-3 text-sm text-sky-100 placeholder-sky-600 focus:outline-none focus:border-sky-300 transition"
                 >
                 <button 
                   id="tabSearchBtn_${tabId}"
-                  class="absolute right-3 px-4 py-1.5 bg-cyan-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-cyan-400 transition"
+                  class="absolute right-3 px-4 py-1.5 bg-sky-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-sky-400 transition"
                 >
                   SEARCH
                 </button>
@@ -837,17 +905,17 @@
 
             <!-- Speed Dial Shortcuts -->
             <div class="w-full max-w-3xl mt-8">
-              <h3 class="text-xs font-semibold text-cyan-500 tracking-wider mb-4 text-left">FAST_QUERIES</h3>
+              <h3 class="text-xs font-semibold text-sky-400 tracking-wider mb-4 text-left font-mono">FAST_QUERIES</h3>
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 ${SPEED_DIALS.map(dial => `
                   <button 
                     onclick="navigateCurrentTab('search://${encodeURIComponent(dial.query)}')"
-                    class="glass-panel p-3 rounded-lg flex flex-col items-center hover:border-cyan-400 hover:bg-cyan-950/40 transition group"
+                    class="glass-panel p-3 rounded-xl flex flex-col items-center hover:border-sky-400 hover:bg-sky-950/40 transition group"
                   >
-                    <div class="p-2.5 rounded-full bg-slate-900/80 mb-2 border border-cyan-500/20 group-hover:scale-110 transition">
-                      <i data-lucide="${dial.icon}" class="w-5 h-5 text-cyan-400"></i>
+                    <div class="p-2.5 rounded-full bg-slate-900/80 mb-2 border border-sky-500/20 group-hover:scale-110 transition">
+                      <i data-lucide="${dial.icon}" class="w-5 h-5 text-sky-400"></i>
                     </div>
-                    <span class="text-xs text-cyan-300 font-medium truncate w-full text-center">${dial.name}</span>
+                    <span class="text-xs text-sky-200 font-medium truncate w-full text-center">${dial.name}</span>
                   </button>
                 `).join('')}
               </div>
