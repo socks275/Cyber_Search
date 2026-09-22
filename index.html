@@ -1,963 +1,909 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full w-full bg-slate-950 text-slate-100">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER_SEARCH // Universal Search & Proxy Engine</title>
+  <meta name="referrer" content="no-referrer">
+  <title>CYBER_SEARCH — Universal Web Search</title>
+  <meta name="theme-color" content="#070b14">
+  <meta name="description" content="Fast multi-source web search, reader mode, tabs and saved results.">
+  
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap');
     
-    * { font-family: 'Inter', sans-serif; }
-    code, pre, .font-mono { font-family: 'Fira Code', monospace; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #090d16;
+      color: #f1f5f9;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .font-brand {
+      font-family: 'Space Grotesk', sans-serif;
+    }
 
-    body { background-color: #080c14; color: #cbd5e1; }
-    
-    .grid-bg {
+    .font-code {
+      font-family: 'Fira Code', monospace;
+    }
+
+    /* Grid Background Effect */
+    .bg-grid-pattern {
+      background-size: 32px 32px;
       background-image: 
-        linear-gradient(to right, rgba(6, 182, 212, 0.03) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
-      background-size: 28px 28px;
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     }
 
-    .glass-panel {
-      background: rgba(15, 23, 42, 0.85);
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
       backdrop-filter: blur(12px);
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(51, 65, 85, 0.6);
     }
 
-    .tab-active {
-      background: rgba(14, 165, 233, 0.15);
-      border-bottom: 2px solid #0ea5e9;
-      color: #38bdf8;
+    .glass-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+      box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.15);
     }
 
-    /* CLEAN WEB READER STYLING FOR PROXIED SITES */
-    .proxy-styled-content {
-      color: #e2e8f0;
-      line-height: 1.7;
-      font-size: 0.95rem;
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
     }
-    .proxy-styled-content h1, .proxy-styled-content h2, .proxy-styled-content h3 {
-      color: #f8fafc;
-      font-weight: 700;
-      margin-top: 1.5rem;
-      margin-bottom: 0.75rem;
-      line-height: 1.3;
+    ::-webkit-scrollbar-track {
+      background: #090d16;
     }
-    .proxy-styled-content h1 { font-size: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; }
-    .proxy-styled-content h2 { font-size: 1.25rem; }
-    .proxy-styled-content h3 { font-size: 1.1rem; }
-    .proxy-styled-content p { margin-bottom: 1rem; color: #cbd5e1; }
-    .proxy-styled-content a { color: #38bdf8; text-decoration: underline; cursor: pointer; word-break: break-all; }
-    .proxy-styled-content a:hover { color: #7dd3fc; }
-    .proxy-styled-content ul, .proxy-styled-content ol { padding-left: 1.5rem; margin-bottom: 1rem; }
-    .proxy-styled-content li { margin-bottom: 0.375rem; }
-    .proxy-styled-content img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 0.5rem;
-      border: 1px solid rgba(255,255,255,0.1);
-      margin: 1rem 0;
-      display: inline-block;
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
     }
-    .proxy-styled-content form {
-      background: rgba(15, 23, 42, 0.6);
-      padding: 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      margin: 1rem 0;
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6366f1;
     }
-    .proxy-styled-content input[type="text"], 
-    .proxy-styled-content input[type="search"],
-    .proxy-styled-content input[type="email"],
-    .proxy-styled-content input[type="password"] {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: #f8fafc;
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.375rem;
-      margin-right: 0.5rem;
-      outline: none;
-    }
-    .proxy-styled-content input:focus { border-color: #0ea5e9; }
-    .proxy-styled-content button, .proxy-styled-content input[type="submit"] {
-      background: #0284c7;
-      color: #ffffff;
-      font-weight: 600;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      cursor: pointer;
-      border: none;
-      transition: background 0.2s;
-    }
-    .proxy-styled-content button:hover, .proxy-styled-content input[type="submit"]:hover { background: #0369a1; }
 
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #080c14; }
-    ::-webkit-scrollbar-thumb { background: #0284c7; border-radius: 3px; }
+    /* Article Reader Typography */
+    .reader-content h1 { font-size: 2rem; font-weight: 700; color: #f8fafc; margin-bottom: 1.25rem; font-family: 'Space Grotesk', sans-serif; line-height: 1.3; }
+    .reader-content h2 { font-size: 1.4rem; font-weight: 600; color: #e2e8f0; margin-top: 1.75rem; margin-bottom: 0.75rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+    .reader-content h3 { font-size: 1.15rem; font-weight: 600; color: #cbd5e1; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+    .reader-content p { margin-bottom: 1.25rem; line-height: 1.8; color: #cbd5e1; font-size: 1.05rem; }
+    .reader-content ul, .reader-content ol { padding-left: 1.5rem; margin-bottom: 1.25rem; color: #cbd5e1; }
+    .reader-content ul { list-style-type: disc; }
+    .reader-content ol { list-style-type: decimal; }
+    .reader-content li { margin-bottom: 0.5rem; line-height: 1.6; }
+    .reader-content blockquote { border-left: 4px solid #6366f1; padding-left: 1rem; color: #94a3b8; font-style: italic; margin: 1.25rem 0; background: rgba(99, 102, 241, 0.08); padding-top: 0.75rem; padding-bottom: 0.75rem; border-radius: 0 0.375rem 0.375rem 0; }
+    .reader-content img { max-width: 100%; height: auto; border-radius: 0.75rem; border: 1px solid #334155; margin: 1.5rem auto; display: block; }
+    .reader-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; color: #e2e8f0; font-size: 0.9rem; overflow-x: auto; display: block; }
+    .reader-content th, .reader-content td { border: 1px solid #334155; padding: 0.6rem 0.8rem; text-align: left; }
+    .reader-content th { background: #0f172a; color: #818cf8; }
+
+    /* Print Styles */
+    @media print {
+      body { background: #ffffff !important; color: #000000 !important; overflow: visible !important; }
+      header, #tabsBar, #searchFilters, .no-print { display: none !important; }
+      #viewportContainer { overflow: visible !important; height: auto !important; }
+      .reader-content p, .reader-content li { color: #111111 !important; }
+      .reader-content h1, .reader-content h2, .reader-content h3 { color: #000000 !important; }
+    }
+  
+/* ===== CYBER_SEARCH 2.0 ===== */
+:root{
+  --accent:#7c3aed;
+  --accent2:#2563eb;
+  --surface:rgba(15,23,42,.82);
+  --surface2:rgba(30,41,59,.62);
+}
+body{background:
+ radial-gradient(circle at 50% -10%,rgba(99,102,241,.18),transparent 38%),
+ radial-gradient(circle at 100% 20%,rgba(168,85,247,.10),transparent 30%),
+ #070b14!important}
+::selection{background:rgba(99,102,241,.45);color:#fff}
+.glass-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease!important}
+.glass-card:hover{transform:translateY(-2px);border-color:rgba(129,140,248,.55)!important;box-shadow:0 12px 36px rgba(0,0,0,.25),0 0 30px rgba(99,102,241,.10)!important}
+#searchInput{height:42px!important;font-size:14px!important;background:rgba(15,23,42,.96)!important}
+#searchInput:focus{box-shadow:0 0 0 4px rgba(99,102,241,.10),0 8px 28px rgba(0,0,0,.2)!important}
+.cyber-suggest{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:100;background:rgba(15,23,42,.98);border:1px solid #334155;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45);backdrop-filter:blur(18px)}
+.cyber-suggest button{display:flex;width:100%;gap:10px;align-items:center;padding:11px 14px;text-align:left;color:#cbd5e1;font-size:13px}
+.cyber-suggest button:hover{background:#1e293b;color:#fff}
+.result-grid{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:22px}
+@media(max-width:900px){.result-grid{grid-template-columns:1fr}}
+.search-meta{color:#64748b;font-size:11px;margin:3px 0 12px}
+.result-title{font-size:18px;line-height:1.35}
+.source-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#818cf8;margin-right:6px}
+.quick-action{border:1px solid rgba(71,85,105,.7);background:rgba(15,23,42,.72);border-radius:10px;padding:7px 10px;font-size:11px;color:#cbd5e1;transition:.15s}
+.quick-action:hover{background:#1e293b;color:#fff;border-color:#6366f1}
+.kbd{border:1px solid #475569;background:#0f172a;border-radius:5px;padding:1px 5px;font-family:'Fira Code';font-size:10px;color:#94a3b8}
+.answer-card{background:linear-gradient(135deg,rgba(30,41,59,.9),rgba(49,46,129,.22));border:1px solid rgba(99,102,241,.38)}
+.status-pill{font-family:'Fira Code';font-size:10px;border:1px solid #334155;padding:3px 7px;border-radius:999px;color:#94a3b8}
+
   </style>
 </head>
-<body class="h-full w-screen overflow-hidden flex flex-col grid-bg select-none">
+<body class="h-full w-full flex flex-col bg-grid-pattern overflow-hidden select-none">
 
-  <!-- TOP HEADER OMNIBOX -->
-  <header class="glass-panel px-4 py-2 flex items-center justify-between border-b border-sky-500/20 z-50">
-    <div class="flex items-center space-x-3">
-      <div onclick="goHome()" class="cursor-pointer flex items-center text-sky-400 font-bold tracking-widest text-xs px-2.5 py-1 rounded bg-sky-950/60 border border-sky-500/30 hover:bg-sky-900/50 transition">
-        <i data-lucide="search" class="w-4 h-4 mr-2 text-sky-400"></i>
-        <span>CYBER_SEARCH</span>
+  <header class="h-16 border-b border-slate-800/80 bg-slate-950/90 flex items-center justify-between px-4 sm:px-6 z-30 shrink-0 gap-4">
+    <!-- Logo Brand -->
+    <div class="flex items-center space-x-3 shrink-0 cursor-pointer" onclick="resetToHome()">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      </div>
+      <div class="hidden sm:block">
+        <span class="font-brand text-lg font-bold bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">CYBER_SEARCH</span>
+        <span class="block text-[10px] font-code text-indigo-400 tracking-wider -mt-1">UNIVERSAL SEARCH ENGINE</span>
       </div>
     </div>
 
-    <!-- Central Search Bar -->
-    <div class="flex-1 max-w-3xl mx-4 flex items-center space-x-2">
-      <button onclick="goHome()" class="p-1.5 hover:bg-sky-950/60 rounded text-sky-400 border border-sky-800/30 transition" title="Home">
-        <i data-lucide="home" class="w-4 h-4"></i>
-      </button>
-
-      <div class="relative flex-1 flex items-center">
-        <i data-lucide="globe" class="w-4 h-4 absolute left-3 text-sky-500"></i>
+    <!-- Central Search Input Box -->
+    <div class="flex-1 max-w-2xl">
+      <form id="searchForm" onsubmit="handleSearch(event)" class="relative flex items-center">
+        <svg class="w-4 h-4 absolute left-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         <input 
-          id="omnibox" 
           type="text" 
-          placeholder="Search topics, news, images, videos or paste website/YouTube URL..." 
-          class="w-full bg-slate-950/90 border border-sky-500/30 rounded-lg px-9 py-1.5 text-xs text-sky-100 focus:outline-none focus:border-sky-400 transition"
-          onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
-        >
-      </div>
-
-      <button onclick="handleSearchSubmit()" class="px-4 py-1.5 bg-sky-600/30 border border-sky-400/50 text-sky-200 rounded-lg text-xs hover:bg-sky-500/40 font-semibold transition">
-        EXECUTE
-      </button>
+          id="searchInput" 
+          placeholder="Search anything across Wikipedia, HackerNews, Reddit & Web..." 
+          class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-24 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner"
+        />
+        <button type="submit" class="absolute right-1.5 px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-colors flex items-center space-x-1 shadow-md">
+          <span>Search</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </button>
+      </form>
     </div>
 
-    <div class="flex items-center space-x-2">
-      <button onclick="openNewTab()" class="p-1.5 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 rounded-lg border border-sky-400/40 flex items-center text-xs space-x-1">
-        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-        <span class="hidden sm:inline">NEW TAB</span>
+    <!-- Actions -->
+    <div class="flex items-center space-x-2 shrink-0">
+      <button onclick="createNewTab()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 rounded-xl text-xs flex items-center space-x-1.5 transition-colors">
+        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        <span class="hidden md:inline font-medium">New Tab</span>
       </button>
     </div>
   </header>
 
-  <!-- TAB BAR -->
-  <div id="tabBar" class="bg-slate-950/90 border-b border-sky-500/20 px-3 flex items-center space-x-1 overflow-x-auto h-9 text-xs"></div>
-
-  <!-- MAIN VIEWPORT CONTAINER -->
-  <main id="viewportContainer" class="flex-1 relative bg-slate-950/90 overflow-hidden"></main>
-
-  <!-- MODAL CONTAINER FOR IMAGE LIGHTBOX -->
-  <div id="modalContainer" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass-panel p-4 rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-sky-500/40 relative">
-      <button onclick="closeModal()" class="absolute top-3 right-3 text-sky-400 hover:text-white p-1 rounded-lg bg-slate-900 border border-sky-500/30">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
-      <div id="modalContent" class="flex-1 overflow-y-auto mt-6"></div>
-    </div>
+  <div id="tabsBar" class="h-10 border-b border-slate-800/80 bg-slate-950/80 flex items-center px-3 space-x-1.5 overflow-x-auto shrink-0">
+    <!-- Dynamic Tabs will hydrate here -->
   </div>
 
-  <!-- STATUS FOOTER -->
-  <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-sky-500/70 border-t border-sky-500/20">
-    <div class="flex items-center space-x-3">
-      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> PROXY ROUTER: ONLINE (searchhubio)</span>
-    </div>
-    <div class="flex items-center space-x-4">
-      <span>TABS: <span id="tabCount">1</span></span>
-      <span id="clock">00:00:00</span>
-    </div>
-  </footer>
+  <!-- Dynamic Viewport Workspace -->
+  <main id="viewportContainer" class="flex-1 min-h-0 relative overflow-hidden bg-slate-950/40">
+    <!-- Initial fallback container -->
+  </main>
 
   <script>
-    const PRIMARY_PROXY = "https://small-hill-0227.searchhubio.workers.dev/?url=";
-    const FALLBACK_PROXIES = [
-      "https://api.allorigins.win/raw?url=",
-      "https://corsproxy.io/?"
-    ];
-
     let tabs = [];
     let activeTabId = null;
-    let searchOffsets = {};
-    let activeCategory = {};
+    let searchHistory = JSON.parse(localStorage.getItem('cyber_search_history') || '[]');
+    let bookmarks = JSON.parse(localStorage.getItem('cyber_search_bookmarks') || '[]');
 
-    const SPEED_DIALS = [
-      { name: 'Google News', query: 'Google Latest World News', icon: 'newspaper' },
-      { name: 'YouTube Tech', query: 'site:youtube.com tech review', icon: 'video' },
-      { name: 'GitHub Repos', query: 'GitHub open source trending', icon: 'code' },
-      { name: 'Reddit Discussions', query: 'Reddit technology trends', icon: 'message-square' },
-      { name: 'Wikipedia', query: 'Wikipedia Free Encyclopedia', icon: 'book-open' },
-      { name: 'Internet Archive', query: 'Internet Archive digital library', icon: 'archive' }
-    ];
-
-    window.onload = () => {
-      openNewTab();
-      setInterval(updateClock, 1000);
-      updateClock();
-      lucide.createIcons();
-    };
-
-    function updateClock() {
-      document.getElementById('clock').innerText = new Date().toTimeString().split(' ')[0];
-    }
-
-    function openNewTab(url = 'nexus://newtab') {
-      const id = 'tab_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-      const isSearch = url.startsWith('search://');
-      const searchTerms = isSearch ? decodeURIComponent(url.replace('search://', '')) : '';
-
-      const tab = {
-        id: id,
-        title: isSearch ? `Search: ${searchTerms}` : (url === 'nexus://newtab' ? 'Cyber Launchpad' : getDomainName(url)),
-        url: url
-      };
-      
-      activeCategory[id] = 'ALL';
-      tabs.push(tab);
-      renderTabs();
-      switchTab(id);
-    }
-
-    function closeTab(id, e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
+    function initApp() {
+      if (tabs.length === 0) {
+        createNewTab();
       }
+    }
 
-      const vp = document.getElementById('viewport_' + id);
-      if (vp) vp.remove();
+    function createNewTab(query = '') {
+      const newId = 'tab_' + Date.now();
+      const newTab = {
+        id: newId,
+        title: query ? `Search: ${query}` : 'New Search',
+        query: query,
+        results: null,
+        loading: false,
+        readerMode: false,
+        readerViewMode: 'READ', // 'READ' | 'FRAME'
+        readerData: null,
+        readerFontSize: 105, // %
+        activeCategory: 'ALL'
+      };
+      tabs.push(newTab);
+      activeTabId = newId;
+      renderTabs();
 
-      const targetIndex = tabs.findIndex(t => t.id === id);
-      tabs = tabs.filter(t => t.id !== id);
-      delete activeCategory[id];
+      if (query) {
+        performSearch(query, newId);
+      } else {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = '';
+        renderViewport(newId);
+      }
+    }
+
+    function switchTab(tabId) {
+      activeTabId = tabId;
+      const tab = tabs.find(t => t.id === tabId);
+      if (tab) {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = tab.query || '';
+      }
+      renderTabs();
+      renderViewport(tabId);
+    }
+
+    function closeTab(tabId, event) {
+      if (event) event.stopPropagation();
+      tabs = tabs.filter(t => t.id !== tabId);
 
       if (tabs.length === 0) {
-        openNewTab();
-        return;
-      }
-
-      if (activeTabId === id) {
-        const nextActiveIndex = Math.max(0, targetIndex - 1);
-        switchTab(tabs[nextActiveIndex].id);
+        createNewTab();
       } else {
-        renderTabs();
-      }
-    }
-
-    function switchTab(id) {
-      activeTabId = id;
-      renderTabs();
-      renderViewports();
-      
-      const tab = tabs.find(t => t.id === id);
-      if (tab) {
-        let displayVal = '';
-        if (tab.url.startsWith('search://')) {
-          displayVal = decodeURIComponent(tab.url.replace('search://', ''));
-        } else if (tab.url !== 'nexus://newtab') {
-          displayVal = tab.url;
+        if (activeTabId === tabId) {
+          activeTabId = tabs[tabs.length - 1].id;
         }
-        document.getElementById('omnibox').value = displayVal;
+        const activeTab = tabs.find(t => t.id === activeTabId);
+        if (activeTab) {
+          const searchInput = document.getElementById('searchInput');
+          if (searchInput) searchInput.value = activeTab.query || '';
+        }
+        renderTabs();
+        renderViewport(activeTabId);
       }
     }
 
     function renderTabs() {
-      const tabBar = document.getElementById('tabBar');
-      document.getElementById('tabCount').innerText = tabs.length;
-      tabBar.innerHTML = '';
+      const tabsBar = document.getElementById('tabsBar');
+      if (!tabsBar) return;
 
-      tabs.forEach(tab => {
-        const isActive = tab.id === activeTabId;
-        const el = document.createElement('div');
-        el.className = `flex items-center space-x-2 px-3 py-1 rounded-t-lg border-t border-x border-sky-500/20 cursor-pointer min-w-[140px] max-w-[210px] justify-between transition ${isActive ? 'tab-active font-semibold' : 'text-sky-400/70 hover:bg-slate-900/50'}`;
-        el.onclick = () => switchTab(tab.id);
-
-        let iconName = 'globe';
-        if (tab.url === 'nexus://newtab') iconName = 'layout-grid';
-        if (tab.url.startsWith('search://')) iconName = 'search';
-        if (tab.url.includes('youtube.com') || tab.url.includes('youtu.be')) iconName = 'video';
-
-        el.innerHTML = `
-          <div class="flex items-center space-x-1.5 overflow-hidden">
-            <i data-lucide="${iconName}" class="w-3.5 h-3.5 shrink-0"></i>
-            <span class="truncate text-[11px]">${escapeHtml(tab.title)}</span>
-          </div>
-          <button onclick="closeTab('${tab.id}', event)" class="hover:text-sky-200 rounded p-0.5 hover:bg-sky-500/20">
-            <i data-lucide="x" class="w-3 h-3"></i>
+      tabsBar.innerHTML = tabs.map(tab => `
+        <div 
+          onclick="switchTab('${tab.id}')" 
+          class="flex items-center space-x-2 px-3 py-1.5 text-xs rounded-t-lg border-t border-x cursor-pointer transition-all max-w-[200px] truncate ${
+            tab.id === activeTabId 
+              ? 'bg-slate-900 text-indigo-300 border-indigo-500/50 font-semibold shadow-sm' 
+              : 'bg-slate-950/80 text-slate-400 border-slate-800 hover:text-slate-200 hover:bg-slate-900/60'
+          }"
+        >
+          <svg class="w-3.5 h-3.5 shrink-0 ${tab.id === activeTabId ? 'text-indigo-400' : 'text-slate-500'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${tab.readerMode ? 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' : 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'}"></path></svg>
+          <span class="truncate flex-1">${tab.title}</span>
+          <button onclick="closeTab('${tab.id}', event)" class="text-slate-500 hover:text-rose-400 rounded p-0.5 shrink-0 transition-colors">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
-        `;
-        tabBar.appendChild(el);
-      });
-      lucide.createIcons();
+        </div>
+      `).join('');
     }
 
-    function renderViewports() {
-      const container = document.getElementById('viewportContainer');
-      
-      tabs.forEach(tab => {
-        let vp = document.getElementById('viewport_' + tab.id);
-        if (!vp) {
-          vp = document.createElement('div');
-          vp.id = 'viewport_' + tab.id;
-          vp.className = 'w-full h-full absolute inset-0';
-          container.appendChild(vp);
-          loadTabContent(tab, vp);
-        }
-        
-        vp.style.display = (tab.id === activeTabId) ? 'block' : 'none';
-      });
-    }
+    function handleSearch(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('searchInput');
+      if (!input) return;
 
-    function loadTabContent(tab, element) {
-      if (tab.url === 'nexus://newtab') {
-        element.innerHTML = getNewTabHTML(tab.id);
-        attachNewTabEvents(tab.id);
-      } else if (tab.url.startsWith('search://')) {
-        const query = decodeURIComponent(tab.url.replace('search://', ''));
-        searchOffsets[tab.id] = 0;
-        renderSearchResultsPage(tab, element, query);
+      const query = input.value.trim();
+      if (!query) return;
+
+      if (!activeTabId || tabs.length === 0) {
+        createNewTab(query);
       } else {
-        processWebOrMediaUrl(tab, element, tab.url);
+        performSearch(query, activeTabId);
       }
-      lucide.createIcons();
     }
 
-    function processWebOrMediaUrl(tab, element, url) {
-      if (url.includes('youtube.com') || url.includes('youtu.be')) {
-        const videoId = extractYouTubeId(url);
-        if (videoId) {
-          const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
-          element.innerHTML = `
-            <div class="w-full h-full flex flex-col bg-black">
-              <div class="bg-slate-900 border-b border-sky-500/30 px-4 py-2 flex justify-between items-center text-xs">
-                <span class="text-sky-400 font-bold flex items-center"><i data-lucide="play-circle" class="w-4 h-4 mr-2"></i> YOUTUBE EMBEDDED PLAYER</span>
-                <a href="${escapeHtml(url)}" target="_blank" class="text-sky-400 hover:underline flex items-center space-x-1">
-                  <span>Open Direct</span> <i data-lucide="external-link" class="w-3 h-3"></i>
-                </a>
-              </div>
-              <div class="flex-1 w-full h-full">
-                <iframe 
-                  src="${embedUrl}" 
-                  class="w-full h-full border-0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                  referrerpolicy="strict-origin-when-cross-origin"
-                  allowfullscreen
-                ></iframe>
-              </div>
-            </div>
-          `;
-        } else {
-          element.innerHTML = `
-            <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-              <div class="glass-panel p-8 rounded-xl max-w-xl border border-yellow-500/40">
-                <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-400 mx-auto mb-4"></i>
-                <h2 class="text-lg font-bold text-yellow-300 mb-2">Direct Video URL Required</h2>
-                <p class="text-xs text-slate-300 mb-6 leading-relaxed">
-                  YouTube channel pages restrict framing. Please enter a specific video URL (e.g. <code class="text-sky-300">https://www.youtube.com/watch?v=...</code>).
-                </p>
-                <div class="flex justify-center space-x-3">
-                  <button onclick="goHome()" class="px-4 py-2 bg-slate-800 border border-sky-500/40 text-sky-300 rounded text-xs hover:bg-slate-700">Back to Launchpad</button>
-                  <a href="${escapeHtml(url)}" target="_blank" class="px-4 py-2 bg-sky-600 text-slate-950 font-bold rounded text-xs hover:bg-sky-500 flex items-center space-x-1">
-                    <span>Open YouTube Direct</span> <i data-lucide="external-link" class="w-3 h-3"></i>
-                  </a>
+    async function performSearch(query, tabId) {
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab) return;
+      query = query.trim();
+      tab.query = query; tab.loading = true; tab.readerMode = false;
+      tab.title = query.length > 25 ? query.slice(0,25) + '…' : query;
+      renderTabs(); renderViewport(tabId);
+
+      // URL navigation: if the user enters a URL, open it directly.
+      if (/^(https?:\/\/|www\.)/i.test(query)) {
+        const url = query.startsWith('http') ? query : 'https://' + query;
+        tab.results = {all:[{id:'direct',title:url.replace(/^https?:\/\//,''),snippet:'Direct web page',url,source:'Direct Web',type:'WEB'}],
+          wikipedia:[],tech:[],discussions:[],overview:[`Opening ${url}`]};
+        tab.loading=false; renderViewport(tabId); return;
+      }
+
+      const wikiResults=[], hnResults=[], redditResults=[], soResults=[], newsResults=[];
+      const safeFetch = async (url) => { try { const r=await fetch(url); return r.ok ? await r.json() : null; } catch(e){ return null; } };
+
+      const [wikiData, hnData, redditData, soData, newsData] = await Promise.all([
+        safeFetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=8&format=json&origin=*`),
+        safeFetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&tags=story&hitsPerPage=8`),
+        safeFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=8&sort=relevance`),
+        safeFetch(`https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${encodeURIComponent(query)}&site=stackoverflow&pagesize=8`),
+        safeFetch(`https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&format=json&maxrecords=8`)
+      ]);
+
+      (wikiData?.query?.search||[]).forEach(x=>wikiResults.push({
+        id:x.pageid,title:x.title,snippet:(x.snippet||'').replace(/<[^>]+>/g,'')+'…',
+        url:`https://en.wikipedia.org/wiki/${encodeURIComponent(x.title.replace(/ /g,'_'))}`,source:'Wikipedia',type:'WIKI'
+      }));
+      (hnData?.hits||[]).forEach(x=>hnResults.push({
+        id:x.objectID,title:x.title,snippet:`${x.points||0} points • ${x.num_comments||0} comments • ${x.author||'unknown'}`,
+        url:x.url||`https://news.ycombinator.com/item?id=${x.objectID}`,externalUrl:x.url,
+        hnDiscussionUrl:`https://news.ycombinator.com/item?id=${x.objectID}`,source:'Hacker News',type:'HN'
+      }));
+      (redditData?.data?.children||[]).forEach(c=>{
+        const x=c.data; redditResults.push({
+          id:x.id,title:x.title,snippet:x.selftext ? x.selftext.slice(0,220)+'…' : `r/${x.subreddit} • ${x.ups||0} upvotes`,
+          permalink:x.permalink,url:`https://www.reddit.com${x.permalink}`,source:`r/${x.subreddit}`,type:'REDDIT'
+        });
+      });
+      (soData?.items||[]).forEach(x=>soResults.push({
+        id:x.question_id,title:x.title.replace(/&quot;/g,'"'),snippet:`${x.score} score • ${x.answer_count} answers • ${x.tags.slice(0,4).join(', ')}`,
+        url:x.link,source:'Stack Overflow',type:'SO'
+      }));
+      (newsData?.articles||[]).forEach(x=>newsResults.push({
+        id:x.url,title:x.title,snippet:`${x.domain||''} • ${x.seendate ? x.seendate.replace(/T.*$/,'') : 'Recent'}`,
+        url:x.url,source:x.domain||'News',type:'WEB'
+      }));
+
+      const combined=[...newsResults,...wikiResults,...hnResults,...redditResults,...soResults];
+      tab.results={
+        all:combined,
+        wikipedia:wikiResults,
+        tech:[...hnResults,...soResults],
+        discussions:[...redditResults,...hnResults],
+        overview: generateAIOverview(query,combined)
+      };
+      tab.loading=false;
+      searchHistory=[query,...searchHistory.filter(x=>x!==query)].slice(0,30);
+      localStorage.setItem('cyber_search_history',JSON.stringify(searchHistory));
+      renderViewport(tabId);
+    }
+
+    function generateAIOverview(query, results) {
+      if (!results?.length) return [`No results were found for “${query}”.`, `Try different keywords, a broader phrase, or a specific site.`];
+      const domains=[...new Set(results.map(r=>r.source))];
+      return [
+        `Found ${results.length} results across ${domains.length} sources.`,
+        `Sources include ${domains.slice(0,6).join(', ')}${domains.length>6?' and more':''}.`,
+        `Open a result in Reader mode for extracted content, or use External Link for the original page.`
+      ];
+    }
+
+    async function openInReader(tabId, itemIdx) {
+      const tab = tabs.find(t => t.id === tabId);
+      if (!tab || !tab.results) return;
+
+      const activeCat = tab.activeCategory || 'ALL';
+      let sourceList = tab.results.all;
+      if (activeCat === 'WIKI') sourceList = tab.results.wikipedia;
+      if (activeCat === 'TECH') sourceList = tab.results.tech;
+      if (activeCat === 'DISCUSSIONS') sourceList = tab.results.discussions;
+
+      const item = sourceList[itemIdx];
+      if (!item) return;
+
+      tab.loading = true;
+      renderViewport(tabId);
+
+      let articleContent = '';
+      let fetchError = null;
+
+      try {
+        // A. Wikipedia Native Article Reader
+        if (item.type === 'WIKI' || item.source === 'Wikipedia') {
+          const wikiFetch = await fetch(`https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(item.title)}&prop=text|images&format=json&origin=*`);
+          if (wikiFetch.ok) {
+            const data = await wikiFetch.json();
+            if (data.parse && data.parse.text) {
+              let parsedHtml = data.parse.text['*'];
+              parsedHtml = parsedHtml.replace(/src="\/\//g, 'src="https://');
+              parsedHtml = parsedHtml.replace(/href="\/wiki\//g, 'href="https://en.wikipedia.org/wiki/');
+              articleContent = parsedHtml;
+            }
+          }
+        }
+
+        // B. Reddit Native Discussion & Post Body Reader
+        else if (item.type === 'REDDIT' || item.source.startsWith('r/')) {
+          const redditFetch = await fetch(`https://www.reddit.com${item.permalink}.json`);
+          if (redditFetch.ok) {
+            const data = await redditFetch.json();
+            if (Array.isArray(data) && data[0] && data[0].data.children[0]) {
+              const post = data[0].data.children[0].data;
+              const comments = data[1] ? data[1].data.children : [];
+
+              let postBody = post.selftext ? parseMarkdownToHtml(post.selftext) : `<p class="italic text-slate-400">Media or external link post: <a href="${post.url}" target="_blank" class="text-indigo-400 underline">${post.url}</a></p>`;
+
+              let commentsHtml = comments.slice(0, 10).map(c => {
+                if (!c.data || !c.data.body) return '';
+                return `
+                  <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 my-2">
+                    <div class="flex items-center justify-between text-xs text-indigo-400 mb-1 font-code">
+                      <span>u/${c.data.author || 'anonymous'}</span>
+                      <span>▲ ${c.data.ups || 0}</span>
+                    </div>
+                    <div class="text-xs text-slate-300 leading-relaxed">${parseMarkdownToHtml(c.data.body)}</div>
+                  </div>
+                `;
+              }).join('');
+
+              articleContent = `
+                <h1>${post.title}</h1>
+                <div class="flex items-center space-x-3 text-xs text-slate-400 my-3 font-code border-b border-slate-800 pb-3">
+                  <span>Author: <strong>u/${post.author}</strong></span>
+                  <span>•</span>
+                  <span>Subreddit: <strong>r/${post.subreddit}</strong></span>
+                  <span>•</span>
+                  <span>Score: <strong>${post.score}</strong></span>
                 </div>
-              </div>
+                <div class="my-6">${postBody}</div>
+                <h2 class="mt-8 mb-4">Top Reddit Comments (${comments.length})</h2>
+                <div>${commentsHtml || '<p class="text-slate-500 text-sm">No comments retrieved.</p>'}</div>
+              `;
+            }
+          }
+        }
+
+        // C. Hacker News Thread & Linked Article Reader
+        else if (item.type === 'HN' || item.source === 'Hacker News') {
+          const hnFetch = await fetch(`https://hn.algolia.com/api/v1/items/${item.id}`);
+          let commentsHtml = '';
+          let externalArticleText = '';
+
+          if (hnFetch.ok) {
+            const data = await hnFetch.json();
+            if (data.children) {
+              commentsHtml = data.children.slice(0, 10).map(c => {
+                if (!c.text) return '';
+                return `
+                  <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 my-2">
+                    <div class="flex items-center justify-between text-xs text-indigo-400 mb-1 font-code">
+                      <span>${c.author || 'anonymous'}</span>
+                    </div>
+                    <div class="text-xs text-slate-300 leading-relaxed">${c.text}</div>
+                  </div>
+                `;
+              }).join('');
+            }
+          }
+
+          // If there is an external URL linked in HN item, fetch it with Jina Reader API
+          if (item.externalUrl && item.externalUrl !== item.hnDiscussionUrl) {
+            try {
+              const jinaRes = await fetch(`https://r.jina.ai/${item.externalUrl}`);
+              if (jinaRes.ok) {
+                const md = await jinaRes.text();
+                externalArticleText = parseMarkdownToHtml(md);
+              }
+            } catch (err) {
+              console.warn('Jina proxy read fallback:', err);
+            }
+          }
+
+          articleContent = `
+            <h1>${item.title}</h1>
+            <div class="p-3 bg-slate-900/80 border border-indigo-500/30 rounded-xl my-4 text-xs font-code text-indigo-300">
+              HackerNews Source: <a href="${item.url}" target="_blank" class="underline">${item.url}</a>
             </div>
+            ${externalArticleText ? `
+              <h2>Extracted Linked Web Document</h2>
+              <div class="my-6 p-4 rounded-xl bg-slate-950/60 border border-slate-800">${externalArticleText}</div>
+            ` : ''}
+            <h2 class="mt-8 mb-4">Hacker News Discussion</h2>
+            <div>${commentsHtml || '<p class="text-slate-400 text-sm">Direct HN story submission.</p>'}</div>
           `;
         }
-        lucide.createIcons();
+
+        // D. StackOverflow Q&A Reader
+        else if (item.type === 'SO' || item.source === 'StackOverflow') {
+          const qFetch = await fetch(`https://api.stackexchange.com/2.3/questions/${item.id}?order=desc&sort=activity&site=stackoverflow&filter=!6Wpi.dM8.Q)sO`);
+          const aFetch = await fetch(`https://api.stackexchange.com/2.3/questions/${item.id}/answers?order=desc&sort=votes&site=stackoverflow&filter=!6Wpi.dM8.Q)sO`);
+
+          let questionBody = '';
+          let answersHtml = '';
+
+          if (qFetch.ok) {
+            const qData = await qFetch.json();
+            if (qData.items && qData.items[0]) {
+              questionBody = qData.items[0].body;
+            }
+          }
+
+          if (aFetch.ok) {
+            const aData = await aFetch.json();
+            if (aData.items) {
+              answersHtml = aData.items.map((ans, idx) => `
+                <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 my-4">
+                  <div class="flex items-center justify-between text-xs text-indigo-400 mb-2 font-code">
+                    <span>${ans.is_accepted ? '✓ ACCEPTED ANSWER' : `Answer #${idx + 1}`}</span>
+                    <span>Score: ${ans.score}</span>
+                  </div>
+                  <div class="text-slate-200 text-sm">${ans.body}</div>
+                </div>
+              `).join('');
+            }
+          }
+
+          articleContent = `
+            <h1>${item.title}</h1>
+            <div class="my-6 p-4 rounded-xl bg-slate-950/80 border border-slate-800">${questionBody || item.snippet}</div>
+            <h2>Stack Overflow Answers (${aFetch.ok ? 'Retrieved' : 'Link'})</h2>
+            <div>${answersHtml || `<p class="text-slate-400 text-sm"><a href="${item.url}" target="_blank" class="underline text-indigo-400">Open thread on Stack Overflow</a></p>`}</div>
+          `;
+        }
+
+        // E. General Web Page - Real Extracted Web Reader via Jina Reader Engine
+        else {
+          const jinaRes = await fetch(`https://r.jina.ai/${item.url}`);
+          if (jinaRes.ok) {
+            const md = await jinaRes.text();
+            articleContent = `
+              <h1>${item.title}</h1>
+              <div class="text-xs font-code text-indigo-400 mb-6 flex items-center space-x-2">
+                <span>Extracted Web Source:</span>
+                <a href="${item.url}" target="_blank" class="underline truncate max-w-lg">${item.url}</a>
+              </div>
+              <div class="my-6">${parseMarkdownToHtml(md)}</div>
+            `;
+          } else {
+            throw new Error(`Proxy HTTP error status ${jinaRes.status}`);
+          }
+        }
+      } catch (err) {
+        console.warn('Web Reader engine notice:', err);
+        fetchError = err;
+      }
+
+      // Fallback if full text fetch was restricted
+      if (!articleContent) {
+        articleContent = `
+          <h1>${item.title}</h1>
+          <p class="text-slate-400 text-sm">Source: <strong>${item.source}</strong></p>
+          <hr class="border-slate-800 my-4"/>
+          <div class="my-6 p-5 bg-slate-900/90 border border-indigo-500/30 rounded-2xl">
+            <h3 class="text-indigo-400 font-bold mb-2 flex items-center space-x-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Live Interactive Framing Available</span>
+            </h3>
+            <p class="text-xs text-slate-300 leading-relaxed mb-4">
+              This webpage restricts automated CORS text parsing. You can seamlessly switch to the <strong>Live Frame View</strong> tab above to view, scroll, and interact with the site framed directly in your viewport!
+            </p>
+            <button onclick="setReaderViewMode('${tab.id}', 'FRAME')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center space-x-2 transition-colors shadow-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+              <span>Switch to Live Web Frame Mode</span>
+            </button>
+          </div>
+          <p class="text-slate-300 text-sm">${item.snippet}</p>
+        `;
+      }
+
+      tab.readerMode = true;
+      tab.readerViewMode = 'READ';
+      tab.readerData = {
+        title: item.title,
+        source: item.source,
+        url: item.url,
+        content: articleContent
+      };
+      tab.loading = false;
+      tab.title = `Reader: ${item.title.substring(0, 18)}...`;
+
+      renderTabs();
+      renderViewport(tabId);
+    }
+
+    function parseMarkdownToHtml(md) {
+      if (!md) return '';
+      
+      let html = md
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-slate-200 mt-4 mb-2">$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-indigo-300 mt-6 mb-3 border-b border-slate-800 pb-2">$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-white mt-6 mb-4">$1</h1>')
+        .replace(/!\[(.*?)\]\((.*?)\)/gim, '<img alt="$1" src="$2" class="max-w-full rounded-xl my-4 border border-slate-700 shadow-md"/>')
+        .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" class="text-indigo-400 underline hover:text-indigo-300">$1</a>')
+        .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-slate-100">$1</strong>')
+        .replace(/\*(.*?)\*/gim, '<em class="italic text-slate-300">$1</em>')
+        .replace(/```([\s\S]*?)```/gim, '<pre class="bg-slate-900 border border-slate-800 p-4 rounded-xl overflow-x-auto font-code text-xs my-4 text-indigo-300"><code>$1</code></pre>')
+        .replace(/^&gt; (.*$)/gim, '<blockquote class="border-l-4 border-indigo-500 pl-4 py-2 bg-indigo-950/20 text-slate-300 italic my-3 rounded-r-lg">$1</blockquote>')
+        .replace(/\n\n+/g, '</p><p class="mb-4 leading-relaxed text-slate-300">')
+        .replace(/\n/g, '<br/>');
+
+      return `<p class="mb-4 leading-relaxed text-slate-300">${html}</p>`;
+    }
+
+    function renderViewport(tabId) {
+      const viewport = document.getElementById('viewportContainer');
+      if (!viewport) return;
+
+      const tab = tabs.find(t => t.id === tabId);
+
+      if (!tab) {
+        renderHomeView(viewport);
         return;
       }
 
-      renderReaderModePage(element, url);
-    }
-
-    function extractYouTubeId(url) {
-      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-      const match = url.match(regExp);
-      return (match && match[2].length === 11) ? match[2] : null;
-    }
-
-    async function fetchProxyData(targetUrl) {
-      const proxyList = [PRIMARY_PROXY, ...FALLBACK_PROXIES];
-
-      for (const proxy of proxyList) {
-        try {
-          const fetchUrl = `${proxy}${encodeURIComponent(targetUrl)}`;
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-          const res = await fetch(fetchUrl, { signal: controller.signal });
-          clearTimeout(timeoutId);
-
-          if (res.ok) {
-            const text = await res.text();
-            if (text && text.length > 50) return text;
-          }
-        } catch (e) {
-          console.warn("Proxy attempt failed:", proxy, e);
-        }
+      if (tab.loading) {
+        viewport.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center p-6 space-y-4 text-center">
+            <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
+            <div class="space-y-1">
+              <h3 class="font-brand text-slate-200 font-bold text-lg">Fetching Web Document & Articles</h3>
+              <p class="text-xs text-slate-400 font-code">Parsing native APIs, Reddit threads, StackOverflow Q&A & Web Proxy...</p>
+            </div>
+          </div>
+        `;
+        return;
       }
-      throw new Error("Proxy connection failed");
+
+      if (tab.readerMode && tab.readerData) {
+        renderReaderView(viewport, tab);
+        return;
+      }
+
+      if (tab.results) {
+        renderResultsView(viewport, tab);
+        return;
+      }
+
+      renderHomeView(viewport);
     }
 
-    /* CLEANER PROXY RENDER ENGINE FOR XIFRAME SITES */
-    async function renderReaderModePage(element, url) {
-      element.innerHTML = `
-        <div class="w-full h-full flex flex-col items-center justify-center p-8">
-          <div class="text-center space-y-3">
-            <i data-lucide="loader" class="w-8 h-8 text-sky-400 animate-spin mx-auto"></i>
-            <p class="text-xs text-sky-300 tracking-wider">FETCHING SITE DATA VIA PROXY...</p>
-            <p class="text-[10px] text-slate-400 max-w-md truncate mx-auto">${escapeHtml(url)}</p>
+    function renderHomeView(viewport) {
+      viewport.innerHTML = `
+        <div class="h-full overflow-y-auto p-6 md:p-12 flex flex-col items-center justify-center">
+          <div class="max-w-2xl w-full text-center space-y-6">
+            <div class="inline-flex items-center space-x-3">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-xl shadow-indigo-500/25">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              </div>
+            </div>
+            
+            <div>
+              <h1 class="font-brand text-4xl sm:text-5xl font-extrabold text-slate-100 tracking-tight">CYBER_SEARCH</h1>
+              <p class="text-slate-400 text-sm sm:text-base mt-2">Universal multi-source search engine with live framed web & document reader</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left pt-4 max-w-xl mx-auto">
+              <div onclick="executePreset('Quantum Computing')" class="glass-card p-4 rounded-xl cursor-pointer transition-all">
+                <div class="text-indigo-400 font-semibold text-sm mb-1 flex items-center space-x-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                  <span>Quantum Computing</span>
+                </div>
+                <p class="text-xs text-slate-400">Explore quantum hardware, qubits, and quantum algorithms.</p>
+              </div>
+
+              <div onclick="executePreset('Artificial Intelligence')" class="glass-card p-4 rounded-xl cursor-pointer transition-all">
+                <div class="text-indigo-400 font-semibold text-sm mb-1 flex items-center space-x-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                  <span>Artificial Intelligence</span>
+                </div>
+                <p class="text-xs text-slate-400">Large language models, neural networks, and AI research.</p>
+              </div>
+
+              <div onclick="executePreset('WebAssembly')" class="glass-card p-4 rounded-xl cursor-pointer transition-all">
+                <div class="text-indigo-400 font-semibold text-sm mb-1 flex items-center space-x-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                  <span>WebAssembly & Rust</span>
+                </div>
+                <p class="text-xs text-slate-400">High performance browser runtimes and compiled web code.</p>
+              </div>
+
+              <div onclick="executePreset('James Webb Telescope')" class="glass-card p-4 rounded-xl cursor-pointer transition-all">
+                <div class="text-indigo-400 font-semibold text-sm mb-1 flex items-center space-x-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"></path></svg>
+                  <span>Space Exploration</span>
+                </div>
+                <p class="text-xs text-slate-400">Astrophysics, astronomy discoveries, and space imagery.</p>
+              </div>
+            </div>
           </div>
         </div>
       `;
-      lucide.createIcons();
+    }
 
-      try {
-        const rawHtml = await fetchProxyData(url);
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(rawHtml, 'text/html');
+    function renderResultsView(viewport, tab) {
+      const activeCat=tab.activeCategory||'ALL';
+      let displayResults=tab.results.all;
+      if(activeCat==='WIKI') displayResults=tab.results.wikipedia;
+      if(activeCat==='TECH') displayResults=tab.results.tech;
+      if(activeCat==='DISCUSSIONS') displayResults=tab.results.discussions;
 
-        const baseUrl = new URL(url);
-
-        // Process images with clean fallback containers
-        doc.querySelectorAll('img').forEach(img => {
-          try {
-            const src = img.getAttribute('src');
-            if (src) img.src = new URL(src, baseUrl).href;
-            img.style.maxHeight = '400px';
-            img.style.objectFit = 'contain';
-          } catch(e){}
-        });
-
-        // Rewrite links for in-app proxy navigation
-        doc.querySelectorAll('a').forEach(a => {
-          try {
-            const href = a.getAttribute('href');
-            if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
-              const fullUrl = new URL(href, baseUrl).href;
-              a.setAttribute('onclick', `event.preventDefault(); navigateCurrentTab('${fullUrl}');`);
-            }
-          } catch(e){}
-        });
-
-        const title = doc.querySelector('title')?.innerText || url;
-        const favicon = `https://www.google.com/s2/favicons?domain=${baseUrl.hostname}&sz=32`;
-
-        // Strip scripts to prevent breakages, preserve HTML elements cleanly
-        doc.querySelectorAll('script, style, link[rel="stylesheet"]').forEach(el => el.remove());
-        const cleanBodyContent = doc.body ? doc.body.innerHTML : rawHtml;
-
-        element.innerHTML = `
-          <div class="w-full h-full overflow-y-auto p-4 md:p-8 bg-slate-950">
-            <div class="max-w-5xl mx-auto space-y-4">
-              
-              <!-- CLEAN TOP HEADER BAR -->
-              <div class="glass-panel px-5 py-3 rounded-xl border border-sky-500/30 flex items-center justify-between">
-                <div class="flex items-center space-x-3 overflow-hidden">
-                  <img src="${favicon}" class="w-5 h-5 rounded" onerror="this.src='https://lucide.dev/favicon.ico'">
-                  <div class="truncate">
-                    <h1 class="text-sm font-bold text-slate-100 truncate">${escapeHtml(title)}</h1>
-                    <p class="text-[11px] text-sky-400/80 truncate">${escapeHtml(baseUrl.href)}</p>
-                  </div>
+      viewport.innerHTML=`
+      <div class="h-full flex flex-col">
+        <div class="h-12 border-b border-slate-800 bg-slate-950/90 px-4 sm:px-6 flex items-center gap-2 text-xs shrink-0 overflow-x-auto">
+          ${[['ALL','All'],['WIKI','Wikipedia'],['TECH','Tech'],['DISCUSSIONS','Discussions']].map(([k,n])=>
+          `<button onclick="setCategory('${tab.id}','${k}')" class="px-3 py-1.5 rounded-lg ${activeCat===k?'bg-indigo-600 text-white font-semibold':'text-slate-400 hover:text-white'}">${n} ${k==='ALL'?`(${tab.results.all.length})`:k==='WIKI'?`(${tab.results.wikipedia.length})`:k==='TECH'?`(${tab.results.tech.length})`:`(${tab.results.discussions.length})`}</button>`).join('')}
+          <span class="ml-auto status-pill hidden sm:inline">LIVE SEARCH</span>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 sm:p-7">
+          <div class="result-grid max-w-6xl mx-auto">
+            <section>
+              <div class="answer-card rounded-2xl p-5 mb-5">
+                <div class="flex items-center gap-2 text-indigo-300 font-semibold text-sm mb-3">
+                  <span>✦</span><span>Search overview</span>
                 </div>
-                <a href="${escapeHtml(url)}" target="_blank" class="px-3 py-1.5 bg-sky-600/30 border border-sky-400/50 text-sky-200 rounded-lg text-xs hover:bg-sky-500/40 flex items-center space-x-1 shrink-0 ml-4">
-                  <span>Open Direct</span>
-                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                </a>
+                ${tab.results.overview.map(x=>`<p class="text-sm text-slate-300 leading-relaxed mb-1.5">• ${x}</p>`).join('')}
               </div>
-
-              <!-- FORMATTED READABLE BODY CONTAINER -->
-              <div id="proxyBody_${activeTabId}" class="glass-panel p-6 md:p-8 rounded-xl border border-sky-500/20 proxy-styled-content select-text">
-                ${cleanBodyContent}
+              <div class="space-y-4">
+              ${displayResults.length?displayResults.map((item,idx)=>`
+                <article class="glass-card rounded-2xl p-5">
+                  <div class="search-meta"><span class="source-dot"></span>${item.source} <span class="mx-1">•</span> ${item.url?.replace(/^https?:\/\//,'').split('/')[0]||''}</div>
+                  <h2 class="result-title text-indigo-300 hover:text-indigo-200 font-semibold cursor-pointer" onclick="openInReader('${tab.id}',${idx})">${escapeHtml(item.title)}</h2>
+                  <p class="text-sm text-slate-300 leading-relaxed mt-2">${escapeHtml(item.snippet||'')}</p>
+                  <div class="flex flex-wrap gap-2 mt-4">
+                    <button class="quick-action" onclick="openInReader('${tab.id}',${idx})">Read</button>
+                    <a class="quick-action" href="${item.url}" target="_blank" rel="noopener noreferrer">Open original</a>
+                    <button class="quick-action" onclick="bookmarkResult(${JSON.stringify(item).replace(/</g,'&lt;')})">☆ Save</button>
+                  </div>
+                </article>`).join(''):`<div class="text-center py-20 text-slate-500">No results in this category.</div>`}
               </div>
-
-            </div>
+            </section>
+            <aside class="space-y-4">
+              <div class="glass-card rounded-2xl p-4">
+                <h3 class="font-semibold text-sm text-slate-200 mb-3">Search tools</h3>
+                <div class="space-y-2 text-xs text-slate-400">
+                  <div>Enter <b class="text-slate-200">site:example.com</b> for a focused search.</div>
+                  <div>Paste a URL to open it directly.</div>
+                  <div>Press <b class="kbd">Enter</b> to search.</div>
+                  <div>Use <b class="kbd">Ctrl</b> + <b class="kbd">K</b> to focus search.</div>
+                </div>
+              </div>
+              ${searchHistory.length?`<div class="glass-card rounded-2xl p-4"><h3 class="font-semibold text-sm text-slate-200 mb-3">Recent searches</h3>${searchHistory.slice(0,7).map(q=>`<button class="block w-full text-left text-xs text-slate-400 hover:text-indigo-300 py-1.5 truncate" onclick="executePreset(${JSON.stringify(q)})">↗ ${escapeHtml(q)}</button>`).join('')}</div>`:''}
+            </aside>
           </div>
-        `;
+        </div>
+      </div>`;
+    }
 
-        // Attach Form Handlers for Interactive Submit/Sign Up buttons
-        const proxyBody = document.getElementById(`proxyBody_${activeTabId}`);
-        if (proxyBody) {
-          proxyBody.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', (e) => {
-              e.preventDefault();
-              const action = form.getAttribute('action') || url;
-              const targetUrl = new URL(action, baseUrl).href;
-              alert(`[Form Interceptor] Submitting through proxy to: ${targetUrl}`);
-              navigateCurrentTab(targetUrl);
-            });
-          });
-        }
-
-      } catch (err) {
-        element.innerHTML = `
-          <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-            <div class="glass-panel p-8 rounded-xl max-w-lg border border-red-500/40">
-              <i data-lucide="shield-alert" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
-              <h2 class="text-sm font-bold text-red-300 mb-2">TARGET WEBSITE RESTRICTED</h2>
-              <p class="text-xs text-slate-400 mb-4">This website explicitly blocks external proxy connections. You can view it directly in a new tab.</p>
-              <a href="${escapeHtml(url)}" target="_blank" class="px-4 py-2 bg-sky-600 text-slate-950 font-bold rounded-lg text-xs hover:bg-sky-500 inline-flex items-center space-x-1">
-                <span>Open Direct in Browser</span> <i data-lucide="external-link" class="w-3 h-3"></i>
-              </a>
-            </div>
-          </div>
-        `;
+    function setCategory(tabId, category) {
+      const tab = tabs.find(t => t.id === tabId);
+      if (tab) {
+        tab.activeCategory = category;
+        renderViewport(tabId);
       }
-      lucide.createIcons();
     }
 
-    /* EXPANDED GOOGLE-STYLE MULTI-SOURCE SEARCH ENGINE PIPELINES */
-    async function searchDuckDuckGo(query) {
-      const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-      const rawHtml = await fetchProxyData(targetSearchUrl);
-      
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(rawHtml, 'text/html');
-      const results = doc.querySelectorAll('.result');
+    function renderReaderView(viewport, tab) {
+      const data = tab.readerData;
+      const viewMode = tab.readerViewMode || 'READ';
+      const fontSize = tab.readerFontSize || 105;
 
-      const parsed = [];
-      results.forEach((res, i) => {
-        if (i >= 12) return;
-        const titleEl = res.querySelector('.result__title a');
-        const snippetEl = res.querySelector('.result__snippet');
-
-        if (titleEl) {
-          let href = titleEl.getAttribute('href') || '';
-          if (href.includes('uddg=')) {
-            href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
-          }
-          parsed.push({
-            title: titleEl.textContent.trim(),
-            url: href,
-            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to open site inside CYBER_SEARCH.',
-            source: 'WEB'
-          });
-        }
-      });
-      return parsed;
-    }
-
-    async function searchWikipedia(query, offset = 0) {
-      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=6&sroffset=${offset}&format=json&origin=*`;
-      const res = await fetch(wikiUrl);
-      const data = await res.json();
-      if (!data.query || !data.query.search) return [];
-
-      return data.query.search.map(item => ({
-        title: item.title,
-        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title.replace(/ /g, '_'))}`,
-        snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, "") + "...",
-        source: 'WIKIPEDIA'
-      }));
-    }
-
-    async function searchReddit(query) {
-      try {
-        const res = await fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=5`);
-        const data = await res.json();
-        if (!data.data || !data.data.children) return [];
-        return data.data.children.map(child => ({
-          title: child.data.title,
-          url: `https://www.reddit.com${child.data.permalink}`,
-          snippet: `r/${child.data.subreddit} • Upvotes: ${child.data.score} • Comments: ${child.data.num_comments}`,
-          source: 'REDDIT'
-        }));
-      } catch(e) { return []; }
-    }
-
-    async function searchDictionary(query) {
-      try {
-        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(query.trim())}`);
-        const data = await res.json();
-        if (Array.isArray(data) && data[0]) {
-          const entry = data[0];
-          const def = entry.meanings?.[0]?.definitions?.[0]?.definition || '';
-          return [{
-            title: `Definition of "${entry.word}"`,
-            url: `https://en.wiktionary.org/wiki/${entry.word}`,
-            snippet: `[${entry.meanings?.[0]?.partOfSpeech || 'noun'}] ${def}`,
-            source: 'DICTIONARY'
-          }];
-        }
-      } catch(e){}
-      return [];
-    }
-
-    async function searchImagesWikimedia(query) {
-      const imgUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=20&prop=pageimages|imageinfo&iiprop=url|extmetadata&pithumbsize=500&format=json&origin=*`;
-      const res = await fetch(imgUrl);
-      const data = await res.json();
-      if (!data.query || !data.query.pages) return [];
-
-      const images = [];
-      Object.values(data.query.pages).forEach(page => {
-        if (page.thumbnail || page.imageinfo) {
-          const thumb = page.thumbnail?.source || page.imageinfo?.[0]?.url;
-          const full = page.imageinfo?.[0]?.url || thumb;
-          if (thumb) {
-            images.push({
-              title: page.title.replace('File:', ''),
-              thumbUrl: thumb,
-              fullUrl: full,
-              source: 'IMAGES'
-            });
-          }
-        }
-      });
-      return images;
-    }
-
-    async function searchHackerNews(query) {
-      const hnUrl = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&hitsPerPage=6`;
-      const res = await fetch(hnUrl);
-      const data = await res.json();
-      if (!data.hits) return [];
-
-      return data.hits.map(item => ({
-        title: item.title || item.story_title || 'Web Article',
-        url: item.url || `https://news.ycombinator.com/item?id=${item.objectID}`,
-        snippet: `Points: ${item.points || 0} | Author: ${item.author} | Comments: ${item.num_comments || 0}`,
-        source: 'NEWS'
-      }));
-    }
-
-    function renderSearchResultsPage(tab, element, query) {
-      const cat = activeCategory[tab.id] || 'ALL';
-
-      element.innerHTML = `
-        <div class="w-full h-full overflow-y-auto p-4 md:p-8">
-          <div class="max-w-4xl mx-auto space-y-5">
-            
-            <div class="border-b border-sky-500/20 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <p class="text-[10px] text-sky-500/70 uppercase font-mono">CYBER_SEARCH MULTI-ENGINE</p>
-                <h2 class="text-xl font-bold text-sky-100">"${escapeHtml(query)}"</h2>
-              </div>
-
-              <!-- GOOGLE-STYLE CATEGORY TABS -->
-              <div class="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-lg border border-sky-500/30">
-                <button onclick="setCategory('${tab.id}', 'ALL', '${escapeHtml(query)}')" class="px-3 py-1 rounded-md text-xs font-semibold flex items-center space-x-1 transition ${cat === 'ALL' ? 'bg-sky-500 text-slate-950' : 'text-sky-400 hover:bg-sky-950'}">
-                  <i data-lucide="globe" class="w-3.5 h-3.5"></i>
-                  <span>ALL</span>
-                </button>
-                <button onclick="setCategory('${tab.id}', 'IMAGES', '${escapeHtml(query)}')" class="px-3 py-1 rounded-md text-xs font-semibold flex items-center space-x-1 transition ${cat === 'IMAGES' ? 'bg-sky-500 text-slate-950' : 'text-sky-400 hover:bg-sky-950'}">
-                  <i data-lucide="image" class="w-3.5 h-3.5"></i>
-                  <span>IMAGES</span>
-                </button>
-                <button onclick="setCategory('${tab.id}', 'VIDEOS', '${escapeHtml(query)}')" class="px-3 py-1 rounded-md text-xs font-semibold flex items-center space-x-1 transition ${cat === 'VIDEOS' ? 'bg-sky-500 text-slate-950' : 'text-cyan-400 hover:bg-sky-950'}">
-                  <i data-lucide="video" class="w-3.5 h-3.5"></i>
-                  <span>VIDEOS</span>
-                </button>
-                <button onclick="setCategory('${tab.id}', 'NEWS', '${escapeHtml(query)}')" class="px-3 py-1 rounded-md text-xs font-semibold flex items-center space-x-1 transition ${cat === 'NEWS' ? 'bg-sky-500 text-slate-950' : 'text-sky-400 hover:bg-sky-950'}">
-                  <i data-lucide="newspaper" class="w-3.5 h-3.5"></i>
-                  <span>NEWS</span>
-                </button>
-              </div>
-            </div>
-
-            <div id="statusIndicator_${tab.id}" class="text-xs text-sky-400 animate-pulse flex items-center space-x-1.5">
-              <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-              <span>AGGREGATING RESULTS FROM WEB, WIKIPEDIA, REDDIT & NEWS...</span>
-            </div>
-
-            <div id="resultsList_${tab.id}"></div>
-
-            <div class="pt-4 flex justify-center">
-              <button id="getResultsBtn_${tab.id}" onclick="getMoreResults('${tab.id}', '${escapeHtml(query)}')" class="px-6 py-2.5 bg-sky-950 border border-sky-500/40 text-sky-300 rounded-lg text-xs hover:bg-sky-900/60 font-semibold transition flex items-center space-x-2">
-                <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
-                <span>GET MORE RESULTS</span>
+      viewport.innerHTML = `
+        <div class="h-full flex flex-col bg-slate-950">
+          <!-- Reader Viewport Bar -->
+          <div class="h-12 border-b border-slate-800 px-4 flex items-center justify-between shrink-0 bg-slate-900/90 no-print gap-2">
+            <div class="flex items-center space-x-2 shrink-0">
+              <button onclick="exitReader('${tab.id}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors border border-slate-700">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                <span>Back to Results</span>
               </button>
             </div>
-          </div>
-        </div>
-      `;
-      lucide.createIcons();
 
-      fetchAndDisplayCategoryResults(tab.id, query, 0, false);
-    }
+            <!-- Mode Switcher (Extracted Text vs Framed Live Site) -->
+            <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+              <button onclick="setReaderViewMode('${tab.id}', 'READ')" class="px-3 py-1 rounded-lg transition-all flex items-center space-x-1.5 ${viewMode === 'READ' ? 'bg-indigo-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-slate-200'}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span>Extracted Reader</span>
+              </button>
+              <button onclick="setReaderViewMode('${tab.id}', 'FRAME')" class="px-3 py-1 rounded-lg transition-all flex items-center space-x-1.5 ${viewMode === 'FRAME' ? 'bg-indigo-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-slate-200'}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span>Live Web Frame</span>
+              </button>
+            </div>
 
-    function setCategory(tabId, category, query) {
-      activeCategory[tabId] = category;
-      searchOffsets[tabId] = 0;
-      const tab = tabs.find(t => t.id === tabId);
-      const vp = document.getElementById('viewport_' + tabId);
-      if (tab && vp) renderSearchResultsPage(tab, vp, query);
-    }
+            <!-- Font Size & Print Controls -->
+            <div class="flex items-center space-x-2 shrink-0">
+              ${viewMode === 'READ' ? `
+                <div class="hidden sm:flex items-center bg-slate-800 rounded-lg px-2 py-1 text-xs space-x-2 border border-slate-700">
+                  <button onclick="adjustReaderFontSize('${tab.id}', -10)" class="text-slate-400 hover:text-white px-1 font-bold">-</button>
+                  <span class="font-code text-indigo-300 text-[11px]">${fontSize}%</span>
+                  <button onclick="adjustReaderFontSize('${tab.id}', 10)" class="text-slate-400 hover:text-white px-1 font-bold">+</button>
+                </div>
+              ` : ''}
 
-    async function fetchAndDisplayCategoryResults(tabId, query, offset, append = false) {
-      const cat = activeCategory[tabId] || 'ALL';
-      const listContainer = document.getElementById(`resultsList_${tabId}`);
-      const statusInd = document.getElementById(`statusIndicator_${tabId}`);
-
-      let html = '';
-
-      if (cat === 'ALL') {
-        const [ddg, wiki, reddit, dict, news] = await Promise.allSettled([
-          searchDuckDuckGo(query),
-          searchWikipedia(query, offset),
-          searchReddit(query),
-          searchDictionary(query),
-          searchHackerNews(query)
-        ]);
-
-        let combined = [];
-        if (dict.status === 'fulfilled' && dict.value) combined = combined.concat(dict.value);
-        if (ddg.status === 'fulfilled' && ddg.value) combined = combined.concat(ddg.value);
-        if (wiki.status === 'fulfilled' && wiki.value) combined = combined.concat(wiki.value);
-        if (reddit.status === 'fulfilled' && reddit.value) combined = combined.concat(reddit.value);
-        if (news.status === 'fulfilled' && news.value) combined = combined.concat(news.value);
-
-        html = `<div class="space-y-3.5">` + combined.map(res => {
-          const domain = getDomainName(res.url);
-          const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-          
-          return `
-            <div class="glass-panel p-4 rounded-xl border border-sky-500/20 hover:border-sky-400/50 transition">
-              <div class="flex items-center space-x-2 mb-1.5">
-                <img src="${favicon}" class="w-4 h-4 rounded" onerror="this.style.display='none'">
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-950 border border-sky-500/40 text-sky-300 font-bold font-mono">${res.source}</span>
-                <span class="text-[11px] text-sky-400/80 truncate">${escapeHtml(domain)}</span>
-              </div>
-              <a href="#" onclick="openResultUrl('${escapeHtml(res.url)}'); return false;" class="text-base font-bold text-sky-300 hover:text-sky-100 transition">
-                ${escapeHtml(res.title)}
+              <button onclick="window.print()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium flex items-center space-x-1.5 transition-colors shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <span class="hidden md:inline">Print / Save PDF</span>
+              </button>
+              <a href="${data.url}" target="_blank" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium flex items-center space-x-1 border border-slate-700">
+                <span class="hidden sm:inline">Open Direct</span>
+                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
               </a>
-              <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">${escapeHtml(res.snippet)}</p>
             </div>
-          `;
-        }).join('') + `</div>`;
+          </div>
 
-      } else if (cat === 'IMAGES') {
-        const images = await searchImagesWikimedia(query);
-        html = `
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            ${images.map(img => `
-              <div onclick="openImageLightbox('${escapeHtml(img.fullUrl)}', '${escapeHtml(img.title)}')" class="glass-panel p-2 rounded-xl border border-sky-500/20 hover:border-sky-400 group cursor-pointer transition">
-                <div class="aspect-square w-full overflow-hidden rounded-lg bg-black flex items-center justify-center">
-                  <img src="${escapeHtml(img.thumbUrl)}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy">
+          <!-- Viewport Content -->
+          <div class="flex-1 overflow-y-auto">
+            ${viewMode === 'READ' ? `
+              <div class="p-6 sm:p-12 max-w-4xl mx-auto w-full">
+                <div class="reader-content space-y-4 text-slate-200" style="font-size: ${fontSize}%">
+                  ${data.content}
                 </div>
-                <span class="text-[10px] text-sky-300 block truncate mt-2 font-medium">${escapeHtml(img.title)}</span>
               </div>
-            `).join('')}
-          </div>
-        `;
-
-      } else if (cat === 'VIDEOS') {
-        const ddgVideoQuery = `site:youtube.com watch ${query}`;
-        const videos = await searchDuckDuckGo(ddgVideoQuery);
-
-        html = `
-          <div class="space-y-6">
-            ${videos.map(vid => {
-              const videoId = extractYouTubeId(vid.url);
-              if (!videoId) return '';
-              const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
-              return `
-                <div class="glass-panel p-4 rounded-xl border border-sky-500/30 space-y-3">
-                  <div class="flex justify-between items-center text-xs">
-                    <span class="font-bold text-sky-300 truncate">${escapeHtml(vid.title)}</span>
-                    <button onclick="openResultUrl('${escapeHtml(vid.url)}')" class="px-2.5 py-1 bg-sky-950 border border-sky-500/40 text-sky-300 rounded hover:bg-sky-900 text-[10px] shrink-0">Full Tab</button>
-                  </div>
-                  <div class="w-full aspect-video rounded-lg overflow-hidden border border-sky-500/20 bg-black">
-                    <iframe 
-                      src="${embedUrl}" 
-                      class="w-full h-full border-0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      referrerpolicy="strict-origin-when-cross-origin"
-                      allowfullscreen
-                    ></iframe>
-                  </div>
+            ` : `
+              <div class="w-full h-full p-2 flex flex-col">
+                <div class="p-2 bg-slate-900 border border-slate-800 rounded-t-xl text-xs flex items-center justify-between text-slate-400 font-code">
+                  <span class="truncate">Framing site: <a href="${data.url}" target="_blank" class="text-indigo-400 underline">${data.url}</a></span>
+                  <span class="text-[10px] text-slate-500">Interactive iFrame Sandbox</span>
                 </div>
-              `;
-            }).join('')}
-          </div>
-        `;
-
-      } else if (cat === 'NEWS') {
-        const news = await searchHackerNews(query);
-        html = `
-          <div class="space-y-3">
-            ${news.map(item => `
-              <div class="glass-panel p-4 rounded-xl border border-sky-500/20 hover:border-sky-400 transition">
-                <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-950 border border-sky-500/40 text-sky-300 font-bold block w-max mb-1 font-mono">NEWS</span>
-                <a href="#" onclick="openResultUrl('${escapeHtml(item.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-sky-100 transition">
-                  ${escapeHtml(item.title)}
-                </a>
-                <p class="text-xs text-slate-400 mt-1">${escapeHtml(item.snippet)}</p>
+                <iframe 
+                  src="${data.url}" 
+                  class="w-full flex-1 bg-white rounded-b-xl border border-slate-800 shadow-2xl"
+                  title="${data.title}"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                ></iframe>
               </div>
-            `).join('')}
-          </div>
-        `;
-      }
-
-      if (statusInd) statusInd.style.display = 'none';
-
-      if (append) {
-        listContainer.innerHTML += html;
-      } else {
-        listContainer.innerHTML = html;
-      }
-      lucide.createIcons();
-    }
-
-    async function getMoreResults(tabId, query) {
-      searchOffsets[tabId] = (searchOffsets[tabId] || 0) + 10;
-      const btn = document.getElementById(`getResultsBtn_${tabId}`);
-      if (btn) btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>FETCHING...</span>`;
-      lucide.createIcons();
-      
-      await fetchAndDisplayCategoryResults(tabId, query, searchOffsets[tabId], true);
-      
-      if (btn) btn.innerHTML = `<i data-lucide="arrow-down-circle" class="w-4 h-4"></i><span>GET MORE RESULTS</span>`;
-      lucide.createIcons();
-    }
-
-    function openImageLightbox(fullUrl, title) {
-      const modal = document.getElementById('modalContainer');
-      const content = document.getElementById('modalContent');
-      content.innerHTML = `
-        <div class="flex flex-col items-center space-y-4">
-          <img src="${escapeHtml(fullUrl)}" class="max-h-[70vh] w-auto rounded-lg border border-sky-500/40 object-contain">
-          <h3 class="text-sm font-bold text-sky-200 text-center">${escapeHtml(title)}</h3>
-          <a href="${escapeHtml(fullUrl)}" target="_blank" class="px-4 py-2 bg-sky-500 text-slate-950 font-bold rounded-lg text-xs hover:bg-sky-400 flex items-center space-x-1">
-            <span>Open High Resolution Image</span> <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-          </a>
-        </div>
-      `;
-      modal.classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeModal() {
-      document.getElementById('modalContainer').classList.add('hidden');
-    }
-
-    function openResultUrl(url) {
-      openNewTab(url);
-    }
-
-    function handleSearchSubmit() {
-      const input = document.getElementById('omnibox').value.trim();
-      if (!input) return;
-      
-      if (input.startsWith('http://') || input.startsWith('https://') || (input.includes('.') && !input.includes(' '))) {
-        let target = input.startsWith('http') ? input : 'https://' + input;
-        navigateCurrentTab(target);
-      } else {
-        navigateCurrentTab('search://' + encodeURIComponent(input));
-      }
-    }
-
-    function navigateCurrentTab(url) {
-      const tab = tabs.find(t => t.id === activeTabId);
-      if (!tab) return;
-
-      tab.url = url;
-      if (url.startsWith('search://')) {
-        const query = decodeURIComponent(url.replace('search://', ''));
-        tab.title = `Search: ${query}`;
-      } else {
-        tab.title = getDomainName(url);
-      }
-      
-      const vp = document.getElementById('viewport_' + tab.id);
-      if (vp) loadTabContent(tab, vp);
-      renderTabs();
-    }
-
-    function goHome() {
-      navigateCurrentTab('nexus://newtab');
-    }
-
-    function getNewTabHTML(tabId) {
-      return `
-        <div class="w-full h-full overflow-y-auto p-6 md:p-12 flex flex-col items-center justify-between">
-          <div class="w-full max-w-4xl flex flex-col items-center">
-            
-            <div class="text-center my-6">
-              <div class="inline-flex items-center space-x-2 bg-sky-950/60 border border-sky-500/30 px-3 py-1 rounded-full text-xs text-sky-400 mb-3 font-mono">
-                <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-                <span>CYBER_SEARCH MULTI-ENGINE</span>
-              </div>
-              <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-500">
-                CYBER_SEARCH
-              </h1>
-              <p class="text-xs text-sky-400/70 mt-2">Universal Multi-Source Search & Web Reader Engine</p>
-            </div>
-
-            <!-- Central Search Bar -->
-            <div class="w-full max-w-2xl relative my-4">
-              <div class="relative flex items-center">
-                <i data-lucide="search" class="w-5 h-5 absolute left-4 text-sky-400"></i>
-                <input 
-                  id="tabSearchInput_${tabId}"
-                  type="text" 
-                  placeholder="Search any topic, images, videos or paste direct URL..." 
-                  class="w-full bg-slate-900/90 border border-sky-500/40 rounded-xl px-12 py-3 text-sm text-sky-100 placeholder-sky-600 focus:outline-none focus:border-sky-300 transition"
-                >
-                <button 
-                  id="tabSearchBtn_${tabId}"
-                  class="absolute right-3 px-4 py-1.5 bg-sky-500 text-slate-950 font-bold text-xs rounded-lg hover:bg-sky-400 transition"
-                >
-                  SEARCH
-                </button>
-              </div>
-            </div>
-
-            <!-- Speed Dial Shortcuts -->
-            <div class="w-full max-w-3xl mt-8">
-              <h3 class="text-xs font-semibold text-sky-400 tracking-wider mb-4 text-left font-mono">FAST_QUERIES</h3>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                ${SPEED_DIALS.map(dial => `
-                  <button 
-                    onclick="navigateCurrentTab('search://${encodeURIComponent(dial.query)}')"
-                    class="glass-panel p-3 rounded-xl flex flex-col items-center hover:border-sky-400 hover:bg-sky-950/40 transition group"
-                  >
-                    <div class="p-2.5 rounded-full bg-slate-900/80 mb-2 border border-sky-500/20 group-hover:scale-110 transition">
-                      <i data-lucide="${dial.icon}" class="w-5 h-5 text-sky-400"></i>
-                    </div>
-                    <span class="text-xs text-sky-200 font-medium truncate w-full text-center">${dial.name}</span>
-                  </button>
-                `).join('')}
-              </div>
-            </div>
-
+            `}
           </div>
         </div>
       `;
     }
 
-    function attachNewTabEvents(tabId) {
-      const input = document.getElementById(`tabSearchInput_${tabId}`);
-      const btn = document.getElementById(`tabSearchBtn_${tabId}`);
-
-      if (input && btn) {
-        const execute = () => {
-          const val = input.value.trim();
-          if (!val) return;
-          if (val.startsWith('http://') || val.startsWith('https://') || (val.includes('.') && !val.includes(' '))) {
-            let target = val.startsWith('http') ? val : 'https://' + val;
-            navigateCurrentTab(target);
-          } else {
-            navigateCurrentTab('search://' + encodeURIComponent(val));
-          }
-        };
-
-        btn.onclick = execute;
-        input.onkeydown = (e) => { if (e.key === 'Enter') execute(); };
+    function setReaderViewMode(tabId, mode) {
+      const tab = tabs.find(t => t.id === tabId);
+      if (tab) {
+        tab.readerViewMode = mode;
+        renderViewport(tabId);
       }
     }
 
-    function getDomainName(url) {
-      try {
-        return new URL(url).hostname.replace('www.', '');
-      } catch(e) {
-        return url.length > 15 ? url.substring(0, 15) + '...' : url;
+    function adjustReaderFontSize(tabId, delta) {
+      const tab = tabs.find(t => t.id === tabId);
+      if (tab) {
+        tab.readerFontSize = Math.max(70, Math.min(180, (tab.readerFontSize || 105) + delta));
+        renderViewport(tabId);
       }
     }
 
-    function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    function exitReader(tabId) {
+      const tab = tabs.find(t => t.id === tabId);
+      if (tab) {
+        tab.readerMode = false;
+        tab.title = tab.query ? `Search: ${tab.query}` : 'New Search';
+        renderTabs();
+        renderViewport(tabId);
+      }
     }
+
+    function executePreset(query) {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.value = query;
+      handleSearch();
+    }
+
+    function resetToHome() {
+      createNewTab();
+    }
+
+
+    function escapeHtml(s){
+      return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function clearSearch(){
+      const i=document.getElementById('searchInput'); if(i){i.value='';i.focus();}
+      document.getElementById('clearSearchBtn')?.classList.add('hidden');
+      document.getElementById('suggestions')?.classList.add('hidden');
+    }
+    function bookmarkResult(item){
+      if(!item?.url)return;
+      if(!bookmarks.some(x=>x.url===item.url)) bookmarks.unshift({title:item.title,url:item.url,source:item.source});
+      bookmarks=bookmarks.slice(0,100);
+      localStorage.setItem('cyber_search_bookmarks',JSON.stringify(bookmarks));
+    }
+    function setupSearchUX(){
+      const input=document.getElementById('searchInput'), box=document.getElementById('suggestions'), clear=document.getElementById('clearSearchBtn');
+      if(!input)return;
+      input.addEventListener('input',()=>{
+        clear.classList.toggle('hidden',!input.value);
+        const q=input.value.trim().toLowerCase();
+        if(!q){box.classList.add('hidden');return;}
+        const suggestions=[...new Set([...searchHistory,...['latest news','how does it work','Wikipedia','technology','artificial intelligence']])]
+          .filter(x=>x.toLowerCase().includes(q)).slice(0,6);
+        box.innerHTML=suggestions.map(x=>`<button type="button" onclick="executePreset(${JSON.stringify(x)});document.getElementById('suggestions').classList.add('hidden')"><span>⌕</span>${escapeHtml(x)}</button>`).join('');
+        box.classList.toggle('hidden',!suggestions.length);
+      });
+      input.addEventListener('keydown',e=>{
+        if(e.key==='Escape')box.classList.add('hidden');
+        if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();input.focus();input.select();}
+      });
+      document.addEventListener('click',e=>{if(!e.target.closest('#searchForm'))box.classList.add('hidden');});
+    }
+    document.addEventListener('keydown',e=>{
+      if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();document.getElementById('searchInput')?.focus();}
+    });
+
+    // Direct and reliable event triggers for initial execution
+    initApp();
+    setupSearchUX();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    }
+    window.addEventListener('load', initApp);
   </script>
 </body>
 </html>
