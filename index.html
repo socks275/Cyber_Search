@@ -120,7 +120,14 @@ body{background:
 .answer-card{background:linear-gradient(135deg,rgba(30,41,59,.9),rgba(49,46,129,.22));border:1px solid rgba(99,102,241,.38)}
 .status-pill{font-family:'Fira Code';font-size:10px;border:1px solid #334155;padding:3px 7px;border-radius:999px;color:#94a3b8}
 
-  </style>
+  
+/* ===== FAST READER / PROXY FALLBACK ===== */
+.reader-status{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#94a3b8}
+.reader-status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px #22c55e}
+.rebuild-frame{width:100%;min-height:70vh;border:0;background:white;border-radius:12px}
+.proxy-error{background:rgba(127,29,29,.18);border:1px solid rgba(248,113,113,.25)}
+
+</style>
 </head>
 <body class="h-full w-full flex flex-col bg-grid-pattern overflow-hidden select-none">
 
@@ -176,6 +183,9 @@ body{background:
     let activeTabId = null;
     let searchHistory = JSON.parse(localStorage.getItem('cyber_search_history') || '[]');
     let bookmarks = JSON.parse(localStorage.getItem('cyber_search_bookmarks') || '[]');
+    const PROXY_BASE = 'https://r.jina.ai/';
+    const FETCH_TIMEOUT = 7000;
+    const readerCache = new Map();
 
     function initApp() {
       if (tabs.length === 0) {
@@ -295,7 +305,16 @@ body{background:
       }
 
       const wikiResults=[], hnResults=[], redditResults=[], soResults=[], newsResults=[];
-      const safeFetch = async (url) => { try { const r=await fetch(url); return r.ok ? await r.json() : null; } catch(e){ return null; } };
+      const searchCache = window.__cyberSearchCache || (window.__cyberSearchCache = new Map());
+      const safeFetch = async (url) => {
+        if(searchCache.has(url)) return searchCache.get(url);
+        try {
+          const r=await fetchWithTimeout(url, FETCH_TIMEOUT);
+          const data=r.ok ? await r.json() : null;
+          if(data) searchCache.set(url,data);
+          return data;
+        } catch(e){ return null; }
+      };
 
       const [wikiData, hnData, redditData, soData, newsData] = await Promise.all([
         safeFetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=8&format=json&origin=*`),
@@ -454,7 +473,7 @@ body{background:
           // If there is an external URL linked in HN item, fetch it with Jina Reader API
           if (item.externalUrl && item.externalUrl !== item.hnDiscussionUrl) {
             try {
-              const jinaRes = await fetch(`https://r.jina.ai/${item.externalUrl}`);
+              const jinaRes = await fetchWithTimeout(PROXY_BASE + item.externalUrl, FETCH_TIMEOUT);
               if (jinaRes.ok) {
                 const md = await jinaRes.text();
                 externalArticleText = parseMarkdownToHtml(md);
@@ -516,21 +535,54 @@ body{background:
           `;
         }
 
-        // E. General Web Page - Real Extracted Web Reader via Jina Reader Engine
+        // E. General Web Page:
+        // 1) Jina proxy/readability extraction.
+        // 2) If that fails, show a live iframe.
+        // 3) If iframe is blocked by X-Frame-Options/CSP, offer the extracted/rebuilt
+        //    representation. A normal browser page cannot bypass those headers directly.
         else {
-          const jinaRes = await fetch(`https://r.jina.ai/${item.url}`);
-          if (jinaRes.ok) {
-            const md = await jinaRes.text();
-            articleContent = `
-              <h1>${item.title}</h1>
-              <div class="text-xs font-code text-indigo-400 mb-6 flex items-center space-x-2">
-                <span>Extracted Web Source:</span>
-                <a href="${item.url}" target="_blank" class="underline truncate max-w-lg">${item.url}</a>
-              </div>
-              <div class="my-6">${parseMarkdownToHtml(md)}</div>
-            `;
+          const cached = readerCache.get(item.url);
+          if (cached) {
+            articleContent = cached.content;
+            fetchError = cached.error || null;
           } else {
-            throw new Error(`Proxy HTTP error status ${jinaRes.status}`);
+            let md = '';
+            try {
+              const jinaRes = await fetchWithTimeout(PROXY_BASE + item.url, FETCH_TIMEOUT, {
+                headers: { 'Accept': 'text/plain, text/markdown, */*' }
+              });
+              if (jinaRes.ok) {
+                md = await jinaRes.text();
+                if (md.trim().length > 80) {
+                  articleContent = `
+                    <div class="mb-5 p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20">
+                      <div class="reader-status"><span class="reader-status-dot"></span><span>Proxy reader active — page reconstructed from extracted content</span></div>
+                    </div>
+                    <h1>${escapeHtml(item.title)}</h1>
+                    <div class="text-xs font-code text-indigo-400 mb-6">
+                      <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="underline">${escapeHtml(item.url)}</a>
+                    </div>
+                    <div class="my-6">${parseMarkdownToHtml(md, item.url)}</div>
+                  `;
+                  readerCache.set(item.url, {content: articleContent});
+                } else {
+                  throw new Error('Proxy returned too little content');
+                }
+              } else {
+                throw new Error('Proxy HTTP ' + jinaRes.status);
+              }
+            } catch (proxyErr) {
+              fetchError = proxyErr;
+              articleContent = `
+                <div class="proxy-error rounded-2xl p-5 mb-5">
+                  <h3 class="font-bold text-rose-300 mb-2">Reader proxy unavailable</h3>
+                  <p class="text-sm text-slate-300 mb-4">The extracted reader could not retrieve this page. The original site will be tried in Live Web Frame mode.</p>
+                  <button onclick="setReaderViewMode('${tab.id}','FRAME')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">Try Live Website</button>
+                </div>
+                <h1>${escapeHtml(item.title)}</h1>
+                <p class="text-slate-400 text-sm">${escapeHtml(item.snippet || '')}</p>
+              `;
+            }
           }
         }
       } catch (err) {
@@ -576,24 +628,37 @@ body{background:
       renderViewport(tabId);
     }
 
-    function parseMarkdownToHtml(md) {
+    function parseMarkdownToHtml(md, baseUrl='') {
       if (!md) return '';
-      
-      let html = md
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-        .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-slate-200 mt-4 mb-2">$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-indigo-300 mt-6 mb-3 border-b border-slate-800 pb-2">$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-white mt-6 mb-4">$1</h1>')
-        .replace(/!\[(.*?)\]\((.*?)\)/gim, '<img alt="$1" src="$2" class="max-w-full rounded-xl my-4 border border-slate-700 shadow-md"/>')
-        .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" class="text-indigo-400 underline hover:text-indigo-300">$1</a>')
-        .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-slate-100">$1</strong>')
-        .replace(/\*(.*?)\*/gim, '<em class="italic text-slate-300">$1</em>')
-        .replace(/```([\s\S]*?)```/gim, '<pre class="bg-slate-900 border border-slate-800 p-4 rounded-xl overflow-x-auto font-code text-xs my-4 text-indigo-300"><code>$1</code></pre>')
-        .replace(/^&gt; (.*$)/gim, '<blockquote class="border-l-4 border-indigo-500 pl-4 py-2 bg-indigo-950/20 text-slate-300 italic my-3 rounded-r-lg">$1</blockquote>')
-        .replace(/\n\n+/g, '</p><p class="mb-4 leading-relaxed text-slate-300">')
-        .replace(/\n/g, '<br/>');
+      const absolutize = (url) => {
+        try { return new URL(url, baseUrl || location.href).href; } catch(e) { return url; }
+      };
+      let html = String(md)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        .replace(/^### (.*$)/gim,'<h3>$1</h3>')
+        .replace(/^## (.*$)/gim,'<h2>$1</h2>')
+        .replace(/^# (.*$)/gim,'<h1>$1</h1>')
+        .replace(/!\[([^\]]*)\]\(([^)]+)\)/gim,(_,alt,url)=>
+          `<figure><img src="${absolutize(url)}" alt="${alt.replace(/"/g,'&quot;')}" loading="lazy" referrerpolicy="no-referrer"><figcaption>${alt}</figcaption></figure>`)
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/gim,(_,label,url)=>
+          `<a href="${absolutize(url)}" target="_blank" rel="noopener noreferrer">${label}</a>`)
+        .replace(/\*\*(.*?)\*\*/gim,'<strong>$1</strong>')
+        .replace(/(?<!\*)\*([^*]+)\*(?!\*)/gim,'<em>$1</em>')
+        .replace(/```([\s\S]*?)```/gim,'<pre><code>$1</code></pre>')
+        .replace(/^&gt; (.*$)/gim,'<blockquote>$1</blockquote>')
+        .replace(/\n\n+/g,'</p><p>')
+        .replace(/\n/g,'<br>');
+      return `<p>${html}</p>`;
+    }
 
-      return `<p class="mb-4 leading-relaxed text-slate-300">${html}</p>`;
+    async function fetchWithTimeout(url, timeout=FETCH_TIMEOUT, options={}) {
+      const controller = new AbortController();
+      const timer = setTimeout(()=>controller.abort(), timeout);
+      try {
+        return await fetch(url, {...options, signal:controller.signal});
+      } finally {
+        clearTimeout(timer);
+      }
     }
 
     function renderViewport(tabId) {
@@ -811,17 +876,52 @@ body{background:
                   <span class="truncate">Framing site: <a href="${data.url}" target="_blank" class="text-indigo-400 underline">${data.url}</a></span>
                   <span class="text-[10px] text-slate-500">Interactive iFrame Sandbox</span>
                 </div>
-                <iframe 
-                  src="${data.url}" 
+                <iframe
+                  src="${data.url}"
                   class="w-full flex-1 bg-white rounded-b-xl border border-slate-800 shadow-2xl"
-                  title="${data.title}"
+                  title="${escapeHtml(data.title)}"
                   sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                  referrerpolicy="no-referrer"
+                  onload="this.dataset.loaded='1'"
+                  onerror="showIframeFallback('${tab.id}')"
                 ></iframe>
+                <div class="mt-2 flex items-center justify-between gap-2 text-xs">
+                  <span class="text-slate-500">If the site blocks framing with X-Frame-Options/CSP, your browser will prevent the iframe from displaying it.</span>
+                  <button onclick="rebuildFromProxy('${tab.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">Rebuild from Proxy</button>
+                </div>
               </div>
             `}
           </div>
         </div>
       `;
+    }
+
+    async function rebuildFromProxy(tabId){
+      const tab=tabs.find(t=>t.id===tabId);
+      if(!tab?.readerData?.url)return;
+      tab.loading=true; renderViewport(tabId);
+      const item={title:tab.readerData.title,url:tab.readerData.url,source:tab.readerData.source,type:'WEB',snippet:''};
+      try{
+        const r=await fetchWithTimeout(PROXY_BASE+item.url,FETCH_TIMEOUT,{headers:{'Accept':'text/plain, text/markdown, */*'}});
+        if(!r.ok)throw new Error('Proxy HTTP '+r.status);
+        const md=await r.text();
+        if(md.trim().length<80)throw new Error('Insufficient extracted content');
+        tab.readerData.content=`
+          <div class="mb-5 p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20">
+            <div class="reader-status"><span class="reader-status-dot"></span><span>Reconstructed from proxy content</span></div>
+          </div>
+          <h1>${escapeHtml(item.title)}</h1>
+          <div class="my-6">${parseMarkdownToHtml(md,item.url)}</div>`;
+        readerCache.set(item.url,{content:tab.readerData.content});
+        tab.readerViewMode='READ';
+      }catch(e){
+        tab.readerData.content=`<div class="proxy-error rounded-2xl p-5"><h2>Both reader paths failed</h2><p class="text-slate-300">The site may block automated extraction and framing.</p><a class="text-indigo-300 underline" target="_blank" href="${item.url}">Open the original site</a></div>`;
+        tab.readerViewMode='READ';
+      }finally{tab.loading=false;renderViewport(tabId);}
+    }
+    function showIframeFallback(tabId){
+      // X-Frame-Options/CSP failures are normally exposed by the browser rather than as iframe errors.
+      // The manual "Rebuild from Proxy" control remains available because JS cannot bypass those headers.
     }
 
     function setReaderViewMode(tabId, mode) {
