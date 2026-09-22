@@ -3,259 +3,218 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cyber Search</title>
+<title>Cyber Search — Web Search Engine</title>
 
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;font-family:Arial,sans-serif;background:#fff;color:#202124}
-body{overflow-x:hidden}
-
-.top{
-  height:64px;
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#fff;
+  color:#202124
+}
+header{
+  height:70px;
+  border-bottom:1px solid #eee;
   display:flex;
   align-items:center;
+  gap:22px;
   padding:0 28px;
-  border-bottom:1px solid #eee;
-  gap:20px;
 }
-
 .logo{
   font-size:25px;
   font-weight:700;
   letter-spacing:-1px;
-  color:#4285f4;
 }
-
+.logo span:nth-child(1){color:#4285f4}
 .logo span:nth-child(2){color:#ea4335}
 .logo span:nth-child(3){color:#fbbc05}
 .logo span:nth-child(4){color:#4285f4}
 .logo span:nth-child(5){color:#34a853}
-
-.search{
-  width:min(760px,70vw);
+.searchbox{
+  width:min(760px,75vw);
   height:46px;
   border:1px solid #dfe1e5;
-  border-radius:24px;
+  border-radius:25px;
   display:flex;
   align-items:center;
-  padding:0 15px;
-  box-shadow:0 1px 4px #00000012;
+  padding:0 16px;
+  box-shadow:0 1px 5px #0001;
 }
-
-.search:focus-within{
-  box-shadow:0 2px 8px #00000020;
-}
-
-.search input{
-  flex:1;
+.searchbox input{
   border:0;
   outline:0;
+  flex:1;
   font-size:16px;
 }
-
-.search button{
+.searchbox button{
   border:0;
   background:none;
+  font-size:21px;
   cursor:pointer;
-  font-size:20px;
 }
-
 .engine{
+  width:min(1050px,94%);
   margin:18px auto;
-  width:min(1000px,94%);
+  padding:14px;
   border:1px solid #e5e7eb;
   border-radius:14px;
-  padding:14px;
   background:#fafafa;
 }
-
 .flow{
   display:grid;
   grid-template-columns:1fr 35px 1fr 35px 1fr;
-  align-items:center;
   gap:8px;
+  align-items:center;
 }
-
 .stage{
   padding:12px;
-  background:white;
   border:1px solid #e5e7eb;
   border-radius:10px;
+  background:white;
 }
-
-.stage b{
+.stage strong{
   display:block;
   font-size:12px;
 }
-
 .stage small{
+  display:block;
   color:#777;
+  margin-top:4px;
 }
-
 .arrow{
   text-align:center;
-  font-size:22px;
   color:#4285f4;
+  font-size:22px;
 }
-
 .status{
   margin-top:10px;
-  font-size:12px;
   color:#777;
+  font-size:12px;
 }
-
-.bar{
+.progress{
+  margin-top:8px;
   height:3px;
   background:#e5e7eb;
   overflow:hidden;
-  margin-top:8px;
   border-radius:10px;
 }
-
-.bar i{
+.progress i{
   display:block;
   width:30%;
   height:100%;
   background:#4285f4;
   animation:move 1s linear infinite;
 }
-
 @keyframes move{
   from{transform:translateX(-150%)}
-  to{transform:translateX(400%)}
+  to{transform:translateX(450%)}
 }
-
-.content{
-  width:min(1000px,94%);
+main{
+  width:min(1050px,94%);
   margin:auto;
 }
-
 .overview{
-  background:#f8faff;
   border:1px solid #d9e5ff;
-  border-radius:12px;
+  background:#f8faff;
+  border-radius:14px;
   padding:18px;
-  margin-bottom:22px;
+  margin-bottom:20px;
 }
-
 .overview h2{
-  font-size:19px;
-  margin:0 0 12px;
+  margin:0 0 10px;
+  font-size:20px;
 }
-
 .overview p{
   line-height:1.6;
-  margin:8px 0;
 }
-
 .result{
-  padding:16px 0;
+  padding:17px 0;
   border-bottom:1px solid #eee;
 }
-
-.result-url{
+.url{
   color:#188038;
   font-size:13px;
   margin-bottom:4px;
+  white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  white-space:nowrap;
 }
-
-.result-title{
+.title{
   color:#1a0dab;
   font-size:20px;
-  margin-bottom:5px;
   cursor:pointer;
 }
-
-.result-title:hover{
-  text-decoration:underline;
-}
-
-.result-snippet{
+.title:hover{text-decoration:underline}
+.snippet{
+  margin-top:6px;
   color:#4d5156;
-  line-height:1.5;
+  line-height:1.55;
 }
-
 .score{
   float:right;
-  font-size:10px;
   color:#888;
+  font:10px monospace;
 }
-
 .reader{
-  margin-top:20px;
-  padding:28px;
   border:1px solid #e5e7eb;
-  border-radius:12px;
-  background:white;
+  border-radius:14px;
+  padding:30px;
+  margin-top:20px;
 }
-
 .reader h1{
   font-size:34px;
-  line-height:1.2;
 }
-
-.reader h2{
-  margin-top:30px;
-}
-
 .reader p{
   font-size:17px;
   line-height:1.8;
 }
-
 .reader img{
   max-width:100%;
-  height:auto;
-  border-radius:8px;
+  border-radius:10px;
 }
-
 .reader a{
   color:#1a73e8;
 }
-
+.back{
+  border:0;
+  background:none;
+  color:#1a73e8;
+  cursor:pointer;
+  font-size:14px;
+}
 .video-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:18px;
-  margin-top:15px;
+  gap:15px;
 }
-
 .video{
   border:1px solid #ddd;
-  border-radius:10px;
+  border-radius:12px;
   overflow:hidden;
-  background:white;
 }
-
 .video iframe{
   width:100%;
   aspect-ratio:16/9;
   border:0;
 }
-
-.video div{
+.video-title{
   padding:10px;
-  font-weight:600;
+  font-weight:bold;
 }
-
 .loading{
-  padding:30px 0;
+  padding:50px 0;
   color:#777;
 }
-
 .empty{
-  padding:60px 0;
   text-align:center;
+  padding:60px;
   color:#777;
 }
-
-@media(max-width:650px){
-  .top{padding:0 12px}
-  .logo{font-size:20px}
-  .search{width:100%}
+@media(max-width:700px){
+  header{padding:0 12px}
+  .logo{display:none}
+  .searchbox{width:100%}
   .flow{grid-template-columns:1fr}
   .arrow{display:none}
 }
@@ -264,44 +223,48 @@ body{overflow-x:hidden}
 
 <body>
 
-<header class="top">
+<header>
 
   <div class="logo">
     <span>C</span><span>y</span><span>b</span><span>e</span><span>r</span>
   </div>
 
-  <form class="search" id="searchForm">
+  <form class="searchbox" id="searchForm">
+
     <input
-      id="searchInput"
-      autocomplete="off"
+      id="query"
       placeholder="Search the web..."
+      autocomplete="off"
     >
+
     <button type="submit">⌕</button>
+
   </form>
 
 </header>
+
 
 <section class="engine">
 
   <div class="flow">
 
     <div class="stage">
-      <b>CRAWLING</b>
-      <small>Discover and download webpages</small>
+      <strong>CRAWL</strong>
+      <small>Discover public webpages</small>
     </div>
 
     <div class="arrow">→</div>
 
     <div class="stage">
-      <b>INDEXING</b>
+      <strong>INDEX</strong>
       <small>Analyze and store information</small>
     </div>
 
     <div class="arrow">→</div>
 
     <div class="stage">
-      <b>RANKING</b>
-      <small>Find the most relevant results</small>
+      <strong>RANK</strong>
+      <small>Find the most relevant pages</small>
     </div>
 
   </div>
@@ -310,51 +273,50 @@ body{overflow-x:hidden}
     Ready
   </div>
 
-  <div class="bar">
+  <div class="progress">
     <i></i>
   </div>
 
 </section>
 
-<main class="content" id="content">
+
+<main id="results">
 
   <div class="empty">
-    Search for something to begin.
+    Search for anything.
   </div>
 
 </main>
 
+
 <script>
+/* =========================================================
+   CYBER SEARCH ENGINE
+   ========================================================= */
 
-/*
-============================================================
-CYBER SEARCH
-GOOGLE-STYLE CRAWL → INDEX → RANK ENGINE
-============================================================
-*/
+const STORAGE_KEY="cyber_search_engine_index";
 
-const DB_NAME = "cyber-search-index-v1";
-
-let index = {};
+let index={};
 
 try{
-  index = JSON.parse(
-    localStorage.getItem(DB_NAME) || "{}"
+  index=JSON.parse(
+    localStorage.getItem(STORAGE_KEY)||"{}"
   );
 }catch{
-  index = {};
+  index={};
 }
 
+let currentResults=[];
+let currentQuery="";
 
-/*
-============================================================
-UTILITY
-============================================================
-*/
 
-function escapeHTML(text){
+/* =========================================================
+   HELPERS
+   ========================================================= */
 
-  return String(text || "")
+function escapeHTML(value){
+
+  return String(value||"")
     .replace(/&/g,"&amp;")
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
@@ -363,14 +325,21 @@ function escapeHTML(text){
 }
 
 
-function tokens(text){
+function tokenize(value){
 
-  return String(text || "")
+  return String(value||"")
     .toLowerCase()
-    .replace(/https?:\/\/\S+/g," ")
     .replace(/[^a-z0-9\s]/g," ")
     .split(/\s+/)
-    .filter(x => x.length > 1);
+    .filter(Boolean);
+}
+
+
+function status(text){
+
+  document.getElementById(
+    "status"
+  ).textContent=text;
 }
 
 
@@ -379,504 +348,616 @@ function saveIndex(){
   try{
 
     localStorage.setItem(
-      DB_NAME,
+      STORAGE_KEY,
       JSON.stringify(index)
     );
 
-  }catch(e){
+  }catch{
 
     /*
-    Browser storage can become full.
-    Keep the newest 300 documents.
+      If the browser storage is full,
+      retain only the newest pages.
     */
 
-    const pages =
+    const pages=
       Object.values(index)
       .sort(
         (a,b)=>
-          b.crawledAt-a.crawledAt
+          b.time-a.time
       )
-      .slice(0,300);
+      .slice(0,250);
 
     index={};
 
     pages.forEach(
-      page =>
+      page=>
         index[page.url]=page
     );
 
     localStorage.setItem(
-      DB_NAME,
+      STORAGE_KEY,
       JSON.stringify(index)
     );
   }
 }
 
 
+/* =========================================================
+   FETCH SYSTEM
+   ========================================================= */
+
 /*
-============================================================
-PROXY
-============================================================
+  We deliberately use several routes.
 
-The proxy converts many webpages into readable text that
-browser JavaScript can access.
+  Route 1:
+  Direct request.
 
-This is NOT Google's private crawler.
-It is our own miniature crawler.
+  Route 2:
+  Jina reader.
+
+  Route 3:
+  Google discovery.
+
+  Route 4:
+  Wikipedia API.
+
+  If one service fails, search continues.
 */
 
-async function proxyFetch(url){
+async function fetchWithTimeout(
+  url,
+  timeout=9000
+){
 
-  const proxy =
-    "https://r.jina.ai/" + url;
-
-  const controller =
+  const controller=
     new AbortController();
 
-  const timeout =
+  const timer=
     setTimeout(
       ()=>controller.abort(),
-      10000
+      timeout
     );
 
   try{
 
-    const response =
+    const response=
       await fetch(
-        proxy,
+        url,
         {
-          signal:controller.signal
+          signal:
+            controller.signal
         }
       );
 
     if(!response.ok)
-      throw new Error("HTTP "+response.status);
+      throw new Error(
+        "HTTP "+response.status
+      );
 
-    return await response.text();
+    return response;
 
   }finally{
 
-    clearTimeout(timeout);
+    clearTimeout(timer);
+
   }
 }
 
 
-/*
-============================================================
-PAGE PARSER
-============================================================
-*/
-
-function parsePage(url,text){
-
-  let title =
-    text.match(
-      /^#\s+(.+)$/m
-    )?.[1];
-
-  if(!title){
-
-    try{
-      title =
-        new URL(url)
-        .hostname
-        .replace(/^www\./,"");
-
-    }catch{
-      title=url;
-    }
-  }
-
-
-  const links=[];
-
-  const linkRegex =
-    /\[[^\]]+\]\((https?:\/\/[^)]+)\)/g;
-
-  let match;
-
-  while(
-    (match=linkRegex.exec(text))
-  ){
-
-    links.push(match[1]);
-  }
-
-
-  const images=[];
-
-  const imageRegex =
-    /!\[[^\]]*\]\(([^)]+)\)/g;
-
-  while(
-    (match=imageRegex.exec(text))
-  ){
-
-    images.push(match[1]);
-  }
-
-
-  const clean =
-    text
-      .replace(
-        /!\[[^\]]*\]\([^)]*\)/g,
-        " "
-      )
-      .replace(
-        /\[([^\]]+)\]\([^)]*\)/g,
-        "$1"
-      )
-      .replace(
-        /[#>*`]/g,
-        " "
-      )
-      .replace(
-        /\s+/g,
-        " "
-      )
-      .trim();
-
-
-  const words =
-    tokens(
-      title+" "+clean
-    );
-
-
-  const frequencies={};
-
-  words.forEach(
-    word =>
-      frequencies[word] =
-        (frequencies[word]||0)+1
-  );
-
-
-  return {
-
-    url,
-    title,
-    text:clean,
-
-    links,
-    images,
-
-    words,
-    frequencies,
-
-    crawledAt:
-      Date.now()
-  };
-}
-
-
-/*
-============================================================
-INDEXING
-============================================================
-*/
-
-function indexPage(page){
-
-  if(!page)
-    return;
-
-  index[page.url]=page;
-
-  saveIndex();
-}
-
-
-/*
-============================================================
-CRAWLER
-============================================================
-*/
-
-async function crawl(url){
+async function readerFetch(url){
 
   try{
 
-    updateStatus(
-      "Crawling "+url
-    );
-
-    const markdown =
-      await proxyFetch(url);
-
-    if(!markdown)
-      return null;
-
-    const page =
-      parsePage(
-        url,
-        markdown
+    const response=
+      await fetchWithTimeout(
+        "https://r.jina.ai/"+url,
+        10000
       );
 
-    indexPage(page);
+    return await response.text();
 
-    return page;
+  }catch{
 
-  }catch(error){
+    return "";
+  }
+}
 
-    console.warn(
-      "Crawler failed:",
-      url,
-      error
-    );
+
+async function jsonFetch(url){
+
+  try{
+
+    const response=
+      await fetchWithTimeout(
+        url,
+        8000
+      );
+
+    return await response.json();
+
+  }catch{
 
     return null;
   }
 }
 
 
-/*
-============================================================
-DISCOVER SEARCH RESULTS
-============================================================
+/* =========================================================
+   INDEXING
+   ========================================================= */
 
-We use public search pages as discovery sources.
+function createDocument(
+  url,
+  title,
+  text,
+  source
+){
 
-The actual ranking happens locally.
-*/
+  const words=
+    tokenize(
+      title+" "+text
+    );
 
-async function discover(query){
+  const frequencies={};
 
-  const urls=[];
+  words.forEach(
+    word=>{
+      frequencies[word]=
+        (frequencies[word]||0)+1;
+    }
+  );
 
-  const engines=[
+  return {
 
-    "https://www.google.com/search?q="+
-    encodeURIComponent(query),
+    url,
+    title:
+      title||url,
 
-    "https://www.google.co.uk/search?q="+
-    encodeURIComponent(query),
+    text:
+      text||"",
 
-    "https://html.duckduckgo.com/html/?q="+
-    encodeURIComponent(query)
+    frequencies,
 
-  ];
+    source:
+      source||"Web",
+
+    time:
+      Date.now()
+
+  };
+}
 
 
-  const pages =
-    await Promise.allSettled(
-      engines.map(
-        url =>
-          proxyFetch(url)
+function addDocument(document){
+
+  if(!document?.url)
+    return;
+
+  index[
+    document.url
+  ]=document;
+
+  saveIndex();
+}
+
+
+/* =========================================================
+   CRAWLING
+   ========================================================= */
+
+async function crawl(url){
+
+  const text=
+    await readerFetch(url);
+
+  if(!text)
+    return null;
+
+
+  let title="";
+
+  const titleMatch=
+    text.match(
+      /^#\s+(.+)$/m
+    );
+
+  if(titleMatch)
+    title=titleMatch[1];
+
+
+  if(!title){
+
+    try{
+
+      title=
+        new URL(url)
+        .hostname;
+
+    }catch{
+
+      title=url;
+
+    }
+  }
+
+
+  /*
+    Strip Markdown formatting
+    while keeping useful text.
+  */
+
+  const clean=
+    text
+
+      .replace(
+        /!\[[^\]]*\]\([^)]*\)/g,
+        " "
       )
+
+      .replace(
+        /\[([^\]]+)\]\([^)]*\)/g,
+        "$1"
+      )
+
+      .replace(
+        /[#>*`]/g,
+        " "
+      )
+
+      .replace(
+        /\s+/g,
+        " "
+      )
+
+      .trim();
+
+
+  const document=
+    createDocument(
+      url,
+      title,
+      clean,
+      "Crawler"
     );
 
 
-  pages.forEach(result=>{
-
-    if(result.status!=="fulfilled")
-      return;
-
-    const matches =
-      result.value.match(
-        /https?:\/\/[^\s<>"')\]]+/g
-      ) || [];
+  addDocument(
+    document
+  );
 
 
-    matches.forEach(url=>{
+  return document;
+}
 
-      url =
-        url.replace(
+
+/* =========================================================
+   DISCOVERY
+   ========================================================= */
+
+async function discover(query){
+
+  const found=[];
+
+
+  /*
+    Google discovery.
+  */
+
+  const google=
+    await readerFetch(
+      "https://www.google.com/search?q="+
+      encodeURIComponent(query)
+    );
+
+
+  /*
+    Extract Markdown links.
+  */
+
+  const markdownLinks=
+    google.matchAll(
+      /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g
+    );
+
+
+  for(
+    const match of markdownLinks
+  ){
+
+    const url=
+      match[2]
+        .replace(
           /[.,;:]+$/,
           ""
         );
 
-      try{
 
-        const host =
-          new URL(url)
-          .hostname;
+    try{
 
-        if(
-          host.includes("google.") ||
-          host.includes("duckduckgo.")
-        )
-          return;
+      const host=
+        new URL(url)
+        .hostname;
 
-        urls.push(url);
 
-      }catch{}
+      if(
+        /google\./i.test(host)
+      )
+        continue;
 
-    });
 
-  });
+      found.push({
+        title:match[1],
+        url
+      });
+
+
+    }catch{}
+
+  }
+
+
+  /*
+    Raw URL fallback.
+  */
+
+  if(!found.length){
+
+    const urls=
+      google.match(
+        /https?:\/\/[^\s<>"')]+/g
+      )||[];
+
+
+    urls.forEach(
+      url=>{
+
+        try{
+
+          const host=
+            new URL(url)
+            .hostname;
+
+
+          if(
+            /google\./i.test(host)
+          )
+            return;
+
+
+          found.push({
+            title:
+              host,
+            url
+          });
+
+        }catch{}
+
+      }
+    );
+
+  }
 
 
   return [
-    ...new Set(urls)
+    ...new Map(
+      found.map(
+        x=>[
+          x.url,
+          x
+        ]
+      )
+    ).values()
   ].slice(0,12);
 }
 
 
-/*
-============================================================
-RANKING
-============================================================
-*/
+/* =========================================================
+   WIKIPEDIA
+   ========================================================= */
 
-function rank(query){
+async function wikipedia(
+  query
+){
 
-  const queryWords =
-    [...new Set(
-      tokens(query)
-    )];
+  const data=
+    await jsonFetch(
 
-  const phrase =
-    query.toLowerCase();
+      "https://en.wikipedia.org/w/api.php"+
+      "?action=query"+
+      "&list=search"+
+      "&srsearch="+
+      encodeURIComponent(query)+
+      "&srlimit=8"+
+      "&format=json"+
+      "&origin=*"
 
-
-  const results =
-    Object.values(index)
-    .map(page=>{
-
-      let score=0;
-      let matched=0;
+    );
 
 
-      queryWords.forEach(word=>{
-
-        const frequency =
-          page.frequencies[word]||0;
-
-        if(frequency)
-          matched++;
+  if(
+    !data?.query?.search
+  )
+    return [];
 
 
-        /*
-        Term frequency
-        */
+  return data.query.search.map(
+    item=>({
 
-        score +=
-          Math.min(
-            frequency,
-            15
-          ) * 2;
+      title:item.title,
 
+      url:
+        "https://en.wikipedia.org/wiki/"+
+        encodeURIComponent(
+          item.title
+            .replace(/ /g,"_")
+        ),
 
-        /*
-        Title relevance
-        */
+      snippet:
+        item.snippet
+          .replace(
+            /<[^>]+>/g,
+            ""
+          ),
 
-        if(
-          page.title
-            .toLowerCase()
-            .includes(word)
-        ){
+      source:
+        "Wikipedia",
 
-          score += 25;
-        }
+      type:
+        "knowledge"
 
-
-        /*
-        URL relevance
-        */
-
-        if(
-          page.url
-            .toLowerCase()
-            .includes(word)
-        ){
-
-          score += 8;
-        }
+    })
+  );
+}
 
 
-        /*
-        Body relevance
-        */
+/* =========================================================
+   RANKING
+   ========================================================= */
 
-        if(
-          page.text
-            .toLowerCase()
-            .includes(word)
-        ){
+function rank(
+  query,
+  documents
+){
 
-          score += 3;
-        }
-
-      });
-
-
-      /*
-      Exact phrase.
-      */
-
-      if(
-        page.text
-          .toLowerCase()
-          .includes(phrase)
-      ){
-
-        score += 35;
-      }
+  const terms=
+    [
+      ...new Set(
+        tokenize(query)
+      )
+    ];
 
 
-      /*
-      Exact title.
-      */
+  return documents
+    .map(
+      document=>{
 
-      if(
-        page.title
-          .toLowerCase()
-          === phrase
-      ){
-
-        score += 60;
-      }
+        const title=
+          String(
+            document.title
+          ).toLowerCase();
 
 
-      /*
-      Query coverage.
-      */
-
-      const coverage =
-        queryWords.length
-          ? matched/queryWords.length
-          : 0;
+        const body=
+          String(
+            document.text||
+            document.snippet||
+            ""
+          ).toLowerCase();
 
 
-      score +=
-        coverage*30;
+        const url=
+          String(
+            document.url
+          ).toLowerCase();
 
 
-      /*
-      Freshness.
-      */
+        let score=0;
 
-      const age =
-        (
-          Date.now() -
-          page.crawledAt
-        ) /
-        86400000;
+        let matches=0;
 
 
-      score +=
-        Math.max(
-          0,
-          10-age
+        terms.forEach(
+          term=>{
+
+            const frequency=
+              document
+                .frequencies?.[term]||0;
+
+
+            if(
+              frequency>0
+            )
+              matches++;
+
+
+            /*
+              Term frequency
+            */
+
+            score+=
+              Math.min(
+                frequency,
+                15
+              )*2;
+
+
+            /*
+              Title
+            */
+
+            if(
+              title.includes(term)
+            )
+              score+=30;
+
+
+            /*
+              URL
+            */
+
+            if(
+              url.includes(term)
+            )
+              score+=8;
+
+
+            /*
+              Text
+            */
+
+            if(
+              body.includes(term)
+            )
+              score+=5;
+
+          }
         );
 
 
-      return {
+        /*
+          Exact phrase
+        */
 
-        ...page,
-
-        score,
-
-        coverage
-
-      };
-
-    });
+        if(
+          body.includes(
+            query.toLowerCase()
+          )
+        )
+          score+=40;
 
 
-  return results
+        /*
+          Exact title
+        */
+
+        if(
+          title===
+          query.toLowerCase()
+        )
+          score+=70;
+
+
+        /*
+          Query coverage
+        */
+
+        const coverage=
+          terms.length
+            ? matches/terms.length
+            : 0;
+
+
+        score+=
+          coverage*30;
+
+
+        return {
+          ...document,
+          score
+        };
+
+      }
+    )
     .sort(
       (a,b)=>
         b.score-a.score
@@ -884,77 +965,190 @@ function rank(query){
 }
 
 
-/*
-============================================================
-SEARCH
-============================================================
-*/
+/* =========================================================
+   SEARCH
+   ========================================================= */
 
-async function search(query){
+async function search(
+  query
+){
 
-  updateStatus(
+  /*
+    STEP 1
+    Search existing index.
+  */
+
+  status(
     "Searching index..."
   );
 
 
+  let results=
+    rank(
+      query,
+      Object.values(index)
+    );
+
+
   /*
-  First search our index.
-  */
-
-  let results =
-    rank(query);
-
-
-  /*
-  If our index doesn't have
-  enough information, crawl.
+    STEP 2
+    Crawl when index doesn't have
+    enough relevant pages.
   */
 
   if(
-    results.length < 5 ||
+    results.length<5 ||
     !results[0] ||
-    results[0].score < 15
+    results[0].score<15
   ){
 
-    updateStatus(
+    status(
       "Crawling the web..."
     );
 
 
-    const urls =
-      await discover(query);
+    const discovered=
+      await discover(
+        query
+      );
 
 
     /*
-    Crawl multiple pages in parallel.
+      Crawl in parallel.
     */
 
     await Promise.all(
-      urls
-        .slice(0,10)
+      discovered
+        .slice(0,8)
         .map(
-          url =>
-            crawl(url)
+          page=>
+            crawl(
+              page.url
+            )
         )
     );
 
 
     /*
-    Search the newly-created index.
+      Rank again.
     */
 
-    updateStatus(
-      "Ranking results..."
+    status(
+      "Ranking pages..."
     );
 
 
-    results =
-      rank(query);
+    results=
+      rank(
+        query,
+        Object.values(index)
+      );
+
   }
 
 
-  updateStatus(
-    "Results ready"
+  /*
+    STEP 3
+    Always add Wikipedia results
+    as a structured knowledge source.
+  */
+
+  const wiki=
+    await wikipedia(
+      query
+    );
+
+
+  wiki.forEach(
+    item=>{
+
+      const existing=
+        index[item.url];
+
+
+      if(!existing){
+
+        addDocument({
+
+          url:item.url,
+
+          title:item.title,
+
+          text:item.snippet,
+
+          snippet:item.snippet,
+
+          source:"Wikipedia",
+
+          time:Date.now(),
+
+          frequencies:
+            Object.fromEntries(
+              tokenize(
+                item.title+
+                " "+
+                item.snippet
+              ).map(
+                word=>[
+                  word,
+                  1
+                ]
+              )
+            )
+
+        });
+
+      }
+
+    }
+  );
+
+
+  /*
+    Re-rank everything.
+  */
+
+  results=
+    rank(
+      query,
+      Object.values(index)
+    );
+
+
+  /*
+    If absolutely everything failed,
+    provide a direct live-search result
+    instead of showing "No results".
+  */
+
+  if(!results.length){
+
+    results=[{
+
+      url:
+        "https://www.google.com/search?q="+
+        encodeURIComponent(query),
+
+      title:
+        "Search Google for "+query,
+
+      text:
+        "Open the live Google search results.",
+
+      source:
+        "Google",
+
+      score:1
+
+    }];
+
+  }
+
+
+  status(
+    "Results ready • "+
+    results.length+
+    " results"
   );
 
 
@@ -962,114 +1156,87 @@ async function search(query){
 }
 
 
-/*
-============================================================
-ANSWER OVERVIEW
-============================================================
-*/
+/* =========================================================
+   OVERVIEW
+   ========================================================= */
 
-function createOverview(
+function overview(
   query,
   results
 ){
 
-  if(!results.length){
-
-    return `
-      <div class="overview">
-
-        <h2>
-          No indexed results yet
-        </h2>
-
-        <p>
-          The crawler could not retrieve
-          enough public pages for this query.
-        </p>
-
-      </div>
-    `;
-  }
-
-
-  const top =
+  const top=
     results
       .slice(0,3);
 
 
-  const explanation =
-    top
-      .map(
-        page =>
-          page.text
-            .slice(0,350)
-      )
-      .join(" ");
+  let text=
+    "The search engine crawled public "+
+    "sources, indexed the information it "+
+    "could retrieve, and ranked the "+
+    "matching pages for this query.";
+
+
+  if(top.length){
+
+    text+=
+      " The highest-ranked sources were "+
+      top
+        .map(
+          r=>r.source||"Web"
+        )
+        .join(", ")+
+      ".";
+  }
 
 
   return `
 
-    <div class="overview">
+    <section class="overview">
 
       <h2>
         Overview
       </h2>
 
       <p>
-        The search engine crawled public
-        webpages, indexed their content,
-        and ranked the pages according to
-        their relevance to
-        <b>${escapeHTML(query)}</b>.
+        ${escapeHTML(text)}
       </p>
 
       <p>
-        ${escapeHTML(
-          explanation
-        )}
+        <b>Search pipeline:</b>
+        Crawl → Index → Rank → Serve
       </p>
 
-    </div>
+    </section>
 
   `;
 }
 
 
-/*
-============================================================
-RESULT DISPLAY
-============================================================
-*/
+/* =========================================================
+   RESULTS
+   ========================================================= */
 
-function displayResults(
+function renderResults(
   query,
   results
 ){
 
-  const content =
+  const root=
     document.getElementById(
-      "content"
+      "results"
     );
 
 
-  if(!results.length){
+  currentResults=
+    results;
 
-    content.innerHTML=`
-
-      <div class="empty">
-
-        No results found.
-
-      </div>
-
-    `;
-
-    return;
-  }
+  currentQuery=
+    query;
 
 
-  let html =
-    createOverview(
+  let html=
+    overview(
       query,
       results
     );
@@ -1080,42 +1247,55 @@ function displayResults(
     .forEach(
       (result,index)=>{
 
-        html += `
+        html+=`
 
           <article
             class="result"
           >
 
             <div class="score">
-              ${result.score.toFixed(1)}
+
+              ${Number(
+                result.score||0
+              ).toFixed(1)}
+
             </div>
 
-            <div class="result-url">
+
+            <div class="url">
+
               ${escapeHTML(
                 result.url
               )}
+
             </div>
 
+
             <div
-              class="result-title"
+              class="title"
               onclick="
                 openResult(
                   ${index}
                 )
               "
             >
+
               ${escapeHTML(
                 result.title
               )}
+
             </div>
 
-            <div class="result-snippet">
+
+            <div class="snippet">
 
               ${escapeHTML(
-                result.text.slice(
-                  0,
-                  280
-                )
+                result.text||
+                result.snippet||
+                "Open this result to read the page."
+              ).slice(
+                0,
+                400
               )}
 
             </div>
@@ -1123,194 +1303,176 @@ function displayResults(
           </article>
 
         `;
+
       }
     );
 
 
-  content.innerHTML =
+  root.innerHTML=
     html;
-
-
-  window.currentResults =
-    results;
 }
 
 
-/*
-============================================================
-OPEN RESULT
-============================================================
-*/
+/* =========================================================
+   READER
+   ========================================================= */
 
 async function openResult(
-  indexNumber
+  index
 ){
 
-  const result =
-    window.currentResults[
-      indexNumber
-    ];
+  const result=
+    currentResults[index];
+
 
   if(!result)
     return;
 
 
-  updateStatus(
+  status(
     "Reading webpage..."
   );
 
 
-  const content =
+  const root=
     document.getElementById(
-      "content"
+      "results"
     );
 
 
-  try{
-
-    const markdown =
-      await proxyFetch(
-        result.url
-      );
+  const markdown=
+    await readerFetch(
+      result.url
+    );
 
 
-    if(markdown){
+  if(!markdown){
 
-      content.innerHTML = `
-
-        <button
-          onclick="
-            displayResults(
-              lastQuery,
-              currentResults
-            )
-          "
-          style="
-            border:0;
-            background:none;
-            color:#1a73e8;
-            cursor:pointer;
-            margin-bottom:20px;
-          "
-        >
-          ← Back to results
-        </button>
-
-        <article class="reader">
-
-          <h1>
-            ${escapeHTML(
-              result.title
-            )}
-          </h1>
-
-          ${markdownToHTML(
-            markdown,
-            result.url
-          )}
-
-        </article>
-
-      `;
-
-    }else{
-
-      /*
+    /*
       Automatic iframe fallback.
-      */
+      No manual mode switch.
+    */
 
-      content.innerHTML = `
+    root.innerHTML=`
 
-        <button
-          onclick="
-            displayResults(
-              lastQuery,
-              currentResults
-            )
-          "
+      <button
+        class="back"
+        onclick="
+          renderResults(
+            currentQuery,
+            currentResults
+          )
+        "
+      >
+        ← Back
+      </button>
+
+      <section class="reader">
+
+        <h1>
+          ${escapeHTML(
+            result.title
+          )}
+        </h1>
+
+        <iframe
+          src="${escapeHTML(
+            result.url
+          )}"
           style="
-            border:0;
-            background:none;
-            color:#1a73e8;
-            cursor:pointer;
-            margin-bottom:20px;
+            width:100%;
+            height:75vh;
+            border:1px solid #ddd;
+            border-radius:10px;
           "
-        >
-          ← Back to results
-        </button>
+        ></iframe>
 
-        <div class="reader">
+      </section>
 
-          <h1>
-            ${escapeHTML(
-              result.title
-            )}
-          </h1>
+    `;
 
-          <iframe
-            src="${escapeHTML(
-              result.url
-            )}"
-            style="
-              width:100%;
-              height:75vh;
-              border:1px solid #ddd;
-              border-radius:10px;
-            "
-          ></iframe>
 
-        </div>
-
-      `;
-    }
-
-  }catch{
-
-    window.open(
-      result.url,
-      "_blank"
+    status(
+      "Opened webpage"
     );
+
+
+    return;
   }
 
 
-  updateStatus(
-    "Reading complete"
+  root.innerHTML=`
+
+    <button
+      class="back"
+      onclick="
+        renderResults(
+          currentQuery,
+          currentResults
+        )
+      "
+    >
+      ← Back to results
+    </button>
+
+    <article class="reader">
+
+      <h1>
+        ${escapeHTML(
+          result.title
+        )}
+      </h1>
+
+      ${markdownToHTML(
+        markdown,
+        result.url
+      )}
+
+    </article>
+
+  `;
+
+
+  status(
+    "Page reconstructed"
   );
 }
 
 
-/*
-============================================================
-MARKDOWN READER
-============================================================
-*/
+/* =========================================================
+   READER CONVERSION
+   ========================================================= */
 
 function markdownToHTML(
   markdown,
-  baseURL
+  base
 ){
 
-  let html =
+  let html=
     escapeHTML(
       markdown
     );
 
 
-  html =
+  /*
+    Headings
+  */
+
+  html=
     html.replace(
       /^### (.*)$/gm,
       "<h3>$1</h3>"
     );
 
 
-  html =
+  html=
     html.replace(
       /^## (.*)$/gm,
       "<h2>$1</h2>"
     );
 
 
-  html =
+  html=
     html.replace(
       /^# (.*)$/gm,
       "<h1>$1</h1>"
@@ -1318,20 +1480,20 @@ function markdownToHTML(
 
 
   /*
-  Images
+    Images
   */
 
-  html =
+  html=
     html.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
       (_,alt,url)=>{
 
         try{
 
-          url =
+          url=
             new URL(
               url,
-              baseURL
+              base
             ).href;
 
         }catch{}
@@ -1345,25 +1507,26 @@ function markdownToHTML(
           >
 
         `;
+
       }
     );
 
 
   /*
-  Links
+    Links
   */
 
-  html =
+  html=
     html.replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
       (_,text,url)=>{
 
         try{
 
-          url =
+          url=
             new URL(
               url,
-              baseURL
+              base
             ).href;
 
         }catch{}
@@ -1379,50 +1542,59 @@ function markdownToHTML(
           </a>
 
         `;
+
       }
     );
 
 
   /*
-  Paragraphs
+    YouTube links
+    automatically become playable videos.
   */
 
-  html =
+  html=
+    html.replace(
+      /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([A-Za-z0-9_-]{11})/g,
+      (_,id)=>`
+
+        <div class="video-grid">
+
+          <div class="video">
+
+            <iframe
+              src="https://www.youtube.com/embed/${id}"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
+
+            <div>
+              YouTube video
+            </div>
+
+          </div>
+
+        </div>
+
+      `
+    );
+
+
+  html=
     html.replace(
       /\n{2,}/g,
       "</p><p>"
     );
 
 
-  return `<p>${html}</p>`;
+  return `
+    <p>${html}</p>
+  `;
 }
 
 
-/*
-============================================================
-STATUS
-============================================================
-*/
-
-function updateStatus(
-  text
-){
-
-  document.getElementById(
-    "status"
-  ).textContent=text;
-}
-
-
-/*
-============================================================
-FORM
-============================================================
-*/
-
-let lastQuery="";
-let currentResults=[];
-
+/* =========================================================
+   SEARCH FORM
+   ========================================================= */
 
 document
   .getElementById(
@@ -1435,13 +1607,13 @@ document
       event.preventDefault();
 
 
-      const input =
+      const input=
         document.getElementById(
-          "searchInput"
+          "query"
         );
 
 
-      const query =
+      const query=
         input.value.trim();
 
 
@@ -1449,12 +1621,9 @@ document
         return;
 
 
-      lastQuery=query;
-
-
       document
         .getElementById(
-          "content"
+          "results"
         )
         .innerHTML=`
 
@@ -1467,35 +1636,72 @@ document
         `;
 
 
-      const results =
-        await search(
-          query
+      try{
+
+        const results=
+          await search(
+            query
+          );
+
+
+        renderResults(
+          query,
+          results
+        );
+
+      }catch(error){
+
+        console.error(error);
+
+
+        /*
+          Never show a blank/no-results
+          page because one provider failed.
+        */
+
+        const fallback=[{
+
+          title:
+            "Search Google for "+query,
+
+          url:
+            "https://www.google.com/search?q="+
+            encodeURIComponent(query),
+
+          text:
+            "The external search services did not respond. Click this result to continue with a live Google search.",
+
+          source:"Google",
+
+          score:1
+
+        }];
+
+
+        renderResults(
+          query,
+          fallback
         );
 
 
-      currentResults =
-        results;
+        status(
+          "Fallback search ready"
+        );
 
-
-      displayResults(
-        query,
-        results
-      );
+      }
 
     }
   );
 
 
-/*
-============================================================
-STARTUP
-============================================================
-*/
+/* =========================================================
+   STARTUP
+   ========================================================= */
 
-updateStatus(
+status(
   "Ready • "+
   Object.keys(index).length+
-  " pages indexed"
+  " indexed pages"
 );
 
 </script>
