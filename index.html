@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CYBER_SEARCH // Web & Media Engine</title>
+  <title>CYBER_SEARCH // Universal Web Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -33,11 +33,16 @@
       border-radius: 0.5rem;
       border: 1px solid rgba(6, 182, 212, 0.3);
       margin: 1rem 0;
+      display: block;
     }
     .reader-mode video, .reader-mode audio {
       width: 100%;
       margin: 1rem 0;
       border-radius: 0.5rem;
+    }
+    .reader-mode a {
+      color: #38bdf8;
+      text-decoration: underline;
     }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #030712; }
@@ -66,7 +71,7 @@
         <input 
           id="omnibox" 
           type="text" 
-          placeholder="Search query, Web URL, or YouTube video URL..." 
+          placeholder="Search query (e.g. news, tech, science) or enter any website / YouTube URL..." 
           class="w-full bg-slate-950/90 border border-cyan-500/40 rounded px-9 py-1.5 text-xs text-cyan-200 focus:outline-none focus:border-cyan-400 glow-cyan transition"
           onkeydown="if(event.key === 'Enter') handleSearchSubmit()"
         >
@@ -94,7 +99,7 @@
   <!-- STATUS FOOTER -->
   <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
     <div class="flex items-center space-x-3">
-      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> MEDIA ENGINE: ONLINE // PROXY READER ACTIVE</span>
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> AGGREGATOR ENGINE: ACTIVE (DDG + WIKI + HN + ARCHIVE)</span>
     </div>
     <div class="flex items-center space-x-4">
       <span>TABS: <span id="tabCount">1</span></span>
@@ -103,22 +108,26 @@
   </footer>
 
   <script>
-    const CORS_PROXY = "https://small-hill-0227.mac-for-chrome.workers.dev/?url=";
+    // Robust CORS Proxies
+    const PROXIES = [
+      "https://small-hill-0227.mac-for-chrome.workers.dev/?url=",
+      "https://api.allorigins.win/raw?url="
+    ];
 
     let tabs = [];
     let activeTabId = null;
     let searchOffsets = {};
 
     const SPEED_DIALS = [
-      { name: 'YouTube Video', query: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', icon: 'video' },
-      { name: 'Wikipedia', query: 'Wikipedia Free Encyclopedia', icon: 'book-open' },
-      { name: 'GitHub Trends', query: 'GitHub open source projects', icon: 'code' },
+      { name: 'Google News', query: 'Google Latest World News', icon: 'newspaper' },
+      { name: 'YouTube Tech', query: 'site:youtube.com tech review', icon: 'video' },
+      { name: 'GitHub Repos', query: 'GitHub open source trending', icon: 'code' },
       { name: 'Reddit Discussions', query: 'Reddit technology trends', icon: 'message-square' },
-      { name: 'Tech News', query: 'Latest Tech News 2026', icon: 'newspaper' },
+      { name: 'Wikipedia', query: 'Wikipedia Free Encyclopedia', icon: 'book-open' },
       { name: 'Internet Archive', query: 'Internet Archive digital library', icon: 'archive' }
     ];
 
-    // List of known platforms that support native embedding cleanly via <iframe>
+    // Websites known to load iframe natively without x-frame blocks
     const NATIVE_EMBED_DOMAINS = [
       'youtube.com', 'youtu.be', 'vimeo.com', 'wikipedia.org', 
       'archive.org', 'codepen.io', 'jsfiddle.net', 'soundcloud.com', 'spotify.com'
@@ -248,13 +257,12 @@
       lucide.createIcons();
     }
 
-    /* URL & MEDIA HANDLER */
+    /* WEBPAGE & MEDIA RENDERER */
     function processWebOrMediaUrl(tab, element, url) {
-      // 1. YouTube Video Verification & Handler
+      // 1. YouTube Handler
       if (url.includes('youtube.com') || url.includes('youtu.be')) {
         const videoId = extractYouTubeId(url);
         if (videoId) {
-          // Playable Video Embedded
           const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
           element.innerHTML = `
             <div class="w-full h-full flex flex-col bg-black">
@@ -275,15 +283,14 @@
             </div>
           `;
         } else {
-          // Generic YouTube Homepage or Channel URL (Needs exact link warning)
           element.innerHTML = `
             <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center">
               <div class="glass-panel p-8 rounded-xl max-w-xl border border-yellow-500/40 glow-cyan">
                 <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-400 mx-auto mb-4"></i>
                 <h2 class="text-lg font-bold text-yellow-300 mb-2">Please give exact link</h2>
                 <p class="text-xs text-slate-300 mb-6 leading-relaxed">
-                  YouTube blocks main homepages/channel pages from rendering inside nested frames due to security rules. 
-                  Please paste a direct video link (e.g. <code class="text-cyan-300">https://www.youtube.com/watch?v=...</code>).
+                  YouTube homepages/channels restrict framing. 
+                  Please enter a direct video URL (e.g. <code class="text-cyan-300">https://www.youtube.com/watch?v=...</code>).
                 </p>
                 <div class="flex justify-center space-x-3">
                   <button onclick="goHome()" class="px-4 py-2 bg-slate-800 border border-cyan-500/40 text-cyan-300 rounded text-xs hover:bg-slate-700">Back to Launchpad</button>
@@ -299,7 +306,7 @@
         return;
       }
 
-      // 2. Direct Embed Check (IFRAME SAFE WEBSITES)
+      // 2. Native Embed Platforms
       const isEmbeddable = NATIVE_EMBED_DOMAINS.some(domain => url.toLowerCase().includes(domain));
       if (isEmbeddable) {
         element.innerHTML = `
@@ -315,7 +322,7 @@
         return;
       }
 
-      // 3. X-FRAME / CORS WEBSITES: Reader Mode (Extract Content, Media, Images & Text)
+      // 3. Universal Proxy Reader Mode for All Web Domains
       renderReaderModePage(element, url);
     }
 
@@ -325,13 +332,28 @@
       return (match && match[2].length === 11) ? match[2] : null;
     }
 
-    /* READER MODE FOR X-FRAME RESTRICTED WEBSITES (Extracts Text, Images & Media) */
+    async function fetchProxyData(url) {
+      for (const proxy of PROXIES) {
+        try {
+          const res = await fetch(`${proxy}${encodeURIComponent(url)}`);
+          if (res.ok) {
+            const text = await res.text();
+            if (text && text.length > 50) return text;
+          }
+        } catch (e) {
+          console.warn("Proxy attempt failed:", proxy, e);
+        }
+      }
+      throw new Error("All proxy servers failed to retrieve content");
+    }
+
+    /* READER MODE FOR ALL OTHER WEBSITES (Extracts Text, Images & Media) */
     async function renderReaderModePage(element, url) {
       element.innerHTML = `
         <div class="w-full h-full flex flex-col items-center justify-center p-8">
           <div class="text-center space-y-3">
             <i data-lucide="loader" class="w-8 h-8 text-cyan-400 animate-spin mx-auto"></i>
-            <p class="text-xs text-cyan-300 tracking-wider">BYPASSING X-FRAME RESTRICTION & EXTRACTING CONTENT...</p>
+            <p class="text-xs text-cyan-300 tracking-wider">FETCHING CONTENT FROM WEB DOMAIN...</p>
             <p class="text-[10px] text-slate-400">${escapeHtml(url)}</p>
           </div>
         </div>
@@ -339,27 +361,26 @@
       lucide.createIcons();
 
       try {
-        const proxyUrl = `${CORS_PROXY}${encodeURIComponent(url)}`;
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error("Network error fetching page");
-
-        const rawHtml = await response.text();
+        const rawHtml = await fetchProxyData(url);
         const parser = new DOMParser();
         const doc = parser.parseFromString(rawHtml, 'text/html');
 
-        // Fix relative links for images and media
+        // Fix image & media links relative paths
         const baseUrl = new URL(url);
         doc.querySelectorAll('img').forEach(img => {
-          try { img.src = new URL(img.getAttribute('src'), baseUrl).href; } catch(e){}
+          try {
+            const src = img.getAttribute('src');
+            if (src) img.src = new URL(src, baseUrl).href;
+          } catch(e){}
         });
-        doc.querySelectorAll('video').forEach(video => {
-          try { video.src = new URL(video.getAttribute('src'), baseUrl).href; } catch(e){}
-        });
-        doc.querySelectorAll('source').forEach(source => {
-          try { source.src = new URL(source.getAttribute('src'), baseUrl).href; } catch(e){}
+        doc.querySelectorAll('video, audio, source').forEach(media => {
+          try {
+            const src = media.getAttribute('src');
+            if (src) media.src = new URL(src, baseUrl).href;
+          } catch(e){}
         });
 
-        // Extract Title & Main Body
+        // Extract Title & Main Body Content
         const title = doc.querySelector('title')?.innerText || url;
         const mainContent = doc.querySelector('article, main, #content, .content, body')?.innerHTML || doc.body.innerHTML;
 
@@ -370,16 +391,16 @@
               <!-- Reader Mode Header -->
               <div class="glass-panel p-4 rounded-xl border border-cyan-500/40 flex justify-between items-center">
                 <div>
-                  <span class="text-[10px] text-cyan-400 font-bold tracking-widest block mb-1">[CYBER_READER] X-FRAME BYPASS MODE</span>
+                  <span class="text-[10px] text-cyan-400 font-bold tracking-widest block mb-1">[CYBER_SEARCH PROXY READER]</span>
                   <h1 class="text-base font-bold text-cyan-100 truncate max-w-xl">${escapeHtml(title)}</h1>
                 </div>
                 <a href="${escapeHtml(url)}" target="_blank" class="px-3 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 flex items-center space-x-1">
-                  <span>Original Site</span>
+                  <span>Open External</span>
                   <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                 </a>
               </div>
 
-              <!-- Content Body (Images, Video, Text) -->
+              <!-- Page Content -->
               <div class="glass-panel p-6 md:p-10 rounded-xl border border-cyan-500/20 reader-mode text-slate-300 text-sm leading-relaxed space-y-4 select-text">
                 ${mainContent}
               </div>
@@ -393,8 +414,8 @@
           <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center">
             <div class="glass-panel p-8 rounded-xl max-w-lg border border-red-500/40">
               <i data-lucide="shield-alert" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
-              <h2 class="text-sm font-bold text-red-300 mb-2">ACCESS RESTRICTED</h2>
-              <p class="text-xs text-slate-400 mb-4">Could not extract content from this domain directly.</p>
+              <h2 class="text-sm font-bold text-red-300 mb-2">ACCESS RESTRICTED BY TARGET WEBSITE</h2>
+              <p class="text-xs text-slate-400 mb-4">This server refused to be embedded. Click below to view directly in browser.</p>
               <a href="${escapeHtml(url)}" target="_blank" class="px-4 py-2 bg-cyan-600 border border-cyan-400 text-slate-950 font-bold rounded text-xs hover:bg-cyan-500 inline-flex items-center space-x-1">
                 <span>Open Direct in Browser</span> <i data-lucide="external-link" class="w-3 h-3"></i>
               </a>
@@ -405,33 +426,18 @@
       lucide.createIcons();
     }
 
-    /* SEARCH ENGINES */
-    async function searchWikipedia(query, offset = 0) {
-      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=10&sroffset=${offset}&format=json&origin=*`;
-      const res = await fetch(wikiUrl);
-      const data = await res.json();
-      
-      if (!data.query || !data.query.search) return [];
-
-      return data.query.search.map(item => ({
-        title: item.title,
-        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title.replace(/ /g, '_'))}`,
-        snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, "") + "..."
-      }));
-    }
-
+    /* MULTI-ENGINE GOOGLE-LIKE AGGREGATED SEARCH ENGINES */
+    
+    // 1. DuckDuckGo Web Engine
     async function searchDuckDuckGo(query) {
       const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-      const proxyUrl = `${CORS_PROXY}${encodeURIComponent(targetSearchUrl)}`;
-      const response = await fetch(proxyUrl);
-      if (!response.ok) return [];
-
-      const htmlText = await response.text();
+      const rawHtml = await fetchProxyData(targetSearchUrl);
+      
       const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlText, 'text/html');
+      const doc = parser.parseFromString(rawHtml, 'text/html');
       const results = doc.querySelectorAll('.result');
 
-      const parsedResults = [];
+      const parsed = [];
       results.forEach((res, i) => {
         if (i >= 10) return;
         const titleEl = res.querySelector('.result__title a');
@@ -442,14 +448,78 @@
           if (href.includes('uddg=')) {
             href = decodeURIComponent(href.split('uddg=')[1].split('&')[0]);
           }
-          parsedResults.push({
+          parsed.push({
             title: titleEl.textContent.trim(),
             url: href,
-            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to load live website inside CYBER_SEARCH.'
+            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to load full website.',
+            source: 'WEB'
           });
         }
       });
-      return parsedResults;
+      return parsed;
+    }
+
+    // 2. Wikipedia Search Engine
+    async function searchWikipedia(query, offset = 0) {
+      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=8&sroffset=${offset}&format=json&origin=*`;
+      const res = await fetch(wikiUrl);
+      const data = await res.json();
+      
+      if (!data.query || !data.query.search) return [];
+
+      return data.query.search.map(item => ({
+        title: item.title,
+        url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title.replace(/ /g, '_'))}`,
+        snippet: item.snippet.replace(/<\/?[^>]+(>|$)/g, "") + "...",
+        source: 'WIKIPEDIA'
+      }));
+    }
+
+    // 3. Hacker News & Web Discussions Search
+    async function searchHackerNews(query) {
+      const hnUrl = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&hitsPerPage=8`;
+      const res = await fetch(hnUrl);
+      const data = await res.json();
+      
+      if (!data.hits) return [];
+
+      return data.hits.map(item => ({
+        title: item.title || item.story_title || 'Web Discussion',
+        url: item.url || `https://news.ycombinator.com/item?id=${item.objectID}`,
+        snippet: `Points: ${item.points || 0} | Author: ${item.author} | Comments: ${item.num_comments || 0}`,
+        source: 'HACKER NEWS'
+      }));
+    }
+
+    // Combined Search Execution
+    async function searchAllEngines(query, offset = 0) {
+      let combined = [];
+
+      // Fetch from DuckDuckGo, Wikipedia & Hacker News concurrently
+      const results = await Promise.allSettled([
+        searchDuckDuckGo(query),
+        searchWikipedia(query, offset),
+        searchHackerNews(query)
+      ]);
+
+      results.forEach(res => {
+        if (res.status === 'fulfilled' && Array.isArray(res.value)) {
+          combined = combined.concat(res.value);
+        }
+      });
+
+      // Deduplicate by URL
+      const unique = [];
+      const seen = new Set();
+
+      combined.forEach(item => {
+        if (item.url && !seen.has(item.url)) {
+          seen.add(item.url);
+          unique.push(item);
+        }
+      });
+
+      return unique;
     }
 
     async function renderSearchResultsPage(tab, element, query) {
@@ -458,12 +528,12 @@
           <div class="max-w-4xl mx-auto space-y-6">
             <div class="border-b border-cyan-500/20 pb-4 flex items-center justify-between">
               <div>
-                <p class="text-xs text-cyan-500/70">SEARCH RESULTS FOR</p>
+                <p class="text-xs text-cyan-500/70">ALL WEB RESULTS FOR</p>
                 <h2 class="text-lg font-bold text-cyan-200">"${escapeHtml(query)}"</h2>
               </div>
               <div id="statusIndicator_${tab.id}" class="text-xs text-cyan-400 animate-pulse flex items-center space-x-1.5">
                 <i data-lucide="loader" class="w-4 h-4 animate-spin"></i>
-                <span id="engineStatus_${tab.id}">FETCHING MULTI-ENGINE RESULTS...</span>
+                <span id="engineStatus_${tab.id}">SCANNING ALL WEBSITES...</span>
               </div>
             </div>
 
@@ -487,23 +557,7 @@
       const listContainer = document.getElementById(`resultsList_${tabId}`);
       const statusInd = document.getElementById(`statusIndicator_${tabId}`);
       
-      let results = [];
-
-      if (offset === 0) {
-        try {
-          results = await searchDuckDuckGo(query);
-        } catch (err) {
-          console.warn("DuckDuckGo failed, trying fallback search...", err);
-        }
-      }
-
-      if (results.length === 0) {
-        try {
-          results = await searchWikipedia(query, offset);
-        } catch (err) {
-          console.error("Wikipedia search failed:", err);
-        }
-      }
+      const results = await searchAllEngines(query, offset);
 
       if (statusInd) statusInd.style.display = 'none';
 
@@ -526,7 +580,10 @@
         itemsHTML += `
           <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 hover:border-cyan-400/50 transition flex justify-between items-start space-x-4">
             <div class="flex-1">
-              <span class="text-[10px] text-cyan-400/80 block truncate mb-1">${escapeHtml(res.url)}</span>
+              <div class="flex items-center space-x-2 mb-1">
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300 font-bold">${res.source}</span>
+                <span class="text-[10px] text-cyan-400/80 truncate">${escapeHtml(res.url)}</span>
+              </div>
               <a href="#" onclick="openResultUrl('${escapeHtml(res.url)}'); return false;" class="text-sm font-bold text-sky-300 hover:text-cyan-200 transition underline underline-offset-4 decoration-cyan-500/40">
                 ${escapeHtml(res.title)}
               </a>
@@ -612,7 +669,7 @@
               <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
                 CYBER_SEARCH
               </h1>
-              <p class="text-xs text-cyan-500/70 mt-2">Iframe Embedding & Proxy Content Extraction</p>
+              <p class="text-xs text-cyan-500/70 mt-2">Universal Web Aggregator & Media Reader Mode</p>
             </div>
 
             <!-- Central Omnibox Search -->
@@ -622,7 +679,7 @@
                 <input 
                   id="tabSearchInput_${tabId}"
                   type="text" 
-                  placeholder="Type search query, or paste website / YouTube video URL..." 
+                  placeholder="Search any topic, or paste website / YouTube video URL..." 
                   class="w-full bg-slate-900/90 border-2 border-cyan-500/50 rounded-xl px-12 py-3 text-sm text-cyan-100 placeholder-cyan-600 focus:outline-none focus:border-cyan-300 glow-cyan transition"
                 >
                 <button 
@@ -640,7 +697,7 @@
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                 ${SPEED_DIALS.map(dial => `
                   <button 
-                    onclick="navigateCurrentTab('${dial.query}')"
+                    onclick="navigateCurrentTab('search://${encodeURIComponent(dial.query)}')"
                     class="glass-panel p-3 rounded-lg flex flex-col items-center hover:border-cyan-400 hover:bg-cyan-950/40 transition group"
                   >
                     <div class="p-2.5 rounded-full bg-slate-900/80 mb-2 border border-cyan-500/20 group-hover:scale-110 transition">
