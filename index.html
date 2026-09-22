@@ -127,6 +127,32 @@ body{background:
 .rebuild-frame{width:100%;min-height:70vh;border:0;background:white;border-radius:12px}
 .proxy-error{background:rgba(127,29,29,.18);border:1px solid rgba(248,113,113,.25)}
 
+
+/* ===== CYBER_SEARCH MAX: ANSWERS + MEDIA + AUTO READER ===== */
+.overview-hero{
+  background:linear-gradient(135deg,rgba(30,41,59,.96),rgba(49,46,129,.34));
+  border:1px solid rgba(129,140,248,.38);
+  box-shadow:0 18px 55px rgba(0,0,0,.20);
+}
+.overview-hero h2{letter-spacing:-.02em}
+.overview-source{font-size:10px;color:#94a3b8}
+.media-card{overflow:hidden;border-radius:14px;border:1px solid #334155;background:#020617}
+.media-card video,.media-card iframe{display:block;width:100%;aspect-ratio:16/9;border:0;background:#000}
+.media-card img{display:block;width:100%;max-height:520px;object-fit:contain;background:#020617}
+.media-caption{padding:9px 12px;font-size:11px;color:#94a3b8}
+.auto-reader{background:rgba(2,6,23,.5)}
+.reader-content{font-family:ui-sans-serif,system-ui,sans-serif;color:#cbd5e1;line-height:1.85;font-size:15px}
+.reader-content h1,.reader-content h2,.reader-content h3{color:#f8fafc;line-height:1.25;margin:1.3em 0 .55em}
+.reader-content h1{font-size:32px}.reader-content h2{font-size:24px}.reader-content h3{font-size:19px}
+.reader-content p{margin:.75em 0}
+.reader-content a{color:#a5b4fc;text-decoration:underline}
+.reader-content figure{margin:1.25rem 0}
+.reader-content figure img{width:100%;max-height:620px;object-fit:contain;border-radius:12px;background:#020617}
+.reader-content figcaption{text-align:center;font-size:11px;color:#64748b;margin-top:6px}
+.reader-content pre{overflow:auto;background:#020617;border:1px solid #1e293b;border-radius:12px;padding:15px}
+.video-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:20px}
+@media(max-width:700px){.reader-content{font-size:14px}.reader-content h1{font-size:26px}}
+
 </style>
 </head>
 <body class="h-full w-full flex flex-col bg-grid-pattern overflow-hidden select-none">
@@ -183,9 +209,16 @@ body{background:
     let activeTabId = null;
     let searchHistory = JSON.parse(localStorage.getItem('cyber_search_history') || '[]');
     let bookmarks = JSON.parse(localStorage.getItem('cyber_search_bookmarks') || '[]');
-    const PROXY_BASE = 'https://r.jina.ai/';
+    const PROXY_BASE = 'https://r.jina.ai/http://';
+    const PROXY_HTTPS = 'https://r.jina.ai/https://';
     const FETCH_TIMEOUT = 7000;
     const readerCache = new Map();
+    function proxyUrl(url){
+      if(/^https:\/\//i.test(url)) return PROXY_HTTPS + url.slice(8);
+      if(/^http:\/\//i.test(url)) return PROXY_BASE + url.slice(7);
+      return PROXY_HTTPS + url;
+    }
+
 
     function initApp() {
       if (tabs.length === 0) {
@@ -316,12 +349,13 @@ body{background:
         } catch(e){ return null; }
       };
 
-      const [wikiData, hnData, redditData, soData, newsData] = await Promise.all([
+      const [wikiData, hnData, redditData, soData, newsData, videoData] = await Promise.all([
         safeFetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=8&format=json&origin=*`),
         safeFetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&tags=story&hitsPerPage=8`),
         safeFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=8&sort=relevance`),
         safeFetch(`https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${encodeURIComponent(query)}&site=stackoverflow&pagesize=8`),
-        safeFetch(`https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&format=json&maxrecords=8`)
+        safeFetch(`https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&format=json&maxrecords=8`),
+        safeFetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(query)}`)
       ]);
 
       (wikiData?.query?.search||[]).forEach(x=>wikiResults.push({
@@ -347,14 +381,24 @@ body{background:
         id:x.url,title:x.title,snippet:`${x.domain||''} • ${x.seendate ? x.seendate.replace(/T.*$/,'') : 'Recent'}`,
         url:x.url,source:x.domain||'News',type:'WEB'
       }));
+      const videoResults=(videoData?.items||[]).map(x=>({
+        id:x.id?.videoId,
+        title:x.snippet?.title||'Video',
+        snippet:x.snippet?.description||'',
+        url:x.id?.videoId?`https://www.youtube.com/watch?v=${x.id.videoId}`:'',
+        embedUrl:x.id?.videoId?`https://www.youtube.com/embed/${x.id.videoId}`:'',
+        thumbnail:x.snippet?.thumbnails?.high?.url||x.snippet?.thumbnails?.medium?.url,
+        source:'YouTube',type:'VIDEO'
+      })).filter(x=>x.id);
 
-      const combined=[...newsResults,...wikiResults,...hnResults,...redditResults,...soResults];
+
+      const combined=[...newsResults,...videoResults,...wikiResults,...hnResults,...redditResults,...soResults];
       tab.results={
         all:combined,
         wikipedia:wikiResults,
-        tech:[...hnResults,...soResults],
+        tech:[...videoResults,...hnResults,...soResults],
         discussions:[...redditResults,...hnResults],
-        overview: generateAIOverview(query,combined)
+        overview: await generateSearchOverview(query,combined)
       };
       tab.loading=false;
       searchHistory=[query,...searchHistory.filter(x=>x!==query)].slice(0,30);
@@ -362,15 +406,27 @@ body{background:
       renderViewport(tabId);
     }
 
-    function generateAIOverview(query, results) {
-      if (!results?.length) return [`No results were found for “${query}”.`, `Try different keywords, a broader phrase, or a specific site.`];
-      const domains=[...new Set(results.map(r=>r.source))];
+    async function generateSearchOverview(query, results) {
+      const q=query.trim();
+      if(!results?.length) return [{text:`No results were found for “${q}”. Try broader keywords or a different phrasing.`,source:'Search'}];
+
+      // For question-shaped queries, synthesize a concise answer from retrieved snippets.
+      const question=/^(who|what|when|where|why|how|which|can|does|is|are|will|should|do|did|could|would)\b/i.test(q)||q.includes('?');
+      const useful=results.filter(x=>x.snippet).slice(0,7);
+      if(question && useful.length){
+        const lines=[];
+        const first=useful[0];
+        lines.push({text:`Based on the sources below, the short answer is: ${stripHtml(first.snippet).slice(0,420)}${first.snippet.length>420?'…':''}`,source:first.source});
+        useful.slice(1,4).forEach(x=>lines.push({text:stripHtml(x.snippet).slice(0,260),source:x.source}));
+        lines.push({text:`This overview is generated from ${results.length} search results and is not a substitute for opening the original sources.`,source:'CYBER_SEARCH'});
+        return lines;
+      }
       return [
-        `Found ${results.length} results across ${domains.length} sources.`,
-        `Sources include ${domains.slice(0,6).join(', ')}${domains.length>6?' and more':''}.`,
-        `Open a result in Reader mode for extracted content, or use External Link for the original page.`
+        {text:`Found ${results.length} results for “${q}”.`,source:'CYBER_SEARCH'},
+        {text:`The results combine web pages, discussions, technical sources and videos where available.`,source:'CYBER_SEARCH'}
       ];
     }
+    function stripHtml(x){return String(x||'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();}
 
     async function openInReader(tabId, itemIdx) {
       const tab = tabs.find(t => t.id === tabId);
@@ -473,7 +529,7 @@ body{background:
           // If there is an external URL linked in HN item, fetch it with Jina Reader API
           if (item.externalUrl && item.externalUrl !== item.hnDiscussionUrl) {
             try {
-              const jinaRes = await fetchWithTimeout(PROXY_BASE + item.externalUrl, FETCH_TIMEOUT);
+              const jinaRes = await fetchWithTimeout(proxyUrl(item.externalUrl), FETCH_TIMEOUT);
               if (jinaRes.ok) {
                 const md = await jinaRes.text();
                 externalArticleText = parseMarkdownToHtml(md);
@@ -548,7 +604,7 @@ body{background:
           } else {
             let md = '';
             try {
-              const jinaRes = await fetchWithTimeout(PROXY_BASE + item.url, FETCH_TIMEOUT, {
+              const jinaRes = await fetchWithTimeout(proxyUrl(item.url), FETCH_TIMEOUT, {
                 headers: { 'Accept': 'text/plain, text/markdown, */*' }
               });
               if (jinaRes.ok) {
@@ -768,12 +824,20 @@ body{background:
         <div class="flex-1 overflow-y-auto p-4 sm:p-7">
           <div class="result-grid max-w-6xl mx-auto">
             <section>
-              <div class="answer-card rounded-2xl p-5 mb-5">
-                <div class="flex items-center gap-2 text-indigo-300 font-semibold text-sm mb-3">
-                  <span>✦</span><span>Search overview</span>
+              <div class="overview-hero rounded-2xl p-5 mb-5">
+                <div class="flex items-center gap-2 text-indigo-200 font-semibold text-sm mb-3">
+                  <span>✦</span><span>Overview</span>
+                  <span class="ml-auto overview-source">SOURCE-GROUNDED</span>
                 </div>
-                ${tab.results.overview.map(x=>`<p class="text-sm text-slate-300 leading-relaxed mb-1.5">• ${x}</p>`).join('')}
+                ${tab.results.overview.map(x=>`<div class="mb-3"><p class="text-sm text-slate-200 leading-relaxed">${escapeHtml(x.text||x)}</p><div class="overview-source mt-1">Source: ${escapeHtml(x.source||'Search')}</div></div>`).join('')}
               </div>
+              ${displayResults.some(x=>x.type==='VIDEO')?`
+                <div class="mb-5"><h3 class="text-sm font-semibold text-slate-200 mb-3">Videos</h3>
+                <div class="video-results">${displayResults.filter(x=>x.type==='VIDEO').slice(0,4).map(v=>`
+                  <article class="media-card">
+                    <iframe src="${v.embedUrl}" title="${escapeHtml(v.title)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    <div class="media-caption">${escapeHtml(v.title)}</div>
+                  </article>`).join('')}</div></div>`:''}
               <div class="space-y-4">
               ${displayResults.length?displayResults.map((item,idx)=>`
                 <article class="glass-card rounded-2xl p-5">
@@ -885,10 +949,7 @@ body{background:
                   onload="this.dataset.loaded='1'"
                   onerror="showIframeFallback('${tab.id}')"
                 ></iframe>
-                <div class="mt-2 flex items-center justify-between gap-2 text-xs">
-                  <span class="text-slate-500">If the site blocks framing with X-Frame-Options/CSP, your browser will prevent the iframe from displaying it.</span>
-                  <button onclick="rebuildFromProxy('${tab.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">Rebuild from Proxy</button>
-                </div>
+                
               </div>
             `}
           </div>
@@ -902,7 +963,7 @@ body{background:
       tab.loading=true; renderViewport(tabId);
       const item={title:tab.readerData.title,url:tab.readerData.url,source:tab.readerData.source,type:'WEB',snippet:''};
       try{
-        const r=await fetchWithTimeout(PROXY_BASE+item.url,FETCH_TIMEOUT,{headers:{'Accept':'text/plain, text/markdown, */*'}});
+        const r=await fetchWithTimeout(proxyUrl(item.url),FETCH_TIMEOUT,{headers:{'Accept':'text/plain, text/markdown, */*'}});
         if(!r.ok)throw new Error('Proxy HTTP '+r.status);
         const md=await r.text();
         if(md.trim().length<80)throw new Error('Insufficient extracted content');
