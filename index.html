@@ -33,7 +33,7 @@
       border-radius: 0.5rem;
       border: 1px solid rgba(6, 182, 212, 0.3);
       margin: 1rem 0;
-      display: block;
+      display: inline-block;
     }
     .reader-mode video, .reader-mode audio {
       width: 100%;
@@ -45,7 +45,7 @@
       text-decoration: underline;
       cursor: pointer;
     }
-    .reader-mode form input, .reader-mode form button {
+    .reader-mode form input, .reader-mode form button, .reader-mode form select {
       background: #090d16;
       border: 1px solid #06b6d4;
       color: #ecfeff;
@@ -53,13 +53,13 @@
       border-radius: 0.375rem;
       margin: 0.25rem 0;
     }
-    .reader-mode form button {
-      background: rgba(6, 182, 212, 0.25);
+    .reader-mode form button, .reader-mode input[type="submit"] {
+      background: rgba(6, 182, 212, 0.3);
       font-weight: 600;
       cursor: pointer;
     }
-    .reader-mode form button:hover {
-      background: rgba(6, 182, 212, 0.5);
+    .reader-mode form button:hover, .reader-mode input[type="submit"]:hover {
+      background: rgba(6, 182, 212, 0.6);
     }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #030712; }
@@ -126,7 +126,7 @@
   <!-- STATUS FOOTER -->
   <footer class="glass-panel px-4 py-1 flex justify-between items-center text-[10px] text-cyan-500/70 border-t border-cyan-500/30">
     <div class="flex items-center space-x-3">
-      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> EMBED & MEDIA ENGINE: READY (NO-COOKIE YOUTUBE FIX ACTIVE)</span>
+      <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span> PROXY ROUTER: ONLINE (searchhubio)</span>
     </div>
     <div class="flex items-center space-x-4">
       <span>TABS: <span id="tabCount">1</span></span>
@@ -135,9 +135,13 @@
   </footer>
 
   <script>
-    const PROXIES = [
-      "https://small-hill-0227.mac-for-chrome.workers.dev/?url=",
-      "https://api.allorigins.win/raw?url="
+    // Primary Proxy Worker requested
+    const PRIMARY_PROXY = "https://small-hill-0227.searchhubio.workers.dev/?url=";
+    
+    // Fallback proxies if primary site is strict or times out
+    const FALLBACK_PROXIES = [
+      "https://api.allorigins.win/raw?url=",
+      "https://corsproxy.io/?"
     ];
 
     let tabs = [];
@@ -171,7 +175,7 @@
     }
 
     function openNewTab(url = 'nexus://newtab') {
-      const id = 'tab_' + Date.now();
+      const id = 'tab_' + Date.now() + '_' + Math.floor(Math.random()*1000);
       const isSearch = url.startsWith('search://');
       const searchTerms = isSearch ? decodeURIComponent(url.replace('search://', '')) : '';
 
@@ -187,21 +191,31 @@
       switchTab(id);
     }
 
+    // FIXED CLOSE TAB HANDLER
     function closeTab(id, e) {
-      if (e) e.stopPropagation();
-      if (tabs.length === 1) {
-        tabs = [];
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      // Remove tab DOM viewport
+      const vp = document.getElementById('viewport_' + id);
+      if (vp) vp.remove();
+
+      // Filter tabs array
+      const targetIndex = tabs.findIndex(t => t.id === id);
+      tabs = tabs.filter(t => t.id !== id);
+      delete activeCategory[id];
+
+      if (tabs.length === 0) {
         openNewTab();
         return;
       }
 
-      tabs = tabs.filter(t => t.id !== id);
-      delete activeCategory[id];
-      const container = document.getElementById('viewport_' + id);
-      if (container) container.remove();
-
+      // If closed tab was active, activate adjacent tab
       if (activeTabId === id) {
-        switchTab(tabs[tabs.length - 1].id);
+        const nextActiveIndex = Math.max(0, targetIndex - 1);
+        switchTab(tabs[nextActiveIndex].id);
       } else {
         renderTabs();
       }
@@ -245,7 +259,7 @@
             <i data-lucide="${iconName}" class="w-3.5 h-3.5 shrink-0"></i>
             <span class="truncate text-[11px]">${escapeHtml(tab.title)}</span>
           </div>
-          <button onclick="closeTab('${tab.id}', event)" class="hover:text-cyan-200 rounded p-0.5">
+          <button onclick="closeTab('${tab.id}', event)" class="hover:text-cyan-200 rounded p-0.5 hover:bg-cyan-500/20">
             <i data-lucide="x" class="w-3 h-3"></i>
           </button>
         `;
@@ -285,13 +299,12 @@
       lucide.createIcons();
     }
 
-    /* WEBPAGE & MEDIA RENDERER WITH ERROR 153 PREVENTATIVE EMBEDDING */
+    /* WEBPAGE & MEDIA RENDERER WITH MULTI-PROXY PIPELINE TO PREVENT "REFUSED TO CONNECT" */
     function processWebOrMediaUrl(tab, element, url) {
-      // YouTube Handler - Fixed for Error 153
+      // YouTube Handler
       if (url.includes('youtube.com') || url.includes('youtu.be')) {
         const videoId = extractYouTubeId(url);
         if (videoId) {
-          // youtube-nocookie.com + strict-origin-when-cross-origin prevents Error 153
           const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
           element.innerHTML = `
             <div class="w-full h-full flex flex-col bg-black">
@@ -319,7 +332,7 @@
                 <i data-lucide="alert-triangle" class="w-12 h-12 text-yellow-400 mx-auto mb-4"></i>
                 <h2 class="text-lg font-bold text-yellow-300 mb-2">Direct Video URL Required</h2>
                 <p class="text-xs text-slate-300 mb-6 leading-relaxed">
-                  YouTube homepages or channel links restrict framing. 
+                  YouTube homepages or channel pages restrict framing. 
                   Please enter a specific video URL (e.g. <code class="text-cyan-300">https://www.youtube.com/watch?v=...</code>).
                 </p>
                 <div class="flex justify-center space-x-3">
@@ -336,24 +349,7 @@
         return;
       }
 
-      // Native Frameable Websites
-      const isEmbeddable = NATIVE_EMBED_DOMAINS.some(domain => url.toLowerCase().includes(domain));
-      if (isEmbeddable) {
-        element.innerHTML = `
-          <div class="w-full h-full relative bg-black">
-            <iframe 
-              src="${escapeHtml(url)}" 
-              class="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              referrerpolicy="strict-origin-when-cross-origin"
-              allowfullscreen
-            ></iframe>
-          </div>
-        `;
-        return;
-      }
-
-      // Proxy Reader Mode for All Other Websites
+      // Proxy Reader Mode for All Other Websites (Bypasses Frame-Ancestors / Refused To Connect)
       renderReaderModePage(element, url);
     }
 
@@ -363,10 +359,18 @@
       return (match && match[2].length === 11) ? match[2] : null;
     }
 
-    async function fetchProxyData(url) {
-      for (const proxy of PROXIES) {
+    async function fetchProxyData(targetUrl) {
+      const proxyList = [PRIMARY_PROXY, ...FALLBACK_PROXIES];
+
+      for (const proxy of proxyList) {
         try {
-          const res = await fetch(`${proxy}${encodeURIComponent(url)}`);
+          const fetchUrl = `${proxy}${encodeURIComponent(targetUrl)}`;
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+          const res = await fetch(fetchUrl, { signal: controller.signal });
+          clearTimeout(timeoutId);
+
           if (res.ok) {
             const text = await res.text();
             if (text && text.length > 50) return text;
@@ -375,17 +379,17 @@
           console.warn("Proxy attempt failed:", proxy, e);
         }
       }
-      throw new Error("Proxy failed to load website content");
+      throw new Error("All proxy nodes failed or target website blocked proxy request.");
     }
 
-    /* INTERACTIVE READER MODE WITH WORKING SIGN-UP / FORM HANDLERS */
+    /* INTERACTIVE READER ENGINE: REWRITES LINKS AND SIGN-UP FORMS */
     async function renderReaderModePage(element, url) {
       element.innerHTML = `
         <div class="w-full h-full flex flex-col items-center justify-center p-8">
           <div class="text-center space-y-3">
             <i data-lucide="loader" class="w-8 h-8 text-cyan-400 animate-spin mx-auto"></i>
-            <p class="text-xs text-cyan-300 tracking-wider">LOADING WEBPAGE VIA INTERACTIVE PROXY ENGINE...</p>
-            <p class="text-[10px] text-slate-400">${escapeHtml(url)}</p>
+            <p class="text-xs text-cyan-300 tracking-wider">CONNECTING THROUGH PROXY (small-hill-0227.searchhubio)...</p>
+            <p class="text-[10px] text-slate-400 max-w-md truncate mx-auto">${escapeHtml(url)}</p>
           </div>
         </div>
       `;
@@ -398,7 +402,7 @@
 
         const baseUrl = new URL(url);
 
-        // Fix Relative Image & Media Links
+        // Rewrite Image, Video, & Media URLs
         doc.querySelectorAll('img').forEach(img => {
           try {
             const src = img.getAttribute('src');
@@ -412,20 +416,19 @@
           } catch(e){}
         });
 
-        // Intercept Links to Load in Active Tab
+        // Intercept All Web Links so they open inside CYBER_SEARCH instead of getting blocked
         doc.querySelectorAll('a').forEach(a => {
           try {
             const href = a.getAttribute('href');
-            if (href && !href.startsWith('javascript:')) {
+            if (href && !href.startsWith('javascript:') && !href.startsWith('#')) {
               const fullUrl = new URL(href, baseUrl).href;
               a.setAttribute('onclick', `event.preventDefault(); navigateCurrentTab('${fullUrl}');`);
             }
           } catch(e){}
         });
 
-        // Extract Title & Main Body
         const title = doc.querySelector('title')?.innerText || url;
-        const mainContent = doc.querySelector('article, main, #content, .content, body')?.innerHTML || doc.body.innerHTML;
+        const mainContent = doc.body ? doc.body.innerHTML : rawHtml;
 
         element.innerHTML = `
           <div class="w-full h-full overflow-y-auto p-4 md:p-8 bg-slate-950">
@@ -433,10 +436,10 @@
               
               <div class="glass-panel p-4 rounded-xl border border-cyan-500/40 flex justify-between items-center">
                 <div>
-                  <span class="text-[10px] text-cyan-400 font-bold tracking-widest block mb-1">[INTERACTIVE PROXY WEB READER]</span>
+                  <span class="text-[10px] text-cyan-400 font-bold tracking-widest block mb-1">[INTERACTIVE WEB READER]</span>
                   <h1 class="text-base font-bold text-cyan-100 truncate max-w-xl">${escapeHtml(title)}</h1>
                 </div>
-                <a href="${escapeHtml(url)}" target="_blank" class="px-3 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 flex items-center space-x-1">
+                <a href="${escapeHtml(url)}" target="_blank" class="px-3 py-1.5 bg-cyan-600/30 border border-cyan-400 text-cyan-300 rounded text-xs hover:bg-cyan-500/40 flex items-center space-x-1 shrink-0">
                   <span>Open External</span>
                   <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                 </a>
@@ -450,7 +453,7 @@
           </div>
         `;
 
-        // Attach Interactive Form Submit Handlers (Sign-up, Login, Search forms)
+        // Intercept Sign-Up, Login & Dynamic Search Forms
         const proxyBody = document.getElementById(`proxyBody_${activeTabId}`);
         if (proxyBody) {
           proxyBody.querySelectorAll('form').forEach(form => {
@@ -458,7 +461,7 @@
               e.preventDefault();
               const action = form.getAttribute('action') || url;
               const targetUrl = new URL(action, baseUrl).href;
-              alert(`[CYBER_SEARCH Interactive Form Interceptor]\nSubmitted form data to: ${targetUrl}`);
+              alert(`[CYBER_SEARCH Form Action Submitted]\nForm routed through proxy: ${targetUrl}`);
               navigateCurrentTab(targetUrl);
             });
           });
@@ -470,8 +473,8 @@
           <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center">
             <div class="glass-panel p-8 rounded-xl max-w-lg border border-red-500/40">
               <i data-lucide="shield-alert" class="w-10 h-10 text-red-400 mx-auto mb-3"></i>
-              <h2 class="text-sm font-bold text-red-300 mb-2">ACCESS RESTRICTED BY TARGET DOMAIN</h2>
-              <p class="text-xs text-slate-400 mb-4">This server refused proxy connection. Click below to view directly in browser.</p>
+              <h2 class="text-sm font-bold text-red-300 mb-2">TARGET WEBSITE BLOCKED CONNECTION</h2>
+              <p class="text-xs text-slate-400 mb-4">This website explicitly blocks cross-origin proxy requests. You can view it directly in a new tab.</p>
               <a href="${escapeHtml(url)}" target="_blank" class="px-4 py-2 bg-cyan-600 border border-cyan-400 text-slate-950 font-bold rounded text-xs hover:bg-cyan-500 inline-flex items-center space-x-1">
                 <span>Open Direct in Browser</span> <i data-lucide="external-link" class="w-3 h-3"></i>
               </a>
@@ -482,7 +485,7 @@
       lucide.createIcons();
     }
 
-    /* SEARCH ENGINES & GOOGLE-STYLE CATEGORY PIPELINES */
+    /* SEARCH ENGINE CATEGORY PIPELINES */
     async function searchDuckDuckGo(query) {
       const targetSearchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
       const rawHtml = await fetchProxyData(targetSearchUrl);
@@ -505,7 +508,7 @@
           parsed.push({
             title: titleEl.textContent.trim(),
             url: href,
-            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to load website inside CYBER_SEARCH.',
+            snippet: snippetEl ? snippetEl.textContent.trim() : 'Click to open site inside CYBER_SEARCH.',
             source: 'WEB'
           });
         }
@@ -578,7 +581,7 @@
                 <h2 class="text-lg font-bold text-cyan-200">"${escapeHtml(query)}"</h2>
               </div>
 
-              <!-- GOOGLE-STYLE CATEGORY TABS -->
+              <!-- CATEGORY BUTTONS -->
               <div class="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-lg border border-cyan-500/30">
                 <button onclick="setCategory('${tab.id}', 'ALL', '${escapeHtml(query)}')" class="px-3 py-1 rounded text-xs font-semibold flex items-center space-x-1 transition ${cat === 'ALL' ? 'bg-cyan-500 text-slate-950' : 'text-cyan-400 hover:bg-cyan-950'}">
                   <i data-lucide="globe" class="w-3.5 h-3.5"></i>
@@ -671,7 +674,6 @@
         `;
 
       } else if (cat === 'VIDEOS') {
-        // Embedded YouTube Search Stream (Strict referrer policy applied)
         const ddgVideoQuery = `site:youtube.com watch ${query}`;
         const videos = await searchDuckDuckGo(ddgVideoQuery);
 
@@ -806,7 +808,7 @@
             <div class="text-center my-6">
               <div class="inline-flex items-center space-x-2 bg-cyan-950/60 border border-cyan-500/40 px-3 py-1 rounded-full text-xs text-cyan-400 mb-3 glow-cyan">
                 <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>CYBER_SEARCH ONLINE</span>
+                <span>CYBER_SEARCH PROXY ENGINE</span>
               </div>
               <h1 class="text-3xl md:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-500">
                 CYBER_SEARCH
