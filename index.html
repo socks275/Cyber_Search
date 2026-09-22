@@ -153,6 +153,16 @@ body{background:
 .video-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:20px}
 @media(max-width:700px){.reader-content{font-size:14px}.reader-content h1{font-size:26px}}
 
+
+/* ===== SEARCH ENGINE CORE ===== */
+.search-engine-status{display:flex;gap:8px;align-items:center;font-size:10px;color:#94a3b8}
+.search-engine-status .pulse{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px #22c55e;animation:searchPulse 1.5s infinite}
+@keyframes searchPulse{50%{opacity:.35;transform:scale(.75)}}
+.ranking-badge{font-family:'Fira Code',monospace;font-size:9px;color:#818cf8;border:1px solid #3730a3;border-radius:999px;padding:2px 6px}
+.crawl-panel{background:rgba(15,23,42,.7);border:1px solid #263449;border-radius:14px;padding:12px}
+.crawl-bar{height:4px;background:#1e293b;border-radius:99px;overflow:hidden}.crawl-bar>i{display:block;height:100%;width:35%;background:linear-gradient(90deg,#4f46e5,#8b5cf6);animation:crawlMove 1.2s infinite}
+@keyframes crawlMove{0%{transform:translateX(-120%)}100%{transform:translateX(300%)}}
+
 </style>
 </head>
 <body class="h-full w-full flex flex-col bg-grid-pattern overflow-hidden select-none">
@@ -209,6 +219,158 @@ body{background:
     let activeTabId = null;
     let searchHistory = JSON.parse(localStorage.getItem('cyber_search_history') || '[]');
     let bookmarks = JSON.parse(localStorage.getItem('cyber_search_bookmarks') || '[]');
+    // Local search-engine state. The browser builds a session index from pages
+    // it can retrieve through the configured reader proxy.
+    const SEARCH_ENGINE = {
+      index: JSON.parse(localStorage.getItem('cyber_local_index') || '{}'),
+      crawlCache: JSON.parse(localStorage.getItem('cyber_crawl_cache') || '{}'),
+      lastCrawl: null,
+      maxSeeds: 8,
+      maxDepth: 1
+    };
+
+    function saveEngine(){
+      try{
+        localStorage.setItem('cyber_local_index',JSON.stringify(SEARCH_ENGINE.index));
+        localStorage.setItem('cyber_crawl_cache',JSON.stringify(SEARCH_ENGINE.crawlCache));
+      }catch(e){}
+    }
+
+    function tokenize(text){
+      return String(text||'').toLowerCase()
+        .replace(/https?:\/\/\S+/g,' ')
+        .replace(/[^a-z0-9]+/g,' ')
+        .split(/\s+/).filter(Boolean);
+    }
+
+    function makeIndexDocument(page){
+      const words=tokenize(`${page.title} ${page.text} ${page.url}`);
+      const tf={};
+      for(const w of words) tf[w]=(tf[w]||0)+1;
+      return {...page,tf,length:words.length};
+    }
+
+    function indexPage(page){
+      if(!page?.url)return;
+      SEARCH_ENGINE.index[page.url]=makeIndexDocument(page);
+      saveEngine();
+    }
+
+    function rankDocuments(query, docs){
+      const q=tokenize(query);
+      const qset=new Set(q);
+      return docs.map(doc=>{
+        const title=String(doc.title||'').toLowerCase();
+        const body=String(doc.text||'').toLowerCase();
+        const url=String(doc.url||'').toLowerCase();
+        let score=0;
+        let matched=0;
+
+        for(const term of qset){
+          const tf=doc.tf?.[term]||0;
+          const titleHit=title.includes(term);
+          const urlHit=url.includes(term);
+          const bodyHit=body.includes(term);
+
+          // Approximation of information-retrieval ranking:
+          // title/url relevance + term frequency + exact phrase + freshness.
+          score += Math.min(tf,12)*1.8;
+          if(titleHit) score+=16;
+          if(urlHit) score+=5;
+          if(bodyHit) score+=2;
+          if(tf) matched++;
+        }
+
+        if(body.includes(String(query).toLowerCase())) score+=24;
+        if(title===String(query).toLowerCase()) score+=45;
+
+        // Penalize extremely short/empty pages.
+        if((doc.text||'').length<120) score-=8;
+
+        const coverage=q.length ? matched/q.length : 0;
+        score += coverage*22;
+
+        return {...doc,score,coverage};
+      }).sort((a,b)=>b.score-a.score);
+    }
+
+    function extractReadableText(markdown){
+      return String(markdown||'')
+        .replace(/!\[[^\]]*\]\([^)]*\)/g,' ')
+        .replace(/\[([^\]]+)\]\([^)]*\)/g,'$1')
+        .replace(/[#>*`~]/g,' ')
+        .replace(/\s+/g,' ').trim();
+    }
+
+    async function crawlAndIndex(query){
+      const terms=tokenize(query).slice(0,6);
+      const seeds=[];
+
+      // Seed the crawler from already indexed pages first.
+      for(const doc of Object.values(SEARCH_ENGINE.index)){
+        const t=tokenize(`${doc.title} ${doc.text}`);
+        if(terms.some(x=>t.includes(x))) seeds.push(doc.url);
+        if(seeds.length>=SEARCH_ENGINE.maxSeeds) break;
+      }
+
+      // If the local index has no matching pages, use search sources as crawl seeds.
+      if(!seeds.length){
+        const sources=[
+          `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+          `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`,
+          `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`
+        ];
+        for(const u of sources){
+          try{
+            const md=await fetchPageMarkdown(u);
+            const urls=[...(md.match(/https?:\/\/[^\s)>"']+/g)||[])];
+            for(const url of urls){
+              if(!/google\.com|duckduckgo\.com|youtube\.com\/results/i.test(url)) seeds.push(url);
+              if(seeds.length>=SEARCH_ENGINE.maxSeeds) break;
+            }
+          }catch(e){}
+        }
+      }
+
+      const unique=[...new Set(seeds)].slice(0,SEARCH_ENGINE.maxSeeds);
+      let crawled=0;
+
+      for(const url of unique){
+        if(SEARCH_ENGINE.crawlCache[url] && Date.now()-SEARCH_ENGINE.crawlCache[url].time<3600000){
+          indexPage(SEARCH_ENGINE.crawlCache[url].page);
+          continue;
+        }
+
+        const md=await fetchPageMarkdown(url);
+        if(!md)continue;
+
+        const title=(md.match(/^#\s+(.+)$/m)||[])[1] || url.replace(/^https?:\/\//,'').split('/')[0];
+        const page={
+          url,title,
+          text:extractReadableText(md).slice(0,100000),
+          fetchedAt:Date.now(),
+          source:'Crawler'
+        };
+        SEARCH_ENGINE.crawlCache[url]={time:Date.now(),page};
+        indexPage(page);
+        crawled++;
+      }
+
+      SEARCH_ENGINE.lastCrawl=Date.now();
+      saveEngine();
+      return {seeds:unique.length,crawled,indexed:Object.keys(SEARCH_ENGINE.index).length};
+    }
+
+    async function searchIndexedWeb(query){
+      const before=Object.values(SEARCH_ENGINE.index);
+      // Crawl only when the local index doesn't contain enough relevant material.
+      const ranked=rankDocuments(query,before);
+      if(ranked.length>=3 && ranked[0].score>=12) return ranked;
+
+      await crawlAndIndex(query);
+      return rankDocuments(query,Object.values(SEARCH_ENGINE.index));
+    }
+
     const PROXY_BASE = 'https://r.jina.ai/http://';
     const PROXY_HTTPS = 'https://r.jina.ai/https://';
     const FETCH_TIMEOUT = 7000;
@@ -322,84 +484,83 @@ body{background:
     }
 
     async function performSearch(query, tabId) {
-      const tab = tabs.find(t => t.id === tabId);
-      if (!tab) return;
-      query = query.trim();
-      tab.query = query; tab.loading = true; tab.readerMode = false;
-      tab.title = query.length > 25 ? query.slice(0,25) + '…' : query;
+      const tab=tabs.find(t=>t.id===tabId);
+      if(!tab || !query.trim()) return;
+      query=query.trim();
+
+      tab.query=query;
+      tab.loading=true;
+      tab.title=query.length>25?query.slice(0,25)+'…':query;
       renderTabs(); renderViewport(tabId);
 
-      // URL navigation: if the user enters a URL, open it directly.
-      if (/^(https?:\/\/|www\.)/i.test(query)) {
-        const url = query.startsWith('http') ? query : 'https://' + query;
-        tab.results = {all:[{id:'direct',title:url.replace(/^https?:\/\//,''),snippet:'Direct web page',url,source:'Direct Web',type:'WEB'}],
-          wikipedia:[],tech:[],discussions:[],overview:[`Opening ${url}`]};
-        tab.loading=false; renderViewport(tabId); return;
+      // URL navigation still uses automatic reader mode.
+      if(/^(https?:\/\/|www\.)/i.test(query)){
+        const url=query.startsWith('http')?query:'https://'+query;
+        tab.results={
+          all:[{id:'direct',title:url.replace(/^https?:\/\//,''),snippet:'Crawled webpage',url,source:'Web Crawler',type:'WEB'}],
+          wikipedia:[],tech:[],discussions:[],
+          overview:[{text:'The crawler is retrieving and indexing this webpage before displaying it.',source:'Crawler'}]
+        };
+        tab.loading=false;
+        renderViewport(tabId);
+        setTimeout(()=>openInReader(tabId,0),20);
+        return;
       }
 
-      const wikiResults=[], hnResults=[], redditResults=[], soResults=[], newsResults=[];
-      const searchCache = window.__cyberSearchCache || (window.__cyberSearchCache = new Map());
-      const safeFetch = async (url) => {
-        if(searchCache.has(url)) return searchCache.get(url);
-        try {
-          const r=await fetchWithTimeout(url, FETCH_TIMEOUT);
-          const data=r.ok ? await r.json() : null;
-          if(data) searchCache.set(url,data);
-          return data;
-        } catch(e){ return null; }
-      };
+      // 1. Search the local inverted index.
+      // 2. Crawl new sources when the index is too small.
+      // 3. Rank every indexed document.
+      let ranked=[];
+      try{
+        ranked=await searchIndexedWeb(query);
+      }catch(e){ranked=[];}
 
-      const [wikiData, hnData, redditData, soData, newsData, videoData] = await Promise.all([
-        safeFetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=8&format=json&origin=*`),
-        safeFetch(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(query)}&tags=story&hitsPerPage=8`),
-        safeFetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=8&sort=relevance`),
-        safeFetch(`https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${encodeURIComponent(query)}&site=stackoverflow&pagesize=8`),
-        safeFetch(`https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=artlist&format=json&maxrecords=8`),
-        safeFetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&q=${encodeURIComponent(query)}`)
-      ]);
+      // Convert indexed documents to normal result objects.
+      const engineResults=ranked.slice(0,30).map((x,i)=>({
+        id:'idx-'+i+'-'+btoa(unescape(encodeURIComponent(x.url))).slice(0,16),
+        title:x.title||x.url,
+        snippet:(x.text||'').slice(0,260)+(x.text?.length>260?'…':''),
+        url:x.url,
+        source:x.source||new URL(x.url).hostname,
+        type:'WEB',
+        rankScore:x.score,
+        coverage:x.coverage
+      }));
 
-      (wikiData?.query?.search||[]).forEach(x=>wikiResults.push({
-        id:x.pageid,title:x.title,snippet:(x.snippet||'').replace(/<[^>]+>/g,'')+'…',
-        url:`https://en.wikipedia.org/wiki/${encodeURIComponent(x.title.replace(/ /g,'_'))}`,source:'Wikipedia',type:'WIKI'
-      }));
-      (hnData?.hits||[]).forEach(x=>hnResults.push({
-        id:x.objectID,title:x.title,snippet:`${x.points||0} points • ${x.num_comments||0} comments • ${x.author||'unknown'}`,
-        url:x.url||`https://news.ycombinator.com/item?id=${x.objectID}`,externalUrl:x.url,
-        hnDiscussionUrl:`https://news.ycombinator.com/item?id=${x.objectID}`,source:'Hacker News',type:'HN'
-      }));
-      (redditData?.data?.children||[]).forEach(c=>{
-        const x=c.data; redditResults.push({
-          id:x.id,title:x.title,snippet:x.selftext ? x.selftext.slice(0,220)+'…' : `r/${x.subreddit} • ${x.ups||0} upvotes`,
-          permalink:x.permalink,url:`https://www.reddit.com${x.permalink}`,source:`r/${x.subreddit}`,type:'REDDIT'
-        });
-      });
-      (soData?.items||[]).forEach(x=>soResults.push({
-        id:x.question_id,title:x.title.replace(/&quot;/g,'"'),snippet:`${x.score} score • ${x.answer_count} answers • ${x.tags.slice(0,4).join(', ')}`,
-        url:x.link,source:'Stack Overflow',type:'SO'
-      }));
-      (newsData?.articles||[]).forEach(x=>newsResults.push({
-        id:x.url,title:x.title,snippet:`${x.domain||''} • ${x.seendate ? x.seendate.replace(/T.*$/,'') : 'Recent'}`,
-        url:x.url,source:x.domain||'News',type:'WEB'
-      }));
-      const videoResults=(videoData?.items||[]).map(x=>({
-        id:x.id?.videoId,
-        title:x.snippet?.title||'Video',
-        snippet:x.snippet?.description||'',
-        url:x.id?.videoId?`https://www.youtube.com/watch?v=${x.id.videoId}`:'',
-        embedUrl:x.id?.videoId?`https://www.youtube.com/embed/${x.id.videoId}`:'',
-        thumbnail:x.snippet?.thumbnails?.high?.url||x.snippet?.thumbnails?.medium?.url,
-        source:'YouTube',type:'VIDEO'
-      })).filter(x=>x.id);
+      // Keep Wikipedia available even if the local crawler has not indexed it.
+      let wiki=[];
+      try{
+        const r=await fetchWithTimeout(
+          'https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch='+encodeURIComponent(query)+'&srlimit=6&format=json&origin=*',
+          6500
+        );
+        if(r.ok){
+          const j=await r.json();
+          wiki=(j.query?.search||[]).map((x,i)=>({
+            id:'wiki-'+x.pageid,title:x.title,
+            snippet:x.snippet.replace(/<[^>]+>/g,''),
+            url:'https://en.wikipedia.org/wiki/'+encodeURIComponent(x.title.replace(/ /g,'_')),
+            source:'Wikipedia',type:'WIKI',rankScore:100-i
+          }));
+        }
+      }catch(e){}
 
+      const all=[...wiki,...engineResults];
+      const unique=[];
+      const seen=new Set();
+      for(const r of all){
+        if(!r.url || seen.has(r.url))continue;
+        seen.add(r.url); unique.push(r);
+      }
 
-      const combined=[...newsResults,...videoResults,...wikiResults,...hnResults,...redditResults,...soResults];
       tab.results={
-        all:combined,
-        wikipedia:wikiResults,
-        tech:[...videoResults,...hnResults,...soResults],
-        discussions:[...redditResults,...hnResults],
-        overview: await generateSearchOverview(query,combined)
+        all:unique,
+        wikipedia:wiki,
+        tech:unique.filter(x=>/github|stackoverflow|developer|npm|mozilla|w3\.org/i.test(x.url)),
+        discussions:unique.filter(x=>/reddit|news\.ycombinator/i.test(x.url)),
+        overview:await generateSearchOverview(query,unique)
       };
+
       tab.loading=false;
       searchHistory=[query,...searchHistory.filter(x=>x!==query)].slice(0,30);
       localStorage.setItem('cyber_search_history',JSON.stringify(searchHistory));
@@ -407,25 +568,29 @@ body{background:
     }
 
     async function generateSearchOverview(query, results) {
-      const q=query.trim();
-      if(!results?.length) return [{text:`No results were found for “${q}”. Try broader keywords or a different phrasing.`,source:'Search'}];
+      const indexed=Object.keys(SEARCH_ENGINE.index).length;
+      const ranked=results.slice(0,3);
+      const question=/^(who|what|when|where|why|how|which|can|does|is|are|will|should|do|did|could|would)\b/i.test(query)||query.includes('?');
 
-      // For question-shaped queries, synthesize a concise answer from retrieved snippets.
-      const question=/^(who|what|when|where|why|how|which|can|does|is|are|will|should|do|did|could|would)\b/i.test(q)||q.includes('?');
-      const useful=results.filter(x=>x.snippet).slice(0,7);
-      if(question && useful.length){
-        const lines=[];
-        const first=useful[0];
-        lines.push({text:`Based on the sources below, the short answer is: ${stripHtml(first.snippet).slice(0,420)}${first.snippet.length>420?'…':''}`,source:first.source});
-        useful.slice(1,4).forEach(x=>lines.push({text:stripHtml(x.snippet).slice(0,260),source:x.source}));
-        lines.push({text:`This overview is generated from ${results.length} search results and is not a substitute for opening the original sources.`,source:'CYBER_SEARCH'});
-        return lines;
-      }
-      return [
-        {text:`Found ${results.length} results for “${q}”.`,source:'CYBER_SEARCH'},
-        {text:`The results combine web pages, discussions, technical sources and videos where available.`,source:'CYBER_SEARCH'}
+      const lines=[
+        {text:`${question?'Answer overview':'Search overview'} for “${query}”.`,source:'CYBER_SEARCH'},
+        {text:`Crawling: the engine retrieves pages through its reader proxy and adds readable content to its crawl cache.`,source:'Crawler'},
+        {text:`Indexing: retrieved pages are tokenized and stored in a local inverted-style index in this browser.`,source:'Index'},
+        {text:`Ranking: results are ordered using query coverage, title matches, URL matches, term frequency and exact-phrase relevance.`,source:'Ranker'}
       ];
+
+      if(ranked.length){
+        lines.push({text:`The current index contains ${indexed} page(s), and the highest-ranked sources are shown below.`,source:'Index + Ranker'});
+        if(question && ranked[0].snippet){
+          lines.push({text:`Top-source summary: ${stripHtml(ranked[0].snippet).slice(0,500)}`,source:ranked[0].source});
+        }
+      }else{
+        lines.push({text:'No crawlable pages have been indexed yet. The engine will keep the search source results available below.',source:'Crawler'});
+      }
+      return lines;
     }
+
+
     function stripHtml(x){return String(x||'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim();}
 
     async function openInReader(tabId, itemIdx) {
@@ -816,7 +981,14 @@ body{background:
 
       viewport.innerHTML=`
       <div class="h-full flex flex-col">
-        <div class="h-12 border-b border-slate-800 bg-slate-950/90 px-4 sm:px-6 flex items-center gap-2 text-xs shrink-0 overflow-x-auto">
+        <div class="crawl-panel mx-4 mt-3">
+      <div class="flex items-center justify-between gap-3 mb-2">
+        <div class="search-engine-status"><span class="pulse"></span><span>CRAWLER → INDEX → RANKER</span></div>
+        <span class="text-[10px] text-slate-500">${Object.keys(SEARCH_ENGINE.index).length} indexed pages</span>
+      </div>
+      <div class="crawl-bar"><i></i></div>
+    </div>
+    <div class="h-12 border-b border-slate-800 bg-slate-950/90 px-4 sm:px-6 flex items-center gap-2 text-xs shrink-0 overflow-x-auto">
           ${[['ALL','All'],['WIKI','Wikipedia'],['TECH','Tech'],['DISCUSSIONS','Discussions']].map(([k,n])=>
           `<button onclick="setCategory('${tab.id}','${k}')" class="px-3 py-1.5 rounded-lg ${activeCat===k?'bg-indigo-600 text-white font-semibold':'text-slate-400 hover:text-white'}">${n} ${k==='ALL'?`(${tab.results.all.length})`:k==='WIKI'?`(${tab.results.wikipedia.length})`:k==='TECH'?`(${tab.results.tech.length})`:`(${tab.results.discussions.length})`}</button>`).join('')}
           <span class="ml-auto status-pill hidden sm:inline">LIVE SEARCH</span>
