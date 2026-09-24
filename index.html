@@ -51,7 +51,6 @@ button{
 }
 
 /* AUTH */
-
 #auth{
     min-height:100vh;
     display:flex;
@@ -165,7 +164,6 @@ textarea{
 }
 
 /* APP */
-
 #app{
     display:none;
 }
@@ -180,6 +178,7 @@ textarea{
     border-right:1px solid var(--border);
     padding:22px 13px;
     z-index:10;
+    overflow-y:auto;
 }
 
 .sidebar .logo{
@@ -259,17 +258,9 @@ textarea{
     gap:18px;
 }
 
-.g2{
-    grid-template-columns:repeat(2,1fr);
-}
-
-.g3{
-    grid-template-columns:repeat(3,1fr);
-}
-
-.g4{
-    grid-template-columns:repeat(4,1fr);
-}
+.g2{ grid-template-columns:repeat(2,1fr); }
+.g3{ grid-template-columns:repeat(3,1fr); }
+.g4{ grid-template-columns:repeat(4,1fr); }
 
 .panel{
     background:rgba(7,17,31,.94);
@@ -300,6 +291,19 @@ textarea{
     padding:5px 9px;
     font-size:10px;
     font-weight:bold;
+    margin-right:4px;
+}
+
+.badge.op{
+    border-color:#6945ae;
+    background:#1a1031;
+    color:#c7b4ff;
+}
+
+.badge.admin{
+    border-color:#00a86b;
+    background:#06271c;
+    color:var(--green);
 }
 
 .stat{
@@ -365,7 +369,6 @@ textarea{
 }
 
 /* FLASHCARD */
-
 .flashcard{
     min-height:350px;
     display:flex;
@@ -401,7 +404,6 @@ textarea{
 }
 
 /* QUIZ */
-
 .question{
     font-size:27px;
     font-weight:900;
@@ -439,46 +441,79 @@ textarea{
     border-color:var(--red);
 }
 
+/* GLOBAL CHAT */
+.chat-box{
+    height:350px;
+    overflow-y:auto;
+    border:1px solid var(--border);
+    background:#030c16;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:15px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.chat-msg{
+    background:#071727;
+    border-radius:8px;
+    padding:10px;
+    border:1px solid #0e273c;
+}
+
+.chat-header{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    margin-bottom:5px;
+}
+
+/* MEMORY MATCH GAME */
+.memory-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:12px;
+    margin-top:20px;
+}
+
+.mem-card{
+    min-height:100px;
+    background:#071522;
+    border:1px solid var(--border);
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px;
+    text-align:center;
+    font-weight:bold;
+    cursor:pointer;
+    user-select:none;
+}
+
+.mem-card.flipped, .mem-card.matched{
+    background:#08293d;
+    border-color:var(--cyan);
+    color:var(--cyan);
+}
+
+.mem-card.matched{
+    border-color:var(--green);
+    color:var(--green);
+    opacity:0.6;
+    cursor:default;
+}
+
 @media(max-width:850px){
-
-    .sidebar{
-        width:65px;
-    }
-
-    .sidebar .logo{
-        font-size:0;
-        text-align:center;
-    }
-
-    .sidebar .logo:after{
-        content:"C";
-        font-size:25px;
-        color:var(--cyan);
-    }
-
-    .nav-title{
-        display:none;
-    }
-
-    .nav button{
-        font-size:0;
-        text-align:center;
-    }
-
-    .nav button:after{
-        content:"◆";
-        font-size:11px;
-    }
-
-    .main{
-        margin-left:65px;
-        width:calc(100% - 65px);
-        padding:17px;
-    }
-
-    .g2,.g3,.g4{
-        grid-template-columns:1fr;
-    }
+    .sidebar{ width:65px; }
+    .sidebar .logo{ font-size:0; text-align:center; }
+    .sidebar .logo:after{ content:"C"; font-size:25px; color:var(--cyan); }
+    .nav-title{ display:none; }
+    .nav button{ font-size:0; text-align:center; }
+    .nav button:after{ content:"◆"; font-size:11px; }
+    .main{ margin-left:65px; width:calc(100% - 65px); padding:17px; }
+    .g2,.g3,.g4,.memory-grid{ grid-template-columns:1fr; }
 }
 </style>
 </head>
@@ -486,130 +521,58 @@ textarea{
 <body>
 
 <!-- LOGIN / SIGNUP -->
-
 <div id="auth">
     <div class="auth-box">
-
-        <div class="logo">
-            CYBER<span>REVISION</span>
-        </div>
-
-        <div class="auth-sub">
-            // GAMIFIED REVISION NETWORK
-        </div>
-
+        <div class="logo">CYBER<span>REVISION</span></div>
+        <div class="auth-sub">// GAMIFIED REVISION NETWORK</div>
         <div id="authContent"></div>
-
     </div>
 </div>
 
-
 <!-- MAIN APPLICATION -->
-
 <div id="app">
-
     <aside class="sidebar">
-
-        <div class="logo">
-            CYBER<span>REVISION</span>
-        </div>
-
-        <div class="nav-title">
-            REVISION SYSTEM
-        </div>
-
+        <div class="logo">CYBER<span>REVISION</span></div>
+        <div class="nav-title">REVISION SYSTEM</div>
         <div class="nav">
-
-            <button id="nav-dashboard" onclick="showPage('dashboard')">
-                Dashboard
-            </button>
-
-            <button id="nav-sets" onclick="showPage('sets')">
-                Public Sets
-            </button>
-
-            <button id="nav-create" onclick="showPage('create')">
-                Create Flashcards
-            </button>
-
-            <button id="nav-flashcards" onclick="showPage('flashcards')">
-                Flashcards
-            </button>
-
-            <button id="nav-quiz" onclick="showPage('quiz')">
-                Question Battle
-            </button>
-
-            <button id="nav-tests" onclick="showPage('tests')">
-                Tests
-            </button>
-
-            <button id="nav-games" onclick="showPage('games')">
-                Games
-            </button>
-
-            <button id="nav-pvp" onclick="showPage('pvp')">
-                Player vs Player
-            </button>
-
-            <button id="nav-progress" onclick="showPage('progress')">
-                Progress
-            </button>
-
-            <button id="nav-settings" onclick="showPage('settings')">
-                Settings
-            </button>
-
-            <button id="nav-admin" class="hidden" onclick="showPage('admin')">
-                Admin Panel
-            </button>
-
+            <button id="nav-dashboard" onclick="showPage('dashboard')">Dashboard</button>
+            <button id="nav-sets" onclick="showPage('sets')">Public Sets</button>
+            <button id="nav-create" onclick="showPage('create')">Create Flashcards</button>
+            <button id="nav-flashcards" onclick="showPage('flashcards')">Flashcards</button>
+            <button id="nav-quiz" onclick="showPage('quiz')">Question Battle</button>
+            <button id="nav-games" onclick="showPage('games')">Games</button>
+            <button id="nav-pvp" onclick="showPage('pvp')">Player vs Player</button>
+            <button id="nav-chat" onclick="showPage('chat')">Global Chat</button>
+            <button id="nav-progress" onclick="showPage('progress')">Progress</button>
+            <button id="nav-settings" onclick="showPage('settings')">Settings</button>
+            <button id="nav-admin" class="hidden" onclick="showPage('admin')">Admin Panel</button>
         </div>
-
     </aside>
 
-
     <main class="main">
-
         <div class="top">
-
             <div>
                 <div id="dateText" class="muted"></div>
-
-                <h2 id="pageTitle">
-                    Dashboard
-                </h2>
+                <h2 id="pageTitle">Dashboard</h2>
             </div>
-
             <div class="profile">
-
+                <span id="roleBadge"></span>
                 <span id="usernameDisplay"></span>
-
-                <div id="avatar" class="avatar">
-                </div>
-
+                <div id="avatar" class="avatar"></div>
             </div>
-
         </div>
-
         <div id="content"></div>
-
     </main>
-
 </div>
-
 
 <script>
 "use strict";
-
-/* =========================================================
-   DATABASE & CONSTANTS
-========================================================= */
 
 const ADMIN_CODE = "CR-7X4Q-N9VM-2K8P-R6ZT-H3WF-91KD-V8QP";
 
 const USERS_KEY = "CYBER_REVISION_USERS";
 const PUBLIC_SETS_KEY = "CYBER_REVISION_PUBLIC_SETS";
+const CHAT_KEY = "CYBER_REVISION_GLOBAL_CHAT";
 const CURRENT_USER_KEY = "CYBER_REVISION_CURRENT_USER";
 
 let currentUser = null;
@@ -623,7 +586,6 @@ let quizQuestions = [];
 let quizPosition = 0;
 let quizScore = 0;
 
-/* Helper to escape strings safely for HTML rendering */
 function escapeHTML(str) {
     if (!str) return "";
     return String(str)
@@ -634,13 +596,13 @@ function escapeHTML(str) {
         .replace(/'/g, "&#039;");
 }
 
-/* Sample Starter Sets */
 const SAMPLE_SETS = [
     {
         id: "SET_SAMPLE_1",
         name: "Computer Science Basics",
         subject: "Other",
-        author: "System",
+        author: "SystemAdmin",
+        authorKey: "systemadmin",
         cards: [
             { front: "What does CPU stand for?", back: "Central Processing Unit" },
             { front: "What is the binary representation of 5?", back: "101" },
@@ -650,18 +612,12 @@ const SAMPLE_SETS = [
     }
 ];
 
-/* =========================================================
-   SAFE STORAGE
-========================================================= */
-
 function readJSON(key, fallback){
     try{
         const value = localStorage.getItem(key);
         if(!value) return fallback;
-        const parsed = JSON.parse(value);
-        return parsed ?? fallback;
+        return JSON.parse(value) ?? fallback;
     }catch(error){
-        console.warn("Storage error:", error);
         return fallback;
     }
 }
@@ -671,36 +627,30 @@ function writeJSON(key, value){
         localStorage.setItem(key, JSON.stringify(value));
         return true;
     }catch(error){
-        console.error("Could not save:", error);
         return false;
     }
 }
 
-/* =========================================================
-   AUTH SCREENS
-========================================================= */
-
+/* AUTHENTICATION */
 function renderLogin(){
     document.getElementById("authContent").innerHTML = `
         <h1>ACCESS SYSTEM</h1>
         <p class="muted">// ENTER YOUR USERNAME</p>
 
         <label>Username</label>
-        <input id="loginUsername" autocomplete="username" placeholder="Username">
+        <input id="loginUsername" placeholder="Username">
 
         <label>Password</label>
-        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
+        <input id="loginPassword" type="password" placeholder="Password">
 
         <br><br>
-
         <div class="actions">
             <button class="btn primary" onclick="loginUser()">CONNECT</button>
             <button class="btn" onclick="renderSignup()">CREATE ACCOUNT</button>
         </div>
-
         <div id="authError" class="error"></div>
         <br>
-        <button class="btn purple" onclick="renderAdminLogin()">ADMIN ACCESS</button>
+        <button class="btn purple" onclick="renderAdminLogin()">ADMIN ACCESS CODE</button>
     `;
 }
 
@@ -710,55 +660,42 @@ function renderSignup(){
         <p class="muted">// CREATE YOUR REVISION PROFILE</p>
 
         <label>Username</label>
-        <input id="signupUsername" autocomplete="username" placeholder="3-20 characters">
+        <input id="signupUsername" placeholder="3-20 characters">
 
         <label>Password</label>
-        <input id="signupPassword" type="password" autocomplete="new-password" placeholder="Password">
+        <input id="signupPassword" type="password" placeholder="Password">
 
         <label>Confirm Password</label>
-        <input id="signupConfirm" type="password" autocomplete="new-password" placeholder="Repeat password">
+        <input id="signupConfirm" type="password" placeholder="Repeat password">
 
         <br><br>
-
         <div class="actions">
             <button class="btn primary" onclick="createAccount()">CREATE</button>
             <button class="btn" onclick="renderLogin()">BACK</button>
         </div>
-
         <div id="authError" class="error"></div>
     `;
 }
 
 function renderAdminLogin(){
     document.getElementById("authContent").innerHTML = `
-        <h1>ADMIN ACCESS</h1>
-        <p class="muted">// AUTHORIZED PERSONNEL ONLY</p>
+        <h1>ADMIN ACCESS CODE</h1>
+        <p class="muted">// ENTER MASTER SYSTEM CODE</p>
 
         <label>Admin Code</label>
         <input id="adminCodeInput" type="password" placeholder="Admin code">
 
         <br><br>
-
         <div class="actions">
             <button class="btn purple" onclick="adminLogin()">AUTHORIZE</button>
             <button class="btn" onclick="renderLogin()">BACK</button>
         </div>
-
         <div id="authError" class="error"></div>
     `;
 }
 
-/* =========================================================
-   USERS & ACCOUNTS
-========================================================= */
-
-function getUsers(){
-    return readJSON(USERS_KEY, []);
-}
-
-function saveUsers(users){
-    return writeJSON(USERS_KEY, users);
-}
+function getUsers(){ return readJSON(USERS_KEY, []); }
+function saveUsers(users){ return writeJSON(USERS_KEY, users); }
 
 function createAccount(){
     const username = document.getElementById("signupUsername").value.trim();
@@ -770,29 +707,25 @@ function createAccount(){
         error.textContent = "Username must be 3-20 letters, numbers or underscores.";
         return;
     }
-
     if(password.length < 4){
         error.textContent = "Password must contain at least 4 characters.";
         return;
     }
-
     if(password !== confirm){
         error.textContent = "Passwords do not match.";
         return;
     }
 
     const users = getUsers();
-    const exists = users.some(user => user.username.toLowerCase() === username.toLowerCase());
-
-    if(exists){
+    if(users.some(u => u.username.toLowerCase() === username.toLowerCase())){
         error.textContent = "That username already exists.";
         return;
     }
 
-    users.push({ username, password, admin: false });
+    users.push({ username, password, admin: false, op: false, muted: false, lastActive: Date.now() });
     saveUsers(users);
 
-    currentUser = { username, admin: false };
+    currentUser = { username, admin: false, op: false, muted: false };
     accountData = createBlankData();
     saveAccount();
     launchApp();
@@ -804,14 +737,17 @@ function loginUser(){
     const error = document.getElementById("authError");
 
     const users = getUsers();
-    const found = users.find(user => user.username.toLowerCase() === username.toLowerCase());
+    const found = users.find(u => u.username.toLowerCase() === username.toLowerCase());
 
     if(!found || found.password !== password){
         error.textContent = "Invalid username or password.";
         return;
     }
 
-    currentUser = { username: found.username, admin: !!found.admin };
+    found.lastActive = Date.now();
+    saveUsers(users);
+
+    currentUser = { username: found.username, admin: !!found.admin, op: !!found.op, muted: !!found.muted };
     loadAccount();
     launchApp();
 }
@@ -825,11 +761,11 @@ function adminLogin(){
         return;
     }
 
-    const username = prompt("Enter the existing username to grant admin access:");
+    const username = prompt("Enter the username to assign System Admin rights:");
     if(!username) return;
 
     const users = getUsers();
-    const found = users.find(user => user.username.toLowerCase() === username.trim().toLowerCase());
+    const found = users.find(u => u.username.toLowerCase() === username.trim().toLowerCase());
 
     if(!found){
         error.textContent = "That username does not exist.";
@@ -837,9 +773,10 @@ function adminLogin(){
     }
 
     found.admin = true;
+    found.op = true;
     saveUsers(users);
 
-    currentUser = { username: found.username, admin: true };
+    currentUser = { username: found.username, admin: true, op: true, muted: !!found.muted };
     loadAccount();
     launchApp();
 }
@@ -851,13 +788,8 @@ function createBlankData(){
         cardsStudied: 0,
         questionsAnswered: 0,
         correctAnswers: 0,
-        memory: {},
         ownSets: [],
-        daily: {
-            date: new Date().toDateString(),
-            cards: 0,
-            questions: 0
-        }
+        daily: { date: new Date().toDateString(), cards: 0, questions: 0 }
     };
 }
 
@@ -867,17 +799,20 @@ function accountKey(){
 
 function loadAccount(){
     accountData = readJSON(accountKey(), createBlankData());
-
-    if(!accountData.memory) accountData.memory = {};
     if(!accountData.ownSets) accountData.ownSets = [];
-    if(!accountData.daily) accountData.daily = { date: new Date().toDateString(), cards: 0, questions: 0 };
-
-    if(accountData.daily.date !== new Date().toDateString()){
-        accountData.daily = {
-            date: new Date().toDateString(),
-            cards: 0,
-            questions: 0
-        };
+    if(!accountData.daily || accountData.daily.date !== new Date().toDateString()){
+        accountData.daily = { date: new Date().toDateString(), cards: 0, questions: 0 };
+    }
+    
+    // Sync roles from user DB
+    const users = getUsers();
+    const dbUser = users.find(u => u.username.toLowerCase() === currentUser.username.toLowerCase());
+    if(dbUser){
+        currentUser.admin = !!dbUser.admin;
+        currentUser.op = !!dbUser.op;
+        currentUser.muted = !!dbUser.muted;
+        dbUser.lastActive = Date.now();
+        saveUsers(users);
     }
     saveAccount();
 }
@@ -887,10 +822,6 @@ function saveAccount(){
     writeJSON(CURRENT_USER_KEY, currentUser);
 }
 
-/* =========================================================
-   LAUNCH & INITIALIZATION
-========================================================= */
-
 function launchApp(){
     document.getElementById("auth").style.display = "none";
     document.getElementById("app").style.display = "block";
@@ -898,18 +829,23 @@ function launchApp(){
     document.getElementById("usernameDisplay").textContent = currentUser.username;
     document.getElementById("avatar").textContent = currentUser.username.charAt(0).toUpperCase();
 
+    const roleBadge = document.getElementById("roleBadge");
+    if(currentUser.admin){
+        roleBadge.innerHTML = '<span class="badge admin">ADMIN</span>';
+    } else if(currentUser.op){
+        roleBadge.innerHTML = '<span class="badge op">OP</span>';
+    } else {
+        roleBadge.innerHTML = '';
+    }
+
     document.getElementById("dateText").textContent = new Date().toLocaleDateString(undefined, {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric"
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
     });
 
-    document.getElementById("nav-admin").classList.toggle("hidden", !currentUser.admin);
+    document.getElementById("nav-admin").classList.toggle("hidden", !(currentUser.admin || currentUser.op));
     showPage("dashboard");
 }
 
-/* Check auto login */
 window.addEventListener("DOMContentLoaded", () => {
     const savedUser = readJSON(CURRENT_USER_KEY, null);
     if (savedUser && savedUser.username) {
@@ -921,10 +857,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-/* =========================================================
-   PAGE ROUTER
-========================================================= */
-
 function showPage(name){
     const titles = {
         dashboard: "Dashboard",
@@ -932,20 +864,17 @@ function showPage(name){
         create: "Create Flashcards",
         flashcards: "Flashcards",
         quiz: "Question Battle",
-        tests: "Revision Tests",
-        games: "Games",
+        games: "Arcade Games",
         pvp: "Player vs Player",
+        chat: "Global Chat",
         progress: "Progress",
         settings: "Settings",
-        admin: "Admin Panel"
+        admin: "Admin & Management Core"
     };
 
     document.getElementById("pageTitle").textContent = titles[name] || "CyberRevision";
 
-    document.querySelectorAll(".nav button").forEach(button => {
-        button.classList.remove("active");
-    });
-
+    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
     const nav = document.getElementById("nav-" + name);
     if(nav) nav.classList.add("active");
 
@@ -955,9 +884,9 @@ function showPage(name){
         create: renderCreate,
         flashcards: renderFlashcards,
         quiz: renderQuizHome,
-        tests: renderTests,
         games: renderGames,
         pvp: renderPVP,
+        chat: renderChat,
         progress: renderProgress,
         settings: renderSettings,
         admin: renderAdmin
@@ -966,169 +895,162 @@ function showPage(name){
     if(pages[name]) pages[name]();
 }
 
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
+/* DASHBOARD */
 function renderDashboard(){
     const level = Math.floor(accountData.xp / 100) + 1;
     const accuracy = accountData.questionsAnswered
-        ? Math.round(accountData.correctAnswers / accountData.questionsAnswered * 100)
-        : 0;
-
-    const cardProgress = Math.min(accountData.daily.cards * 10, 100);
-    const questionProgress = Math.min(accountData.daily.questions * 10, 100);
+        ? Math.round(accountData.correctAnswers / accountData.questionsAnswered * 100) : 0;
 
     document.getElementById("content").innerHTML = `
         <div class="hero">
             <span class="badge">LEVEL ${level}</span>
             <h1>Welcome back, ${escapeHTML(currentUser.username)}.</h1>
             <p class="muted">// REVISION NETWORK ONLINE</p>
-
             <div class="stat">${accountData.xp} XP</div>
             <div class="progress"><i style="width:${accountData.xp % 100}%"></i></div>
-
             <br>
             <div class="actions">
                 <button class="btn primary" onclick="showPage('create')">+ CREATE FLASHCARDS</button>
                 <button class="btn purple" onclick="showPage('games')">PLAY GAMES</button>
             </div>
         </div>
-
         <br>
         <div class="grid g4">
-            <div class="panel">
-                <div class="statlabel">XP</div>
-                <div class="stat">${accountData.xp}</div>
-            </div>
-            <div class="panel">
-                <div class="statlabel">STREAK</div>
-                <div class="stat">${accountData.streak} Days</div>
-            </div>
-            <div class="panel">
-                <div class="statlabel">CARDS STUDIED</div>
-                <div class="stat">${accountData.cardsStudied}</div>
-            </div>
-            <div class="panel">
-                <div class="statlabel">ACCURACY</div>
-                <div class="stat">${accuracy}%</div>
-            </div>
-        </div>
-
-        <br>
-        <div class="grid g2">
-            <div class="panel">
-                <h3>DAILY QUEST</h3>
-                <p>Flashcards: <b>${Math.min(accountData.daily.cards,10)}/10</b></p>
-                <div class="progress"><i style="width:${cardProgress}%"></i></div>
-                <br>
-                <p>Questions: <b>${Math.min(accountData.daily.questions,10)}/10</b></p>
-                <div class="progress"><i style="width:${questionProgress}%"></i></div>
-            </div>
-
-            <div class="panel">
-                <h3>MEMORY CORE</h3>
-                <p class="muted">Your personal flashcard memory status.</p>
-                <div class="stat">${Object.keys(accountData.memory).length}</div>
-                <div class="statlabel">TRACKED CARDS</div>
-            </div>
+            <div class="panel"><div class="statlabel">XP</div><div class="stat">${accountData.xp}</div></div>
+            <div class="panel"><div class="statlabel">STREAK</div><div class="stat">${accountData.streak} Days</div></div>
+            <div class="panel"><div class="statlabel">CARDS STUDIED</div><div class="stat">${accountData.cardsStudied}</div></div>
+            <div class="panel"><div class="statlabel">ACCURACY</div><div class="stat">${accuracy}%</div></div>
         </div>
     `;
 }
 
-/* =========================================================
-   PUBLIC SETS
-========================================================= */
-
-function getPublicSets(){
-    return readJSON(PUBLIC_SETS_KEY, SAMPLE_SETS);
-}
-
-function savePublicSets(sets){
-    writeJSON(PUBLIC_SETS_KEY, sets);
-}
+/* PUBLIC SETS & DELETION */
+function getPublicSets(){ return readJSON(PUBLIC_SETS_KEY, SAMPLE_SETS); }
+function savePublicSets(sets){ writeJSON(PUBLIC_SETS_KEY, sets); }
 
 function getAllSets(){
     const map = new Map();
-    getPublicSets().forEach(set => map.set(set.id, set));
-    accountData.ownSets.forEach(set => map.set(set.id, set));
+    getPublicSets().forEach(s => map.set(s.id, s));
+    accountData.ownSets.forEach(s => map.set(s.id, s));
     return [...map.values()];
 }
 
 function renderSets(){
-    const sets = getAllSets();
+    const allSets = getAllSets();
+    const searchVal = (document.getElementById("setSearchInput")?.value || "").toLowerCase();
+    const filterSubject = document.getElementById("setSubjectFilter")?.value || "ALL";
+
+    const filtered = allSets.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(searchVal) || s.subject.toLowerCase().includes(searchVal);
+        const matchesSubject = filterSubject === "ALL" || s.subject === filterSubject;
+        return matchesSearch && matchesSubject;
+    });
 
     document.getElementById("content").innerHTML = `
-        <div class="hero">
+        <div class="panel">
             <h2>PUBLIC STUDY NETWORK</h2>
-            <p class="muted">Everyone can access published flashcard sets.</p>
-            <button class="btn primary" onclick="showPage('create')">+ CREATE SET</button>
+            <p class="muted">Search and browse flashcard sets created by students and admins.</p>
+            
+            <div class="grid g2" style="margin-bottom:15px;">
+                <input id="setSearchInput" placeholder="Search by name or subject..." value="${escapeHTML(searchVal)}" oninput="renderSets()">
+                <select id="setSubjectFilter" onchange="renderSets()">
+                    <option value="ALL">All Subjects</option>
+                    <option value="Maths" ${filterSubject==='Maths'?'selected':''}>Maths</option>
+                    <option value="English" ${filterSubject==='English'?'selected':''}>English</option>
+                    <option value="Biology" ${filterSubject==='Biology'?'selected':''}>Biology</option>
+                    <option value="Chemistry" ${filterSubject==='Chemistry'?'selected':''}>Chemistry</option>
+                    <option value="Physics" ${filterSubject==='Physics'?'selected':''}>Physics</option>
+                    <option value="History" ${filterSubject==='History'?'selected':''}>History</option>
+                    <option value="Geography" ${filterSubject==='Geography'?'selected':''}>Geography</option>
+                    <option value="French" ${filterSubject==='French'?'selected':''}>French</option>
+                    <option value="Latin" ${filterSubject==='Latin'?'selected':''}>Latin</option>
+                    <option value="Other" ${filterSubject==='Other'?'selected':''}>Other</option>
+                </select>
+            </div>
         </div>
-
         <br>
         <div class="grid g3">
-            ${sets.length ? sets.map(set => `
-                <div class="panel set">
-                    <span class="badge">${escapeHTML(set.subject)}</span>
-                    <h3>${escapeHTML(set.name)}</h3>
-                    <div class="meta">${set.cards.length} cards</div>
-                    <div class="meta">Created by ${escapeHTML(set.author)}</div>
-                    <br>
-                    <div class="actions">
-                        <button class="btn primary" onclick="startFlashcards('${set.id}')">STUDY</button>
-                        <button class="btn purple" onclick="startQuiz('${set.id}')">QUIZ</button>
+            ${filtered.length ? filtered.map(set => {
+                const isAuthor = set.authorKey === currentUser.username.toLowerCase();
+                const isAdminAuthor = set.authorKey === "systemadmin" || (getUsers().find(u => u.username.toLowerCase() === set.authorKey)?.admin);
+                
+                // Can delete if creator, admin, or OP (unless set belongs to an admin and user is only OP)
+                let canDelete = isAuthor || currentUser.admin;
+                if(currentUser.op && !isAdminAuthor) canDelete = true;
+
+                return `
+                    <div class="panel set">
+                        <span class="badge">${escapeHTML(set.subject)}</span>
+                        <h3>${escapeHTML(set.name)}</h3>
+                        <div class="meta">${set.cards.length} cards</div>
+                        <div class="meta">Author: ${escapeHTML(set.author)}</div>
+                        <br>
+                        <div class="actions">
+                            <button class="btn primary" onclick="startFlashcards('${set.id}')">STUDY</button>
+                            <button class="btn purple" onclick="startQuiz('${set.id}')">QUIZ</button>
+                            ${canDelete ? `<button class="btn red" onclick="deleteSet('${set.id}')">DELETE</button>` : ''}
+                        </div>
                     </div>
-                </div>
-            `).join('') : '<p class="muted">No study sets created yet.</p>'}
+                `;
+            }).join('') : '<p class="muted">No matching study sets found.</p>'}
         </div>
     `;
 }
 
-/* =========================================================
-   CREATE FLASHCARDS
-========================================================= */
+function deleteSet(setId){
+    if(!confirm("Are you sure you want to delete this study set?")) return;
 
+    let publicSets = getPublicSets();
+    const targetSet = publicSets.find(s => s.id === setId);
+    
+    if(targetSet){
+        const isAdminAuthor = targetSet.authorKey === "systemadmin" || (getUsers().find(u => u.username.toLowerCase() === targetSet.authorKey)?.admin);
+        if(currentUser.op && !currentUser.admin && isAdminAuthor){
+            alert("Operators cannot delete sets created by Admins.");
+            return;
+        }
+    }
+
+    publicSets = publicSets.filter(s => s.id !== setId);
+    savePublicSets(publicSets);
+
+    accountData.ownSets = accountData.ownSets.filter(s => s.id !== setId);
+    saveAccount();
+
+    renderSets();
+}
+
+/* CREATE FLASHCARDS */
 let cardNumber = 0;
-
 function renderCreate(){
     cardNumber = 0;
     document.getElementById("content").innerHTML = `
         <div class="panel">
-            <h2>CREATE PUBLIC STUDY SET</h2>
-            <p class="muted">Create flashcards manually. Published sets are visible in the library.</p>
-
+            <h2>CREATE STUDY SET</h2>
+            <p class="muted">Create flashcards to study and publish for all users.</p>
             <div class="grid g2">
                 <div>
                     <label>Set Name</label>
-                    <input id="newSetName" placeholder="e.g. Physics Forces">
+                    <input id="newSetName" placeholder="e.g. Organic Chemistry">
                 </div>
                 <div>
                     <label>Subject</label>
                     <select id="newSetSubject">
-                        <option>Maths</option>
-                        <option>English</option>
-                        <option>Biology</option>
-                        <option>Chemistry</option>
-                        <option>Physics</option>
-                        <option>History</option>
-                        <option>Geography</option>
-                        <option>French</option>
-                        <option>Latin</option>
+                        <option>Maths</option><option>English</option><option>Biology</option>
+                        <option>Chemistry</option><option>Physics</option><option>History</option>
+                        <option>Geography</option><option>French</option><option>Latin</option>
                         <option>Other</option>
                     </select>
                 </div>
             </div>
-
             <br>
             <div id="cardEditor"></div>
-
             <div class="actions">
                 <button class="btn" onclick="addFlashcardInput()">+ ADD FLASHCARD</button>
                 <button class="btn primary" onclick="publishSet()">PUBLISH SET</button>
             </div>
         </div>
     `;
-
     addFlashcardInput();
     addFlashcardInput();
 }
@@ -1143,9 +1065,9 @@ function addFlashcardInput(){
             <button class="btn red" onclick="this.parentElement.parentElement.remove()">DELETE</button>
         </div>
         <label>QUESTION / FRONT</label>
-        <input class="flash-front" placeholder="What is...">
+        <input class="flash-front" placeholder="Front concept...">
         <label>ANSWER / BACK</label>
-        <textarea class="flash-back" placeholder="The answer is..."></textarea>
+        <textarea class="flash-back" placeholder="Back answer..."></textarea>
     `;
     document.getElementById("cardEditor").appendChild(wrapper);
 }
@@ -1160,13 +1082,11 @@ function publishSet(){
     for(let i = 0; i < fronts.length; i++){
         const front = fronts[i].value.trim();
         const back = backs[i].value.trim();
-        if(front && back){
-            cards.push({ front, back });
-        }
+        if(front && back) cards.push({ front, back });
     }
 
     if(!name){ alert("Enter a set name."); return; }
-    if(cards.length === 0){ alert("Create at least one complete flashcard."); return; }
+    if(cards.length === 0){ alert("Create at least one card."); return; }
 
     const set = {
         id: "SET_" + Date.now() + "_" + Math.random().toString(36).slice(2),
@@ -1187,13 +1107,18 @@ function publishSet(){
     savePublicSets(publicSets);
     saveAccount();
 
-    alert("Study set published successfully.");
+    alert("Set published!");
     showPage("sets");
 }
 
-/* =========================================================
-   FLASHCARD PLAYER
-========================================================= */
+/* FLASHCARD PLAYER */
+function startFlashcards(setId){
+    const sets = getAllSets();
+    activeSet = sets.find(s => s.id === setId);
+    activeCard = 0;
+    cardFlipped = false;
+    showPage("flashcards");
+}
 
 function renderFlashcards(){
     const sets = getAllSets();
@@ -1202,15 +1127,15 @@ function renderFlashcards(){
     if(!activeSet){
         document.getElementById("content").innerHTML = `
             <div class="panel">
-                <h3>No Flashcards Available</h3>
-                <p class="muted">Create or select a study set to start studying.</p>
-                <button class="btn primary" onclick="showPage('create')">+ CREATE SET</button>
+                <h3>No Flashcards Found</h3>
+                <p class="muted">Create or select a set to start studying.</p>
+                <button class="btn primary" onclick="showPage('sets')">BROWSE SETS</button>
             </div>
         `;
         return;
     }
 
-    const card = activeSet.cards[activeCard] || { front: "End of Set", back: "End of Set" };
+    const card = activeSet.cards[activeCard] || { front: "Empty", back: "Empty" };
 
     document.getElementById("content").innerHTML = `
         <div class="panel">
@@ -1225,13 +1150,11 @@ function renderFlashcards(){
                     </select>
                 </div>
             </div>
-
             <br>
             <div class="flashcard" onclick="flipCard()">
                 <div class="flash-label">${cardFlipped ? "ANSWER / BACK" : "QUESTION / FRONT (CLICK TO FLIP)"}</div>
                 <div class="flash-text">${escapeHTML(cardFlipped ? card.back : card.front)}</div>
             </div>
-
             <br>
             <div class="row-head">
                 <button class="btn" onclick="prevCard()">PREVIOUS</button>
@@ -1268,33 +1191,26 @@ function nextCard(){
         activeCard = 0;
     }
     cardFlipped = false;
-    
-    // Rewards
     accountData.cardsStudied++;
     accountData.daily.cards++;
     accountData.xp += 2;
     saveAccount();
-
     renderFlashcards();
 }
 
-/* =========================================================
-   QUIZ / BATTLE
-========================================================= */
-
+/* QUIZ / BATTLE */
 function renderQuizHome(){
     const sets = getAllSets();
     document.getElementById("content").innerHTML = `
         <div class="panel">
             <h2>QUESTION BATTLE</h2>
-            <p class="muted">Select a set to test your knowledge.</p>
-
+            <p class="muted">Choose a set to test your knowledge.</p>
             <div class="grid g3">
                 ${sets.map(set => `
                     <div class="panel set">
                         <h3>${escapeHTML(set.name)}</h3>
-                        <p class="muted">${set.cards.length} Questions</p>
-                        <button class="btn purple" onclick="startQuiz('${set.id}')">START BATTLE</button>
+                        <p class="muted">${set.cards.length} Cards</p>
+                        <button class="btn purple" onclick="startQuiz('${set.id}')">START QUIZ</button>
                     </div>
                 `).join('')}
             </div>
@@ -1305,25 +1221,18 @@ function renderQuizHome(){
 function startQuiz(setId){
     const sets = getAllSets();
     const set = sets.find(s => s.id === setId);
-    if(!set || set.cards.length === 0){
-        alert("Set has no questions!");
-        return;
-    }
+    if(!set || set.cards.length === 0){ alert("Set contains no cards!"); return; }
 
     quizQuestions = set.cards.map(c => {
-        // Generate dummy answers from other cards
         const otherBacks = set.cards.filter(x => x.back !== c.back).map(x => x.back);
         const distractors = otherBacks.sort(() => 0.5 - Math.random()).slice(0, 3);
         const choices = [...distractors, c.back].sort(() => 0.5 - Math.random());
-        return {
-            question: c.front,
-            correct: c.back,
-            choices: choices
-        };
+        return { question: c.front, correct: c.back, choices };
     });
 
     quizPosition = 0;
     quizScore = 0;
+    showPage("quiz");
     renderQuizQuestion();
 }
 
@@ -1334,16 +1243,13 @@ function renderQuizQuestion(){
     }
 
     const q = quizQuestions[quizPosition];
-
     document.getElementById("content").innerHTML = `
         <div class="panel">
             <div class="row-head">
                 <span class="badge">QUESTION ${quizPosition + 1}/${quizQuestions.length}</span>
                 <span class="statlabel">SCORE: ${quizScore}</span>
             </div>
-
             <div class="question">${escapeHTML(q.question)}</div>
-
             <div class="answers">
                 ${q.choices.map(choice => `
                     <button class="answer" onclick="submitAnswer(this, '${escapeHTML(choice)}')">
@@ -1372,112 +1278,331 @@ function submitAnswer(btn, choice){
     }
 
     saveAccount();
-
     setTimeout(() => {
         quizPosition++;
         renderQuizQuestion();
-    }, 1000);
+    }, 800);
 }
 
 function renderQuizResults(){
     document.getElementById("content").innerHTML = `
-        <div class="panel text-center">
-            <h2>BATTLE COMPLETE!</h2>
-            <div class="stat">${quizScore} POINTS</div>
-            <p class="muted">XP Earned: ${quizScore}</p>
-            <br>
-            <button class="btn primary" onclick="showPage('quiz')">PLAY AGAIN</button>
-        </div>
-    `;
-}
-
-/* =========================================================
-   OTHER PAGES (PLACEHOLDERS / EXTENSIONS)
-========================================================= */
-
-function renderTests(){
-    document.getElementById("content").innerHTML = `
         <div class="panel">
-            <h2>REVISION TESTS</h2>
-            <p class="muted">Timed comprehensive exams across all your saved topics.</p>
-            <button class="btn primary" onclick="alert('Test Mode generated based on your memory core!')">GENERATE PRACTICE TEST</button>
+            <h2>BATTLE COMPLETED!</h2>
+            <div class="stat">${quizScore} POINTS</div>
+            <br>
+            <button class="btn primary" onclick="renderQuizHome()">CONTINUE</button>
         </div>
     `;
 }
+
+/* ARCADE GAMES */
+let memCards = [], firstCard = null, secondCard = null, lockBoard = false, matchesFound = 0;
 
 function renderGames(){
     document.getElementById("content").innerHTML = `
         <div class="panel">
             <h2>CYBER ARCADE</h2>
-            <p class="muted">Gamified revision modules.</p>
+            <p class="muted">Play interactive games using your flashcards.</p>
+            <br>
+            <label>Select Study Set For Game</label>
+            <select id="gameSetSelect" style="max-width:300px; margin-bottom:20px;">
+                ${getAllSets().map(s => `<option value="${s.id}">${escapeHTML(s.name)}</option>`).join('')}
+            </select>
             <div class="grid g2">
                 <div class="panel">
                     <h3>MEMORY MATCH</h3>
-                    <p>Match concepts with answers under time pressure.</p>
-                    <button class="btn purple" onclick="alert('Launching Arcade Mode...')">LAUNCH</button>
+                    <p class="muted">Match front concepts with back answers.</p>
+                    <button class="btn purple" onclick="startMemoryGame()">PLAY MEMORY MATCH</button>
                 </div>
-                <div class="panel">
-                    <h3>CYBER TYPER</h3>
-                    <p>Type the answers rapidly to defend your core.</p>
-                    <button class="btn purple" onclick="alert('Launching Arcade Mode...')">LAUNCH</button>
-                </div>
+            </div>
+        </div>
+        <div id="gameContainer"></div>
+    `;
+}
+
+function startMemoryGame(){
+    const setId = document.getElementById("gameSetSelect").value;
+    const set = getAllSets().find(s => s.id === setId);
+    if(!set || set.cards.length < 2){ alert("Set needs at least 2 cards for Memory Match."); return; }
+
+    const subset = set.cards.slice(0, 6);
+    memCards = [];
+    subset.forEach((c, i) => {
+        memCards.push({ id: i, text: c.front, matchId: i, type: 'front' });
+        memCards.push({ id: i, text: c.back, matchId: i, type: 'back' });
+    });
+    memCards.sort(() => 0.5 - Math.random());
+
+    firstCard = null;
+    secondCard = null;
+    lockBoard = false;
+    matchesFound = 0;
+
+    const container = document.getElementById("gameContainer");
+    container.innerHTML = `
+        <div class="panel" style="margin-top:20px;">
+            <h3>MEMORY MATCH BOARD</h3>
+            <div class="memory-grid">
+                ${memCards.map((c, index) => `
+                    <div class="mem-card" id="mem-card-${index}" onclick="flipMemCard(${index})">?</div>
+                `).join('')}
             </div>
         </div>
     `;
 }
 
+function flipMemCard(index){
+    if(lockBoard) return;
+    const cardEl = document.getElementById(`mem-card-${index}`);
+    if(cardEl.classList.contains("flipped") || cardEl.classList.contains("matched")) return;
+
+    cardEl.classList.add("flipped");
+    cardEl.textContent = memCards[index].text;
+
+    if(!firstCard){
+        firstCard = { index, data: memCards[index] };
+        return;
+    }
+
+    secondCard = { index, data: memCards[index] };
+    lockBoard = true;
+
+    if(firstCard.data.matchId === secondCard.data.matchId && firstCard.data.type !== secondCard.data.type){
+        document.getElementById(`mem-card-${firstCard.index}`).classList.add("matched");
+        document.getElementById(`mem-card-${secondCard.index}`).classList.add("matched");
+        matchesFound++;
+        accountData.xp += 15;
+        saveAccount();
+        resetMemBoard();
+
+        if(matchesFound === memCards.length / 2){
+            setTimeout(() => alert("You matched all cards! +XP Awarded!"), 300);
+        }
+    } else {
+        setTimeout(() => {
+            const el1 = document.getElementById(`mem-card-${firstCard.index}`);
+            const el2 = document.getElementById(`mem-card-${secondCard.index}`);
+            if(el1) { el1.classList.remove("flipped"); el1.textContent = "?"; }
+            if(el2) { el2.classList.remove("flipped"); el2.textContent = "?"; }
+            resetMemBoard();
+        }, 1000);
+    }
+}
+
+function resetMemBoard(){
+    [firstCard, secondCard] = [null, null];
+    lockBoard = false;
+}
+
+/* PLAYER VS PLAYER */
 function renderPVP(){
+    const sets = getAllSets();
     document.getElementById("content").innerHTML = `
         <div class="panel">
-            <h2>PLAYER VS PLAYER</h2>
-            <p class="muted">Challenge other revision operatives in real time.</p>
-            <div class="room">MATCHMAKING ONLINE</div>
+            <h2>PLAYER VS PLAYER ARENA</h2>
+            <p class="muted">Challenge online revision operatives using your custom sets.</p>
+            
+            <label>Select Battle Set</label>
+            <select id="pvpSetSelect" style="max-width:350px; margin-bottom:15px;">
+                ${sets.map(s => `<option value="${s.id}">${escapeHTML(s.name)} (${s.cards.length} Cards)</option>`).join('')}
+            </select>
             <br>
-            <button class="btn primary" onclick="alert('Searching for opponents...')">FIND MATCH</button>
+            <button class="btn primary" onclick="startPVPBattle()">START MATCHMAKING</button>
+        </div>
+        <div id="pvpArena"></div>
+    `;
+}
+
+function startPVPBattle(){
+    const setId = document.getElementById("pvpSetSelect").value;
+    const set = getAllSets().find(s => s.id === setId);
+    
+    document.getElementById("pvpArena").innerHTML = `
+        <div class="panel" style="margin-top:20px;">
+            <h3>BATTLING ON: ${escapeHTML(set.name)}</h3>
+            <p class="muted">Searching for opponent...</p>
+            <div class="progress"><i style="width:70%"></i></div>
+            <br>
+            <button class="btn purple" onclick="startQuiz('${set.id}')">PLAY VS CYBER BOT</button>
         </div>
     `;
 }
 
+/* GLOBAL CHAT */
+function getChatMessages(){ return readJSON(CHAT_KEY, []); }
+function saveChatMessages(msgs){ writeJSON(CHAT_KEY, msgs); }
+
+function renderChat(){
+    const msgs = getChatMessages();
+    const canDelete = currentUser.admin || currentUser.op;
+
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <div class="row-head">
+                <h2>GLOBAL CHAT</h2>
+                ${currentUser.admin ? `<button class="btn red" onclick="clearChat()">CLEAR CHAT</button>` : ''}
+            </div>
+            <p class="muted">Live communication network for all operatives.</p>
+            
+            <div class="chat-box" id="chatBox">
+                ${msgs.map((m, index) => `
+                    <div class="chat-msg">
+                        <div class="chat-header">
+                            <div>
+                                <b>${escapeHTML(m.author)}</b>${m.admin ? '<span class="badge admin">ADMIN</span>' : ''}
+                                ${m.op ? '<span class="badge op">OP</span>' : ''}
+                            </div>
+                            <div>
+                                <span class="muted">${new Date(m.time).toLocaleTimeString()}</span>${canDelete ? `<button class="btn red" style="padding:2px 5px; font-size:10px;" onclick="deleteChatMessage(${index})">X</button>` : ''}
+                            </div>
+                        </div>
+                        <div>${escapeHTML(m.text)}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            ${currentUser.muted ? `
+                <div class="error">You have been muted by an administrator and cannot send messages.</div>
+            ` : `
+                <div class="actions">
+                    <input id="chatInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn primary" onclick="sendChatMessage()">SEND</button>
+                </div>
+            `}
+        </div>
+    `;
+
+    const chatBox = document.getElementById("chatBox");
+    if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function sendChatMessage(){
+    if(currentUser.muted){ alert("You are muted."); return; }
+    const input = document.getElementById("chatInput");
+    const text = input.value.trim();
+    if(!text) return;
+
+    const msgs = getChatMessages();
+    msgs.push({
+        author: currentUser.username,
+        text: text,
+        admin: currentUser.admin,
+        op: currentUser.op,
+        time: Date.now()
+    });
+
+    saveChatMessages(msgs);
+    input.value = "";
+    renderChat();
+}
+
+function deleteChatMessage(index){
+    const msgs = getChatMessages();
+    msgs.splice(index, 1);
+    saveChatMessages(msgs);
+    renderChat();
+}
+
+function clearChat(){
+    if(!confirm("Clear all global chat messages?")) return;
+    saveChatMessages([]);
+    renderChat();
+}
+
+/* PROGRESS */
 function renderProgress(){
     document.getElementById("content").innerHTML = `
         <div class="panel">
-            <h2>ANALYTICS & PROGRESS</h2>
+            <h2>USER PROGRESS</h2>
             <div class="grid g3">
-                <div class="panel"><div class="statlabel">TOTAL XP</div><div class="stat">${accountData.xp}</div></div>
-                <div class="panel"><div class="statlabel">CARDS</div><div class="stat">${accountData.cardsStudied}</div></div>
-                <div class="panel"><div class="statlabel">CORRECT</div><div class="stat">${accountData.correctAnswers}</div></div>
+                <div class="panel"><div class="statlabel">XP</div><div class="stat">${accountData.xp}</div></div>
+                <div class="panel"><div class="statlabel">CARDS STUDIED</div><div class="stat">${accountData.cardsStudied}</div></div>
+                <div class="panel"><div class="statlabel">CORRECT ANSWERS</div><div class="stat">${accountData.correctAnswers}</div></div>
             </div>
         </div>
     `;
 }
 
+/* SETTINGS */
 function renderSettings(){
     document.getElementById("content").innerHTML = `
         <div class="panel">
-            <h2>SYSTEM SETTINGS</h2>
+            <h2>SETTINGS</h2>
             <br>
             <button class="btn red" onclick="logout()">LOGOUT</button>
         </div>
     `;
 }
 
+/* ADMIN & MANAGEMENT CORE */
 function renderAdmin(){
-    if(!currentUser || !currentUser.admin){
+    if(!currentUser || (!currentUser.admin && !currentUser.op)){
         showPage('dashboard');
         return;
     }
+
     const users = getUsers();
+    const now = Date.now();
+
     document.getElementById("content").innerHTML = `
-        <div class="panel admin">
-            <h2>ADMIN CORE</h2>
-            <div class="admin-bar">Access Granted: Full System Privileges</div>
+        <div class="panel">
+            <h2>ADMIN & OPERATOR PANEL</h2>
+            <p class="muted">Manage system privileges, users, and moderation.</p>
             <br>
-            <h3>Registered Users (${users.length})</h3>
-            <ul>
-                ${users.map(u => `<li><b>${escapeHTML(u.username)}</b>${u.admin ? '[ADMIN]' : ''}</li>`).join('')}
-            </ul>
+            <h3>REGISTERED USERS (${users.length})</h3>
+            <br>
+            <div class="grid g2">
+                ${users.map(u => {
+                    const isOnline = u.lastActive && (now - u.lastActive < 300000); // active within 5 mins
+                    return `
+                        <div class="panel">
+                            <div class="row-head">
+                                <div>
+                                    <b>${escapeHTML(u.username)}</b>${u.admin ? '<span class="badge admin">ADMIN</span>' : ''}
+                                    ${u.op ? '<span class="badge op">OP</span>' : ''}
+                                    ${u.muted ? '<span class="badge red">MUTED</span>' : ''}
+                                </div>
+                                <span class="badge ${isOnline ? 'green' : ''}">${isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+                            </div>
+                            <br>
+                            ${currentUser.admin ? `
+                                <div class="actions">
+                                    <button class="btn ${u.op ? 'red' : 'purple'}" onclick="toggleOp('${escapeHTML(u.username)}')">
+                                        ${u.op ? 'REMOVE OP' : 'MAKE OP'}
+                                    </button>
+                                    <button class="btn ${u.muted ? 'green' : 'red'}" onclick="toggleMute('${escapeHTML(u.username)}')">
+                                        ${u.muted ? 'UNMUTE' : 'MUTE'}
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
         </div>
     `;
+}
+
+function toggleOp(username){
+    if(!currentUser.admin) return;
+    const users = getUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if(target){
+        target.op = !target.op;
+        saveUsers(users);
+        renderAdmin();
+    }
+}
+
+function toggleMute(username){
+    if(!currentUser.admin) return;
+    const users = getUsers();
+    const target = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if(target){
+        target.muted = !target.muted;
+        saveUsers(users);
+        renderAdmin();
+    }
 }
 
 function logout(){
