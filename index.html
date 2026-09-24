@@ -1,856 +1,1493 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber Search - Architecture & Live Query Simulator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            bg: '#080d1a',
-                            card: '#0f172a',
-                            border: '#1e293b',
-                            neonBlue: '#00f0ff',
-                            neonPink: '#ff007f',
-                            neonPurple: '#7000ff',
-                            neonGreen: '#00ff66'
-                        }
-                    },
-                    boxShadow: {
-                        'neon-blue': '0 0 15px rgba(0, 240, 255, 0.4)',
-                        'neon-pink': '0 0 15px rgba(255, 0, 127, 0.4)',
-                        'neon-purple': '0 0 15px rgba(112, 0, 255, 0.4)',
-                        'neon-green': '0 0 15px rgba(0, 255, 102, 0.4)',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        /* Custom Glowing and Futuristic Effects */
-        body {
-            background-color: #050811;
-            color: #e2e8f0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow-x: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberRevision</title>
 
-        .cyber-grid-bg {
-            background-image: linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
-        }
+<style>
+*{box-sizing:border-box}
 
-        .glow-border {
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            transition: all 0.3s ease;
-        }
+:root{
+    --bg:#020611;
+    --panel:#07111f;
+    --panel2:#0b1728;
+    --border:#163653;
+    --cyan:#00eaff;
+    --purple:#8b5cf6;
+    --green:#00ff9d;
+    --red:#ff416c;
+    --text:#eafaff;
+    --muted:#7892a6;
+}
 
-        .glow-border:hover {
-            border-color: rgba(0, 240, 255, 0.7);
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-        }
+html,body{
+    margin:0;
+    width:100%;
+    min-height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Arial,Helvetica,sans-serif;
+}
 
-        .node-active {
-            border-color: #00f0ff !important;
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.6) !important;
-            transform: scale(1.02);
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(0, 240, 255, 0.15)) !important;
-        }
+body{
+    min-height:100vh;
+    background:
+        radial-gradient(circle at 20% 0%,#06304a 0,transparent 35%),
+        radial-gradient(circle at 100% 100%,#241044 0,transparent 35%),
+        #020611;
+}
 
-        .node-completed {
-            border-color: #00ff66 !important;
-            box-shadow: 0 0 10px rgba(0, 255, 102, 0.3) !important;
-        }
+button,input,textarea,select{
+    font:inherit;
+}
 
-        /* Pulse Line Animation */
-        @keyframes linePulse {
-            0% { opacity: 0.3; stroke-dashoffset: 20; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; stroke-dashoffset: 0; }
-        }
+button{
+    cursor:pointer;
+}
 
-        .pulsing-path {
-            stroke-dasharray: 6;
-            animation: linePulse 1.5s infinite linear;
-        }
+.hidden{
+    display:none!important;
+}
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #080d1a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #1e293b;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #00f0ff;
-        }
-    </style>
+/* AUTH */
+
+#auth{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.auth-box{
+    width:100%;
+    max-width:460px;
+    background:rgba(7,17,31,.96);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:35px;
+    box-shadow:0 0 80px rgba(0,234,255,.08);
+}
+
+.logo{
+    font-size:27px;
+    font-weight:900;
+    letter-spacing:3px;
+}
+
+.logo span{
+    color:var(--cyan);
+    text-shadow:0 0 15px var(--cyan);
+}
+
+.auth-sub{
+    color:var(--muted);
+    margin:8px 0 30px;
+}
+
+label{
+    display:block;
+    color:#86a8ba;
+    font-size:11px;
+    font-weight:bold;
+    letter-spacing:1px;
+    margin:16px 0 7px;
+    text-transform:uppercase;
+}
+
+input,textarea,select{
+    width:100%;
+    padding:12px;
+    color:white;
+    background:#020914;
+    border:1px solid var(--border);
+    border-radius:9px;
+    outline:none;
+}
+
+input:focus,textarea:focus,select:focus{
+    border-color:var(--cyan);
+    box-shadow:0 0 15px rgba(0,234,255,.12);
+}
+
+textarea{
+    min-height:100px;
+    resize:vertical;
+}
+
+.btn{
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:11px 16px;
+    color:white;
+    background:#081827;
+    font-weight:bold;
+}
+
+.btn:hover{
+    border-color:var(--cyan);
+}
+
+.primary{
+    background:#075d76;
+    border-color:var(--cyan);
+}
+
+.green{
+    background:#06271c;
+    border-color:#00a86b;
+    color:var(--green);
+}
+
+.red{
+    background:#2a0b16;
+    border-color:#7d1835;
+    color:#ff7895;
+}
+
+.purple{
+    background:#1a1031;
+    border-color:#6945ae;
+    color:#c7b4ff;
+}
+
+.actions{
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+}
+
+.error{
+    min-height:20px;
+    color:#ff6688;
+    margin-top:15px;
+}
+
+/* APP */
+
+#app{
+    display:none;
+}
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    width:245px;
+    background:rgba(2,8,17,.97);
+    border-right:1px solid var(--border);
+    padding:22px 13px;
+    z-index:10;
+}
+
+.sidebar .logo{
+    padding:5px 10px 30px;
+}
+
+.nav-title{
+    color:#45657a;
+    font-size:10px;
+    font-weight:bold;
+    letter-spacing:2px;
+    padding:10px;
+}
+
+.nav button{
+    width:100%;
+    display:block;
+    text-align:left;
+    border:1px solid transparent;
+    background:transparent;
+    color:#708da0;
+    padding:12px;
+    margin:2px 0;
+    border-radius:8px;
+    font-weight:bold;
+}
+
+.nav button:hover,
+.nav button.active{
+    color:var(--cyan);
+    background:#061a29;
+    border-color:#123d56;
+}
+
+.main{
+    margin-left:245px;
+    width:calc(100% - 245px);
+    min-height:100vh;
+    padding:28px;
+}
+
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.top h2{
+    margin:6px 0 0;
+}
+
+.muted{
+    color:var(--muted);
+}
+
+.profile{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.avatar{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    color:var(--cyan);
+    background:#061b2b;
+    border:1px solid var(--cyan);
+    font-weight:bold;
+}
+
+.grid{
+    display:grid;
+    gap:18px;
+}
+
+.g2{
+    grid-template-columns:repeat(2,1fr);
+}
+
+.g3{
+    grid-template-columns:repeat(3,1fr);
+}
+
+.g4{
+    grid-template-columns:repeat(4,1fr);
+}
+
+.panel{
+    background:rgba(7,17,31,.94);
+    border:1px solid var(--border);
+    border-radius:15px;
+    padding:20px;
+}
+
+.hero{
+    background:
+        linear-gradient(135deg,rgba(0,234,255,.07),rgba(139,92,246,.08)),
+        rgba(7,17,31,.96);
+    border:1px solid #18536a;
+    border-radius:17px;
+    padding:28px;
+}
+
+.hero h1{
+    font-size:31px;
+}
+
+.badge{
+    display:inline-block;
+    border:1px solid #15516a;
+    background:#06202e;
+    color:var(--cyan);
+    border-radius:50px;
+    padding:5px 9px;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.stat{
+    color:var(--cyan);
+    font-size:30px;
+    font-weight:900;
+}
+
+.statlabel{
+    color:var(--muted);
+    font-size:10px;
+    letter-spacing:1px;
+}
+
+.progress{
+    width:100%;
+    height:8px;
+    overflow:hidden;
+    background:#020914;
+    border-radius:20px;
+}
+
+.progress i{
+    display:block;
+    height:100%;
+    background:linear-gradient(90deg,var(--cyan),var(--purple));
+}
+
+.set{
+    position:relative;
+    overflow:hidden;
+}
+
+.set:before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    right:0;
+    height:2px;
+    background:linear-gradient(90deg,var(--cyan),var(--purple));
+}
+
+.meta{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:5px;
+}
+
+.card-row{
+    padding:15px;
+    background:#030c16;
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin:12px 0;
+}
+
+.row-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+/* FLASHCARD */
+
+.flashcard{
+    min-height:350px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:35px;
+    border:1px solid #19536c;
+    border-radius:18px;
+    background:
+        radial-gradient(circle,rgba(0,234,255,.07),transparent 55%),
+        #050f1b;
+    cursor:pointer;
+    user-select:none;
+}
+
+.flashcard:hover{
+    border-color:var(--cyan);
+}
+
+.flash-label{
+    color:var(--cyan);
+    font-size:11px;
+    letter-spacing:3px;
+    margin-bottom:15px;
+}
+
+.flash-text{
+    font-size:30px;
+    font-weight:900;
+    line-height:1.4;
+}
+
+/* QUIZ */
+
+.question{
+    font-size:27px;
+    font-weight:900;
+    line-height:1.35;
+    margin:25px 0;
+}
+
+.answers{
+    display:grid;
+    gap:10px;
+}
+
+.answer{
+    width:100%;
+    padding:16px;
+    text-align:left;
+    border:1px solid var(--border);
+    border-radius:9px;
+    background:#071522;
+    color:white;
+    font-weight:bold;
+}
+
+.answer:hover{
+    border-color:var(--cyan);
+}
+
+.answer.correct{
+    background:#06271b;
+    border-color:var(--green);
+}
+
+.answer.wrong{
+    background:#2b0b16;
+    border-color:var(--red);
+}
+
+@media(max-width:850px){
+
+    .sidebar{
+        width:65px;
+    }
+
+    .sidebar .logo{
+        font-size:0;
+        text-align:center;
+    }
+
+    .sidebar .logo:after{
+        content:"C";
+        font-size:25px;
+        color:var(--cyan);
+    }
+
+    .nav-title{
+        display:none;
+    }
+
+    .nav button{
+        font-size:0;
+        text-align:center;
+    }
+
+    .nav button:after{
+        content:"◆";
+        font-size:11px;
+    }
+
+    .main{
+        margin-left:65px;
+        width:calc(100% - 65px);
+        padding:17px;
+    }
+
+    .g2,.g3,.g4{
+        grid-template-columns:1fr;
+    }
+}
+</style>
 </head>
-<body class="cyber-grid-bg min-h-screen flex flex-col">
 
-    <!-- Top Navigation Header -->
-    <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 px-4 lg:px-8 py-3 flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="p-2 rounded-lg bg-cyan-950/60 border border-cyan-500/40 shadow-neon-blue">
-                <i data-lucide="cpu" class="w-6 h-6 text-cyan-400"></i>
-            </div>
-            <div>
-                <h1 class="text-xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-purple-500">
-                    CYBER SEARCH
-                </h1>
-                <p class="text-xs text-slate-400">Neural Search Engine Architecture & Execution Simulator</p>
-            </div>
+<body>
+
+<!-- LOGIN / SIGNUP -->
+
+<div id="auth">
+    <div class="auth-box">
+
+        <div class="logo">
+            CYBER<span>REVISION</span>
         </div>
 
-        <div class="flex items-center space-x-4">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
-                <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span> SYSTEM READY
-            </span>
-            <button id="reset-system-btn" class="px-3 py-1.5 text-xs rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition">
-                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline mr-1"></i> Reset Engine
+        <div class="auth-sub">
+            // GAMIFIED REVISION NETWORK
+        </div>
+
+        <div id="authContent"></div>
+
+    </div>
+</div>
+
+
+<!-- MAIN APPLICATION -->
+
+<div id="app">
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            CYBER<span>REVISION</span>
+        </div>
+
+        <div class="nav-title">
+            REVISION SYSTEM
+        </div>
+
+        <div class="nav">
+
+            <button id="nav-dashboard" onclick="showPage('dashboard')">
+                Dashboard
             </button>
+
+            <button id="nav-sets" onclick="showPage('sets')">
+                Public Sets
+            </button>
+
+            <button id="nav-create" onclick="showPage('create')">
+                Create Flashcards
+            </button>
+
+            <button id="nav-flashcards" onclick="showPage('flashcards')">
+                Flashcards
+            </button>
+
+            <button id="nav-quiz" onclick="showPage('quiz')">
+                Question Battle
+            </button>
+
+            <button id="nav-tests" onclick="showPage('tests')">
+                Tests
+            </button>
+
+            <button id="nav-games" onclick="showPage('games')">
+                Games
+            </button>
+
+            <button id="nav-pvp" onclick="showPage('pvp')">
+                Player vs Player
+            </button>
+
+            <button id="nav-progress" onclick="showPage('progress')">
+                Progress
+            </button>
+
+            <button id="nav-settings" onclick="showPage('settings')">
+                Settings
+            </button>
+
+            <button id="nav-admin" class="hidden" onclick="showPage('admin')">
+                Admin Panel
+            </button>
+
         </div>
-    </header>
 
-    <!-- Main Content Container -->
-    <main class="flex-1 max-w-[1700px] w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    </aside>
 
-        <!-- Top Control Bar (Spans full width on desktop) -->
-        <section class="lg:col-span-12 bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl p-4 shadow-xl">
-            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-                
-                <!-- Query Input Field -->
-                <div class="flex-1 relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-cyan-400">
-                        <i data-lucide="search" class="w-5 h-5"></i>
-                    </div>
-                    <input type="text" id="query-input" 
-                           value="quantum computing break encryption" 
-                           placeholder="Type search query to simulate..." 
-                           class="w-full pl-11 pr-32 py-3 bg-slate-950/90 border border-slate-700/80 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition font-mono text-sm">
-                    <button id="run-query-btn" class="absolute right-1.5 top-1.5 bottom-1.5 px-5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-md shadow-neon-blue transition flex items-center space-x-1.5 text-sm">
-                        <i data-lucide="play" class="w-4 h-4 fill-slate-950"></i>
-                        <span>Run Query Process</span>
-                    </button>
-                </div>
 
-                <!-- Query Scenarios & Speed Controls -->
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Preset Scenarios:</span>
-                        <select id="preset-queries" class="bg-slate-950 border border-slate-700 rounded-md text-xs py-2 px-3 text-cyan-300 focus:outline-none focus:border-cyan-400 font-mono">
-                            <option value="quantum computing break encryption">1. Security: Quantum & Encryption</option>
-                            <option value="best coffee shop in London">2. Local Intent: Coffee in London</option>
-                            <option value="who founded Cyber Search">3. Fact: Cyber Search Founder</option>
-                            <option value="cyberpunk sci-fi movies 2026">4. Media: Cyberpunk Movies</option>
-                        </select>
-                    </div>
+    <main class="main">
 
-                    <!-- Execution Controls -->
-                    <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-1 space-x-1">
-                        <button id="pause-btn" class="p-1.5 rounded text-slate-400 hover:text-slate-100 hover:bg-slate-800" title="Pause Simulation">
-                            <i data-lucide="pause" class="w-4 h-4"></i>
-                        </button>
-                        <button id="step-btn" class="p-1.5 rounded text-slate-400 hover:text-slate-100 hover:bg-slate-800" title="Step Next Component">
-                            <i data-lucide="step-forward" class="w-4 h-4"></i>
-                        </button>
-                        <div class="h-4 w-px bg-slate-800 mx-1"></div>
-                        <span class="text-[11px] text-slate-400 px-1 font-mono">Speed:</span>
-                        <select id="speed-select" class="bg-transparent text-xs text-cyan-400 focus:outline-none font-mono">
-                            <option value="1500">Slow (1.5s)</option>
-                            <option value="800" selected>Normal (0.8s)</option>
-                            <option value="300">Fast (0.3s)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <div class="top">
 
-        <!-- Left Visual Diagram Column (8 cols on large screens) -->
-        <section class="lg:col-span-7 flex flex-col space-y-4">
-            <div class="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl p-5 relative min-h-[720px] flex flex-col justify-between shadow-2xl">
-                
-                <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
-                    <div class="flex items-center space-x-2">
-                        <i data-lucide="network" class="w-5 h-5 text-cyan-400"></i>
-                        <h2 class="font-bold text-slate-200 tracking-wide uppercase text-xs">CYBER PIPELINE ARCHITECTURE MAP</h2>
-                    </div>
-                    <span id="pipeline-status-text" class="text-xs font-mono text-cyan-400/80">
-                        Status: Idle • Ready for query input
-                    </span>
-                </div>
+            <div>
+                <div id="dateText" class="muted"></div>
 
-                <!-- Interactive Pipeline Nodes Overlay Layer -->
-                <div class="relative flex-1 flex flex-col justify-between py-2 space-y-6">
-
-                    <!-- Level 1: Query Interface -->
-                    <div class="flex justify-center">
-                        <div id="node-query_interface" class="pipeline-node w-64 bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-center cursor-pointer glow-border transition relative z-10">
-                            <div class="flex items-center justify-center space-x-2 text-cyan-400 mb-1">
-                                <i data-lucide="terminal" class="w-4 h-4"></i>
-                                <span class="text-xs font-bold uppercase tracking-wider">Cyber Search</span>
-                            </div>
-                            <div class="text-sm font-semibold text-slate-100">1. Query Interface</div>
-                            <div class="text-[10px] text-slate-400 font-mono mt-0.5">Captures User Query & Input Context</div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center">
-                        <i data-lucide="arrow-down" class="w-4 h-4 text-cyan-500/40 animate-bounce"></i>
-                    </div>
-
-                    <!-- Level 2: Query Understander -->
-                    <div class="flex justify-center">
-                        <div id="node-query_understander" class="pipeline-node w-72 bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-center cursor-pointer glow-border transition relative z-10">
-                            <div class="flex items-center justify-center space-x-2 text-purple-400 mb-1">
-                                <i data-lucide="brain-circuit" class="w-4 h-4"></i>
-                                <span class="text-xs font-bold uppercase tracking-wider">Cyber Understander</span>
-                            </div>
-                            <div class="text-sm font-semibold text-slate-100">2. Query Understander</div>
-                            <div class="text-[10px] text-slate-400 font-mono mt-0.5">Intent • Spelling • Entities • Language</div>
-                        </div>
-                    </div>
-
-                    <!-- Level 3: Vertical Discovery Fan-out -->
-                    <div class="grid grid-cols-3 gap-3 relative z-10">
-                        <div id="node-web_discovery" class="pipeline-node bg-slate-950 border border-slate-700/80 rounded-xl p-2.5 text-center cursor-pointer glow-border transition">
-                            <div class="flex items-center justify-center space-x-1.5 text-blue-400 mb-1">
-                                <i data-lucide="globe" class="w-3.5 h-3.5"></i>
-                                <span class="text-[11px] font-bold uppercase">Web Discovery</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-mono">APIs • RSS • News Feeds</div>
-                        </div>
-
-                        <div id="node-knowledge_graph" class="pipeline-node bg-slate-950 border border-slate-700/80 rounded-xl p-2.5 text-center cursor-pointer glow-border transition">
-                            <div class="flex items-center justify-center space-x-1.5 text-emerald-400 mb-1">
-                                <i data-lucide="database" class="w-3.5 h-3.5"></i>
-                                <span class="text-[11px] font-bold uppercase">Knowledge</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-mono">Wikidata • Wikipedia</div>
-                        </div>
-
-                        <div id="node-special_search" class="pipeline-node bg-slate-950 border border-slate-700/80 rounded-xl p-2.5 text-center cursor-pointer glow-border transition">
-                            <div class="flex items-center justify-center space-x-1.5 text-pink-400 mb-1">
-                                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-                                <span class="text-[11px] font-bold uppercase">Special Search</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-mono">Images • Videos • Maps</div>
-                        </div>
-                    </div>
-
-                    <!-- Level 4: Crawler & Content Parser -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div id="node-crawler" class="pipeline-node bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-center cursor-pointer glow-border transition">
-                            <div class="flex items-center justify-center space-x-2 text-amber-400 mb-1">
-                                <i data-lucide="bot" class="w-4 h-4"></i>
-                                <span class="text-xs font-bold uppercase">3. Crawler</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-mono">Fetch Pages • Links • Metadata</div>
-                        </div>
-
-                        <div id="node-content_parser" class="pipeline-node bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-center cursor-pointer glow-border transition">
-                            <div class="flex items-center justify-center space-x-2 text-teal-400 mb-1">
-                                <i data-lucide="file-text" class="w-4 h-4"></i>
-                                <span class="text-xs font-bold uppercase">4. Content Parser</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-mono">HTML • Text • Vectors • Structured</div>
-                        </div>
-                    </div>
-
-                    <!-- Level 5: Cyber Index (Dual Layer) -->
-                    <div id="node-cyber_index" class="pipeline-node bg-slate-950 border border-cyan-500/30 rounded-xl p-3.5 cursor-pointer glow-border transition">
-                        <div class="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-2">
-                            <div class="flex items-center space-x-2 text-cyan-400">
-                                <i data-lucide="server" class="w-4 h-4"></i>
-                                <span class="text-xs font-bold uppercase tracking-wider">5. CYBER INDEX</span>
-                            </div>
-                            <span class="text-[10px] bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded border border-cyan-800 font-mono">Dual-Core Engine</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 text-center text-xs">
-                            <div class="p-2 bg-slate-900/90 rounded border border-slate-800">
-                                <span class="text-cyan-300 font-semibold block">Inverted Index</span>
-                                <span class="text-[10px] text-slate-400 font-mono">Keywords • Lexical Matches</span>
-                            </div>
-                            <div class="p-2 bg-slate-900/90 rounded border border-slate-800">
-                                <span class="text-purple-300 font-semibold block">Semantic Index</span>
-                                <span class="text-[10px] text-slate-400 font-mono">Vector Embeddings • Entities</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Level 6: Cyber Ranking -->
-                    <div id="node-cyber_ranking" class="pipeline-node bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-center cursor-pointer glow-border transition">
-                        <div class="flex items-center justify-center space-x-2 text-pink-400 mb-1">
-                            <i data-lucide="sliders" class="w-4 h-4"></i>
-                            <span class="text-xs font-bold uppercase">6. Cyber Ranking</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 font-mono">
-                            Relevance • Freshness • Authority • Query Coverage • Similarity
-                        </div>
-                    </div>
-
-                    <!-- Level 7: Answer Engine & Results -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div id="node-answer_engine" class="pipeline-node bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-center cursor-pointer glow-border transition">
-                            <div class="flex items-center justify-center space-x-2 text-indigo-400 mb-1">
-                                <i data-lucide="sparkles" class="w-4 h-4"></i>
-                                <span class="text-xs font-bold uppercase">7. Answer Engine</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-mono">AI Overview • Facts • Sources</div>
-                        </div>
-
-                        <div id="node-cyber_results" class="pipeline-node bg-slate-950 border border-slate-700/80 rounded-xl p-3 text-center cursor-pointer glow-border transition">
-                            <div class="flex items-center justify-center space-x-2 text-emerald-400 mb-1">
-                                <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                                <span class="text-xs font-bold uppercase">8. Cyber Results UI</span>
-                            </div>
-                            <div class="text-[10px] text-slate-400 font-mono">Web • Media • Knowledge Box</div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- Right Column: Component Inspector & Live Console Execution -->
-        <section class="lg:col-span-5 flex flex-col space-y-4">
-            
-            <!-- Component Inspector Card -->
-            <div class="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl p-4 flex flex-col shadow-xl">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
-                    <div class="flex items-center space-x-2">
-                        <i data-lucide="file-code" class="w-4 h-4 text-cyan-400"></i>
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Component Inspector</h3>
-                    </div>
-                    <span id="inspector-node-id" class="text-[11px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800">
-                        query_interface
-                    </span>
-                </div>
-
-                <div id="inspector-content" class="space-y-3">
-                    <div>
-                        <h4 id="inspector-title" class="text-base font-bold text-slate-100">1. Query Interface</h4>
-                        <p id="inspector-desc" class="text-xs text-slate-400 mt-1">
-                            Accepts search queries from users, applies front-end normalization, and dispatches requests down the pipeline.
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
-                            <span class="text-slate-400 text-[10px] uppercase block font-semibold">Inputs:</span>
-                            <span id="inspector-inputs" class="font-mono text-cyan-300">Raw search string, Location, Locale</span>
-                        </div>
-                        <div class="bg-slate-950 p-2.5 rounded border border-slate-800">
-                            <span class="text-slate-400 text-[10px] uppercase block font-semibold">Outputs:</span>
-                            <span id="inspector-outputs" class="font-mono text-emerald-300">Normalized Query payload</span>
-                        </div>
-                    </div>
-                </div>
+                <h2 id="pageTitle">
+                    Dashboard
+                </h2>
             </div>
 
-            <!-- Live Execution Pipeline Output Logs -->
-            <div class="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-xl p-4 flex-1 flex flex-col shadow-xl min-h-[350px]">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
-                    <div class="flex items-center space-x-2">
-                        <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
-                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-200">Live Pipeline Step Execution Output</h3>
-                    </div>
-                    <span id="execution-step-badge" class="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800">
-                        STEP 0/8
-                    </span>
+            <div class="profile">
+
+                <span id="usernameDisplay"></span>
+
+                <div id="avatar" class="avatar">
                 </div>
 
-                <!-- Structured Dynamic Live Output Area -->
-                <div id="live-trace-output" class="flex-1 bg-slate-950 rounded-lg p-3 font-mono text-xs overflow-y-auto space-y-3 border border-slate-800/80">
-                    <div class="text-slate-500 italic">Click "Run Query Process" above to execute the pipeline trace and inspect real-time outputs...</div>
-                </div>
             </div>
 
-        </section>
+        </div>
 
-        <!-- Simulated Results Display Panel (Revealed at end of pipeline) -->
-        <section id="results-display-section" class="lg:col-span-12 bg-slate-900/90 backdrop-blur border border-cyan-500/40 rounded-xl p-6 shadow-2xl transition duration-500 hidden">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
-                <div class="flex items-center space-x-3">
-                    <div class="p-2 rounded bg-cyan-950 text-cyan-400 border border-cyan-700">
-                        <i data-lucide="sparkles" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-100">Cyber Search Results View</h3>
-                        <p id="results-meta-info" class="text-xs text-slate-400 font-mono">0 results found in 0.042 seconds</p>
-                    </div>
-                </div>
-                <button id="close-results-btn" class="p-2 text-slate-400 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 rounded-lg">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
-
-            <!-- Dynamic Final Output Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Main Search Web Results (8 cols) -->
-                <div class="lg:col-span-8 space-y-6" id="final-web-results">
-                    <!-- Dynamic Items Injected Here -->
-                </div>
-
-                <!-- Right Side Answer Engine Box & Knowledge Graph Card (4 cols) -->
-                <div class="lg:col-span-4 space-y-4" id="final-knowledge-box">
-                    <!-- Dynamic Knowledge Box Injected Here -->
-                </div>
-            </div>
-        </section>
+        <div id="content"></div>
 
     </main>
 
-    <script>
-        // Comprehensive Component Definitions for Inspector & Execution
-        const PIPELINE_NODES = {
-            'query_interface': {
-                name: '1. Query Interface',
-                category: 'User Entry',
-                inputs: 'Raw input string, Client IP, Geolocation context',
-                outputs: 'Sanitized Query Payload object',
-                desc: 'Captures raw query string from the user, cleans up whitespace, extracts client headers, and forwards to the Query Understander.'
-            },
-            'query_understander': {
-                name: '2. Query Understander',
-                category: 'NLU / Intent Analysis',
-                inputs: 'Sanitized Query string',
-                outputs: 'Query Intent, Named Entities, Corrected Spelling, Language tags',
-                desc: 'Uses natural language models to extract key entities, correct typos, infer user intent (informational, transactional, local), and expand synonyms.'
-            },
-            'web_discovery': {
-                name: 'Web Discovery',
-                category: 'Retrieval Source',
-                inputs: 'Parsed query terms & intent tags',
-                outputs: 'Candidate web document references & RSS items',
-                desc: 'Queries live web feeds, independent discovery indexes, and RSS pipelines for matching web documents.'
-            },
-            'knowledge_graph': {
-                name: 'Knowledge Engine',
-                category: 'Retrieval Source',
-                inputs: 'Extracted entity names',
-                outputs: 'Structured facts, triples, Wikipedia entity ID matches',
-                desc: 'Searches entity repositories like Wikidata and Wikipedia to source instant facts and knowledge panel data.'
-            },
-            'special_search': {
-                name: 'Special Search Verticals',
-                category: 'Retrieval Source',
-                inputs: 'Entity tags & visual keywords',
-                outputs: 'Media assets, image links, video clips, map coordinates',
-                desc: 'Routes query tokens to specialized media verticals including image vector indexes, video databases, and location maps.'
-            },
-            'crawler': {
-                name: '3. Crawler',
-                category: 'Ingestion Pipeline',
-                inputs: 'Discovered target URLs',
-                outputs: 'Raw HTML snapshots, page headers, media references',
-                desc: 'Fetches full page content, follows links, updates freshness timestamps, and records HTTP responses.'
-            },
-            'content_parser': {
-                name: '4. Content Parser',
-                category: 'Content Extraction',
-                inputs: 'Raw page content & HTML',
-                outputs: 'Clean body text, structured metadata, schema markup, images',
-                desc: 'Strips markup noise, extracts main body text, generates visual embeddings, and normalizes schema tags.'
-            },
-            'cyber_index': {
-                name: '5. Cyber Index',
-                category: 'Storage & Vector Index',
-                inputs: 'Parsed text tokens & dense embedding vectors',
-                outputs: 'Inverted index matches & dense vector candidate matches',
-                desc: 'Combines inverted index lexical lookup with high-dimensional vector similarity index for hybrid semantic retrieval.'
-            },
-            'cyber_ranking': {
-                name: '6. Cyber Ranking',
-                category: 'Multi-Factor Scorer',
-                inputs: 'Candidate document lists with initial match scores',
-                outputs: 'Re-ranked top documents with multi-factor weights',
-                desc: 'Evaluates candidates across authority, freshness, query coverage, semantic similarity, and deduplication rules.'
-            },
-            'answer_engine': {
-                name: '7. Answer Engine',
-                category: 'AI Synthesis',
-                inputs: 'Top 5 ranked document snippets & Knowledge Graph facts',
-                outputs: 'Synthesized direct AI overview, citations, follow-up queries',
-                desc: 'Generates concise summary answers using lightweight generative models with verifiable citations.'
-            },
-            'cyber_results': {
-                name: '8. Cyber Results UI',
-                category: 'Presentation Layer',
-                inputs: 'Final re-ranked links, Knowledge Card, AI Overview',
-                outputs: 'Rendered Cyber Search SERP',
-                desc: 'Assembles structured search results page displaying AI summary box, knowledge panels, and organic search cards.'
-            }
+</div>
+
+
+<script>
+"use strict";
+
+/* =========================================================
+   DATABASE & CONSTANTS
+========================================================= */
+
+const ADMIN_CODE = "CR-7X4Q-N9VM-2K8P-R6ZT-H3WF-91KD-V8QP";
+
+const USERS_KEY = "CYBER_REVISION_USERS";
+const PUBLIC_SETS_KEY = "CYBER_REVISION_PUBLIC_SETS";
+const CURRENT_USER_KEY = "CYBER_REVISION_CURRENT_USER";
+
+let currentUser = null;
+let accountData = null;
+
+let activeSet = null;
+let activeCard = 0;
+let cardFlipped = false;
+
+let quizQuestions = [];
+let quizPosition = 0;
+let quizScore = 0;
+
+/* Helper to escape strings safely for HTML rendering */
+function escapeHTML(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+/* Sample Starter Sets */
+const SAMPLE_SETS = [
+    {
+        id: "SET_SAMPLE_1",
+        name: "Computer Science Basics",
+        subject: "Other",
+        author: "System",
+        cards: [
+            { front: "What does CPU stand for?", back: "Central Processing Unit" },
+            { front: "What is the binary representation of 5?", back: "101" },
+            { front: "What is RAM?", back: "Random Access Memory - volatile memory used for active programs." }
+        ],
+        created: Date.now()
+    }
+];
+
+/* =========================================================
+   SAFE STORAGE
+========================================================= */
+
+function readJSON(key, fallback){
+    try{
+        const value = localStorage.getItem(key);
+        if(!value) return fallback;
+        const parsed = JSON.parse(value);
+        return parsed ?? fallback;
+    }catch(error){
+        console.warn("Storage error:", error);
+        return fallback;
+    }
+}
+
+function writeJSON(key, value){
+    try{
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    }catch(error){
+        console.error("Could not save:", error);
+        return false;
+    }
+}
+
+/* =========================================================
+   AUTH SCREENS
+========================================================= */
+
+function renderLogin(){
+    document.getElementById("authContent").innerHTML = `
+        <h1>ACCESS SYSTEM</h1>
+        <p class="muted">// ENTER YOUR USERNAME</p>
+
+        <label>Username</label>
+        <input id="loginUsername" autocomplete="username" placeholder="Username">
+
+        <label>Password</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Password">
+
+        <br><br>
+
+        <div class="actions">
+            <button class="btn primary" onclick="loginUser()">CONNECT</button>
+            <button class="btn" onclick="renderSignup()">CREATE ACCOUNT</button>
+        </div>
+
+        <div id="authError" class="error"></div>
+        <br>
+        <button class="btn purple" onclick="renderAdminLogin()">ADMIN ACCESS</button>
+    `;
+}
+
+function renderSignup(){
+    document.getElementById("authContent").innerHTML = `
+        <h1>CREATE ACCOUNT</h1>
+        <p class="muted">// CREATE YOUR REVISION PROFILE</p>
+
+        <label>Username</label>
+        <input id="signupUsername" autocomplete="username" placeholder="3-20 characters">
+
+        <label>Password</label>
+        <input id="signupPassword" type="password" autocomplete="new-password" placeholder="Password">
+
+        <label>Confirm Password</label>
+        <input id="signupConfirm" type="password" autocomplete="new-password" placeholder="Repeat password">
+
+        <br><br>
+
+        <div class="actions">
+            <button class="btn primary" onclick="createAccount()">CREATE</button>
+            <button class="btn" onclick="renderLogin()">BACK</button>
+        </div>
+
+        <div id="authError" class="error"></div>
+    `;
+}
+
+function renderAdminLogin(){
+    document.getElementById("authContent").innerHTML = `
+        <h1>ADMIN ACCESS</h1>
+        <p class="muted">// AUTHORIZED PERSONNEL ONLY</p>
+
+        <label>Admin Code</label>
+        <input id="adminCodeInput" type="password" placeholder="Admin code">
+
+        <br><br>
+
+        <div class="actions">
+            <button class="btn purple" onclick="adminLogin()">AUTHORIZE</button>
+            <button class="btn" onclick="renderLogin()">BACK</button>
+        </div>
+
+        <div id="authError" class="error"></div>
+    `;
+}
+
+/* =========================================================
+   USERS & ACCOUNTS
+========================================================= */
+
+function getUsers(){
+    return readJSON(USERS_KEY, []);
+}
+
+function saveUsers(users){
+    return writeJSON(USERS_KEY, users);
+}
+
+function createAccount(){
+    const username = document.getElementById("signupUsername").value.trim();
+    const password = document.getElementById("signupPassword").value;
+    const confirm = document.getElementById("signupConfirm").value;
+    const error = document.getElementById("authError");
+
+    if(!/^[A-Za-z0-9_]{3,20}$/.test(username)){
+        error.textContent = "Username must be 3-20 letters, numbers or underscores.";
+        return;
+    }
+
+    if(password.length < 4){
+        error.textContent = "Password must contain at least 4 characters.";
+        return;
+    }
+
+    if(password !== confirm){
+        error.textContent = "Passwords do not match.";
+        return;
+    }
+
+    const users = getUsers();
+    const exists = users.some(user => user.username.toLowerCase() === username.toLowerCase());
+
+    if(exists){
+        error.textContent = "That username already exists.";
+        return;
+    }
+
+    users.push({ username, password, admin: false });
+    saveUsers(users);
+
+    currentUser = { username, admin: false };
+    accountData = createBlankData();
+    saveAccount();
+    launchApp();
+}
+
+function loginUser(){
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const error = document.getElementById("authError");
+
+    const users = getUsers();
+    const found = users.find(user => user.username.toLowerCase() === username.toLowerCase());
+
+    if(!found || found.password !== password){
+        error.textContent = "Invalid username or password.";
+        return;
+    }
+
+    currentUser = { username: found.username, admin: !!found.admin };
+    loadAccount();
+    launchApp();
+}
+
+function adminLogin(){
+    const entered = document.getElementById("adminCodeInput").value.trim();
+    const error = document.getElementById("authError");
+
+    if(entered !== ADMIN_CODE){
+        error.textContent = "ACCESS DENIED.";
+        return;
+    }
+
+    const username = prompt("Enter the existing username to grant admin access:");
+    if(!username) return;
+
+    const users = getUsers();
+    const found = users.find(user => user.username.toLowerCase() === username.trim().toLowerCase());
+
+    if(!found){
+        error.textContent = "That username does not exist.";
+        return;
+    }
+
+    found.admin = true;
+    saveUsers(users);
+
+    currentUser = { username: found.username, admin: true };
+    loadAccount();
+    launchApp();
+}
+
+function createBlankData(){
+    return {
+        xp: 0,
+        streak: 1,
+        cardsStudied: 0,
+        questionsAnswered: 0,
+        correctAnswers: 0,
+        memory: {},
+        ownSets: [],
+        daily: {
+            date: new Date().toDateString(),
+            cards: 0,
+            questions: 0
+        }
+    };
+}
+
+function accountKey(){
+    return "CYBER_REVISION_ACCOUNT_" + currentUser.username.toLowerCase();
+}
+
+function loadAccount(){
+    accountData = readJSON(accountKey(), createBlankData());
+
+    if(!accountData.memory) accountData.memory = {};
+    if(!accountData.ownSets) accountData.ownSets = [];
+    if(!accountData.daily) accountData.daily = { date: new Date().toDateString(), cards: 0, questions: 0 };
+
+    if(accountData.daily.date !== new Date().toDateString()){
+        accountData.daily = {
+            date: new Date().toDateString(),
+            cards: 0,
+            questions: 0
         };
+    }
+    saveAccount();
+}
 
-        // Execution Steps Order for the Simulator
-        const PIPELINE_SEQUENCE = [
-            'query_interface',
-            'query_understander',
-            ['web_discovery', 'knowledge_graph', 'special_search'], // Parallel fan-out
-            'crawler',
-            'content_parser',
-            'cyber_index',
-            'cyber_ranking',
-            'answer_engine',
-            'cyber_results'
-        ];
+function saveAccount(){
+    writeJSON(accountKey(), accountData);
+    writeJSON(CURRENT_USER_KEY, currentUser);
+}
 
-        let currentStepIndex = -1;
-        let isRunning = false;
-        let isPaused = false;
-        let timerId = null;
+/* =========================================================
+   LAUNCH & INITIALIZATION
+========================================================= */
 
-        // Initialize Icons & UI Listeners
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            attachEventListeners();
-            selectNode('query_interface');
-        });
+function launchApp(){
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("app").style.display = "block";
 
-        function attachEventListeners() {
-            // Node click handlers for inspector
-            document.querySelectorAll('.pipeline-node').forEach(node => {
-                node.addEventListener('click', () => {
-                    const id = node.id.replace('node-', '');
-                    selectNode(id);
-                });
-            });
+    document.getElementById("usernameDisplay").textContent = currentUser.username;
+    document.getElementById("avatar").textContent = currentUser.username.charAt(0).toUpperCase();
 
-            // Button actions
-            document.getElementById('run-query-btn').addEventListener('click', startSimulation);
-            document.getElementById('reset-system-btn').addEventListener('click', resetSimulation);
-            document.getElementById('preset-queries').addEventListener('change', (e) => {
-                document.getElementById('query-input').value = e.target.value;
-            });
-            document.getElementById('close-results-btn').addEventListener('click', () => {
-                document.getElementById('results-display-section').classList.add('hidden');
-            });
+    document.getElementById("dateText").textContent = new Date().toLocaleDateString(undefined, {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+    });
 
-            document.getElementById('pause-btn').addEventListener('click', togglePause);
-            document.getElementById('step-btn').addEventListener('click', stepNext);
-        }
+    document.getElementById("nav-admin").classList.toggle("hidden", !currentUser.admin);
+    showPage("dashboard");
+}
 
-        function selectNode(nodeId) {
-            const data = PIPELINE_NODES[nodeId];
-            if (!data) return;
+/* Check auto login */
+window.addEventListener("DOMContentLoaded", () => {
+    const savedUser = readJSON(CURRENT_USER_KEY, null);
+    if (savedUser && savedUser.username) {
+        currentUser = savedUser;
+        loadAccount();
+        launchApp();
+    } else {
+        renderLogin();
+    }
+});
 
-            document.getElementById('inspector-node-id').textContent = nodeId;
-            document.getElementById('inspector-title').textContent = data.name;
-            document.getElementById('inspector-desc').textContent = data.desc;
-            document.getElementById('inspector-inputs').textContent = data.inputs;
-            document.getElementById('inspector-outputs').textContent = data.outputs;
-        }
+/* =========================================================
+   PAGE ROUTER
+========================================================= */
 
-        function startSimulation() {
-            resetSimulation();
-            const query = document.getElementById('query-input').value.trim();
-            if (!query) return;
+function showPage(name){
+    const titles = {
+        dashboard: "Dashboard",
+        sets: "Public Study Sets",
+        create: "Create Flashcards",
+        flashcards: "Flashcards",
+        quiz: "Question Battle",
+        tests: "Revision Tests",
+        games: "Games",
+        pvp: "Player vs Player",
+        progress: "Progress",
+        settings: "Settings",
+        admin: "Admin Panel"
+    };
 
-            isRunning = true;
-            isPaused = false;
-            currentStepIndex = 0;
-            
-            document.getElementById('pipeline-status-text').textContent = 'Status: Executing Query Pipeline...';
-            document.getElementById('results-display-section').classList.add('hidden');
+    document.getElementById("pageTitle").textContent = titles[name] || "CyberRevision";
 
-            executeNextStep();
-        }
+    document.querySelectorAll(".nav button").forEach(button => {
+        button.classList.remove("active");
+    });
 
-        function togglePause() {
-            isPaused = !isPaused;
-            const pauseBtn = document.getElementById('pause-btn');
-            if (isPaused) {
-                pauseBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4 text-emerald-400"></i>`;
-                document.getElementById('pipeline-status-text').textContent = 'Status: Paused';
-            } else {
-                pauseBtn.innerHTML = `<i data-lucide="pause" class="w-4 h-4"></i>`;
-                document.getElementById('pipeline-status-text').textContent = 'Status: Executing...';
-                executeNextStep();
-            }
-            lucide.createIcons();
-        }
+    const nav = document.getElementById("nav-" + name);
+    if(nav) nav.classList.add("active");
 
-        function stepNext() {
-            if (!isRunning) {
-                startSimulation();
-            } else {
-                isPaused = true;
-                executeStepIndex(currentStepIndex);
-                currentStepIndex++;
-            }
-        }
+    const pages = {
+        dashboard: renderDashboard,
+        sets: renderSets,
+        create: renderCreate,
+        flashcards: renderFlashcards,
+        quiz: renderQuizHome,
+        tests: renderTests,
+        games: renderGames,
+        pvp: renderPVP,
+        progress: renderProgress,
+        settings: renderSettings,
+        admin: renderAdmin
+    };
 
-        function executeNextStep() {
-            if (!isRunning || isPaused) return;
+    if(pages[name]) pages[name]();
+}
 
-            if (currentStepIndex >= PIPELINE_SEQUENCE.length) {
-                finishSimulation();
-                return;
-            }
+/* =========================================================
+   DASHBOARD
+========================================================= */
 
-            executeStepIndex(currentStepIndex);
-            currentStepIndex++;
+function renderDashboard(){
+    const level = Math.floor(accountData.xp / 100) + 1;
+    const accuracy = accountData.questionsAnswered
+        ? Math.round(accountData.correctAnswers / accountData.questionsAnswered * 100)
+        : 0;
 
-            const speed = parseInt(document.getElementById('speed-select').value);
-            timerId = setTimeout(executeNextStep, speed);
-        }
+    const cardProgress = Math.min(accountData.daily.cards * 10, 100);
+    const questionProgress = Math.min(accountData.daily.questions * 10, 100);
 
-        function executeStepIndex(index) {
-            const stepTarget = PIPELINE_SEQUENCE[index];
-            const query = document.getElementById('query-input').value;
+    document.getElementById("content").innerHTML = `
+        <div class="hero">
+            <span class="badge">LEVEL ${level}</span>
+            <h1>Welcome back, ${escapeHTML(currentUser.username)}.</h1>
+            <p class="muted">// REVISION NETWORK ONLINE</p>
 
-            // Highlight Active Node(s)
-            document.querySelectorAll('.pipeline-node').forEach(el => el.classList.remove('node-active'));
+            <div class="stat">${accountData.xp} XP</div>
+            <div class="progress"><i style="width:${accountData.xp % 100}%"></i></div>
 
-            let nodesToHighlight = Array.isArray(stepTarget) ? stepTarget : [stepTarget];
-            nodesToHighlight.forEach(id => {
-                const el = document.getElementById(`node-${id}`);
-                if (el) {
-                    el.classList.add('node-active');
-                    el.classList.add('node-completed');
-                }
-            });
+            <br>
+            <div class="actions">
+                <button class="btn primary" onclick="showPage('create')">+ CREATE FLASHCARDS</button>
+                <button class="btn purple" onclick="showPage('games')">PLAY GAMES</button>
+            </div>
+        </div>
 
-            // Update Badge & Inspector for first active
-            selectNode(nodesToHighlight[0]);
-            document.getElementById('execution-step-badge').textContent = `STEP ${index + 1}/${PIPELINE_SEQUENCE.length}`;
+        <br>
+        <div class="grid g4">
+            <div class="panel">
+                <div class="statlabel">XP</div>
+                <div class="stat">${accountData.xp}</div>
+            </div>
+            <div class="panel">
+                <div class="statlabel">STREAK</div>
+                <div class="stat">${accountData.streak} Days</div>
+            </div>
+            <div class="panel">
+                <div class="statlabel">CARDS STUDIED</div>
+                <div class="stat">${accountData.cardsStudied}</div>
+            </div>
+            <div class="panel">
+                <div class="statlabel">ACCURACY</div>
+                <div class="stat">${accuracy}%</div>
+            </div>
+        </div>
 
-            // Generate Simulated Output Log
-            const outputLog = generateSimulatedLog(stepTarget, query);
-            appendLogOutput(outputLog);
-        }
+        <br>
+        <div class="grid g2">
+            <div class="panel">
+                <h3>DAILY QUEST</h3>
+                <p>Flashcards: <b>${Math.min(accountData.daily.cards,10)}/10</b></p>
+                <div class="progress"><i style="width:${cardProgress}%"></i></div>
+                <br>
+                <p>Questions: <b>${Math.min(accountData.daily.questions,10)}/10</b></p>
+                <div class="progress"><i style="width:${questionProgress}%"></i></div>
+            </div>
 
-        function generateSimulatedLog(target, query) {
-            const time = new Date().toLocaleTimeString();
+            <div class="panel">
+                <h3>MEMORY CORE</h3>
+                <p class="muted">Your personal flashcard memory status.</p>
+                <div class="stat">${Object.keys(accountData.memory).length}</div>
+                <div class="statlabel">TRACKED CARDS</div>
+            </div>
+        </div>
+    `;
+}
 
-            if (Array.isArray(target)) {
-                return `
-                <div class="border-l-2 border-purple-500 pl-2 py-1 bg-purple-950/20 rounded">
-                    <div class="text-purple-400 font-bold">[${time}] PARALLEL DISCOVERY FAN-OUT</div>
-                    <div class="text-slate-300">Searching Web, Knowledge Graph, and Special Verticals...</div>
-                    <div class="text-[10px] text-slate-400">Found 1,420 raw Web candidates, 1 Wikidata Entity, 12 Media assets</div>
-                </div>`;
-            }
+/* =========================================================
+   PUBLIC SETS
+========================================================= */
 
-            switch (target) {
-                case 'query_interface':
-                    return `
-                    <div class="border-l-2 border-cyan-500 pl-2 py-1 bg-cyan-950/20 rounded">
-                        <div class="text-cyan-400 font-bold">[${time}] QUERY INTERFACE CAPTURED</div>
-                        <div class="text-slate-300">Raw Query: "<span class="text-cyan-300">${query}</span>"</div>
-                        <div class="text-[10px] text-slate-400">Client IP: 192.0.2.42 • Language: en-US • Locale: Global</div>
-                    </div>`;
+function getPublicSets(){
+    return readJSON(PUBLIC_SETS_KEY, SAMPLE_SETS);
+}
 
-                case 'query_understander':
-                    const intent = query.includes('coffee') ? 'LOCAL_NAVIGATIONAL' : (query.includes('founded') ? 'FACT_LOOKUP' : 'INFORMATIONAL');
-                    return `
-                    <div class="border-l-2 border-purple-500 pl-2 py-1 bg-purple-950/20 rounded">
-                        <div class="text-purple-400 font-bold">[${time}] QUERY UNDERSTANDER PARSED</div>
-                        <div class="text-slate-300">Inferred Intent: <span class="text-emerald-400 font-bold">${intent}</span></div>
-                        <div class="text-[10px] text-slate-400">Spelling: Clean • Tokens: [${query.split(' ').map(t=>`"${t}"`).join(', ')}]</div>
-                        <div class="text-[10px] text-purple-300">Extracted Entities: ${extractEntitiesSimulated(query)}</div>
-                    </div>`;
+function savePublicSets(sets){
+    writeJSON(PUBLIC_SETS_KEY, sets);
+}
 
-                case 'crawler':
-                    return `
-                    <div class="border-l-2 border-amber-500 pl-2 py-1 bg-amber-950/20 rounded">
-                        <div class="text-amber-400 font-bold">[${time}] CRAWLER DISPATCHED</div>
-                        <div class="text-slate-300">Fetched 15 primary domain snapshots. HTTP 200 OK.</div>
-                        <div class="text-[10px] text-slate-400">Bandwidth: 4.2MB • Metadata extracted: OpenGraph, JSON-LD</div>
-                    </div>`;
+function getAllSets(){
+    const map = new Map();
+    getPublicSets().forEach(set => map.set(set.id, set));
+    accountData.ownSets.forEach(set => map.set(set.id, set));
+    return [...map.values()];
+}
 
-                case 'content_parser':
-                    return `
-                    <div class="border-l-2 border-teal-500 pl-2 py-1 bg-teal-950/20 rounded">
-                        <div class="text-teal-400 font-bold">[${time}] CONTENT PARSER GENERATED VECTORS</div>
-                        <div class="text-slate-300">Cleaned HTML body text • Generated 768-dim embeddings</div>
-                        <div class="text-[10px] text-slate-400">Parsed main headings, author citations, and schema objects</div>
-                    </div>`;
+function renderSets(){
+    const sets = getAllSets();
 
-                case 'cyber_index':
-                    return `
-                    <div class="border-l-2 border-cyan-400 pl-2 py-1 bg-cyan-950/30 rounded">
-                        <div class="text-cyan-300 font-bold">[${time}] CYBER INDEX HYBRID RETRIEVAL</div>
-                        <div class="text-slate-300">Lexical Match (BM25): 42 docs • Dense Vector Sim (Cosine): 0.892</div>
-                        <div class="text-[10px] text-cyan-200/80">Candidates merged via Reciprocal Rank Fusion (RRF)</div>
-                    </div>`;
+    document.getElementById("content").innerHTML = `
+        <div class="hero">
+            <h2>PUBLIC STUDY NETWORK</h2>
+            <p class="muted">Everyone can access published flashcard sets.</p>
+            <button class="btn primary" onclick="showPage('create')">+ CREATE SET</button>
+        </div>
 
-                case 'cyber_ranking':
-                    return `
-                    <div class="border-l-2 border-pink-500 pl-2 py-1 bg-pink-950/20 rounded">
-                        <div class="text-pink-400 font-bold">[${time}] CYBER RANKING EXECUTED</div>
-                        <div class="text-slate-300">Scoring breakdown: Auth: 0.94 | Freshness: 0.88 | Relevance: 0.96</div>
-                        <div class="text-[10px] text-slate-400">Deduplicated 4 mirror sites • Top 5 documents selected</div>
-                    </div>`;
-
-                case 'answer_engine':
-                    return `
-                    <div class="border-l-2 border-indigo-500 pl-2 py-1 bg-indigo-950/20 rounded">
-                        <div class="text-indigo-400 font-bold">[${time}] ANSWER ENGINE SYNTHESIZED</div>
-                        <div class="text-slate-300">AI Overview compiled from top 3 verified source snippets.</div>
-                        <div class="text-[10px] text-slate-400">Grounding Confidence: 98.4% • Citations attached</div>
-                    </div>`;
-
-                case 'cyber_results':
-                    return `
-                    <div class="border-l-2 border-emerald-500 pl-2 py-1 bg-emerald-950/20 rounded">
-                        <div class="text-emerald-400 font-bold">[${time}] CYBER RESULTS SERP RENDERED</div>
-                        <div class="text-slate-300">Final results view generated. Displaying AI overview & organic cards.</div>
-                    </div>`;
-
-                default:
-                    return '';
-            }
-        }
-
-        function extractEntitiesSimulated(query) {
-            if (query.toLowerCase().includes('quantum')) return '["Quantum Computing", "Cryptography", "RSA Encryption"]';
-            if (query.toLowerCase().includes('london')) return '["London", "Coffee Shops", "United Kingdom"]';
-            if (query.toLowerCase().includes('founder')) return '["Cyber Search", "Cybernetics Labs"]';
-            return '["General Concepts"]';
-        }
-
-        function appendLogOutput(html) {
-            const logContainer = document.getElementById('live-trace-output');
-            logContainer.innerHTML += html;
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
-
-        function finishSimulation() {
-            isRunning = false;
-            document.getElementById('pipeline-status-text').textContent = 'Status: Query Execution Complete ✓';
-            
-            const query = document.getElementById('query-input').value;
-            renderFinalSERP(query);
-            document.getElementById('results-display-section').classList.remove('hidden');
-            document.getElementById('results-display-section').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function renderFinalSERP(query) {
-            const webContainer = document.getElementById('final-web-results');
-            const knowledgeContainer = document.getElementById('final-knowledge-box');
-
-            document.getElementById('results-meta-info').textContent = `About 42,100 results (0.038 seconds) for "${query}"`;
-
-            // Dynamic content tailored to preset queries
-            if (query.toLowerCase().includes('quantum')) {
-                webContainer.innerHTML = `
-                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2">
-                        <div class="flex items-center space-x-2 text-xs text-slate-400">
-                            <span class="text-cyan-400 font-mono">https://cybersec-journal.org/quantum-encryption</span>
-                            <span>•</span>
-                            <span>Freshness: 2 hours ago</span>
-                        </div>
-                        <a href="#" class="text-base font-bold text-cyan-300 hover:underline block">How Shor's Algorithm Impacts Modern RSA & Cyber Encryption</a>
-                        <p class="text-xs text-slate-300">Quantum computers utilize qubits to execute parallel state factorizations. Quantum algorithms could potentially break standard 2048-bit RSA encryption, driving the urgency for Post-Quantum Cryptography (PQC).</p>
+        <br>
+        <div class="grid g3">
+            ${sets.length ? sets.map(set => `
+                <div class="panel set">
+                    <span class="badge">${escapeHTML(set.subject)}</span>
+                    <h3>${escapeHTML(set.name)}</h3>
+                    <div class="meta">${set.cards.length} cards</div>
+                    <div class="meta">Created by ${escapeHTML(set.author)}</div>
+                    <br>
+                    <div class="actions">
+                        <button class="btn primary" onclick="startFlashcards('${set.id}')">STUDY</button>
+                        <button class="btn purple" onclick="startQuiz('${set.id}')">QUIZ</button>
                     </div>
+                </div>
+            `).join('') : '<p class="muted">No study sets created yet.</p>'}
+        </div>
+    `;
+}
 
-                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2">
-                        <div class="flex items-center space-x-2 text-xs text-slate-400">
-                            <span class="text-cyan-400 font-mono">https://quantum-tech.io/pqc-standards-2026</span>
-                        </div>
-                        <a href="#" class="text-base font-bold text-cyan-300 hover:underline block">Post-Quantum Cryptography: Lattice-Based Defense Systems</a>
-                        <p class="text-xs text-slate-300">Overview of NIST lattice-based encryption standards designed to resist quantum decryption attacks in enterprise network infrastructure.</p>
-                    </div>
-                `;
+/* =========================================================
+   CREATE FLASHCARDS
+========================================================= */
 
-                knowledgeContainer.innerHTML = `
-                    <div class="bg-slate-950 p-4 rounded-xl border border-purple-500/40 space-y-3">
-                        <div class="flex items-center space-x-2 text-purple-400">
-                            <i data-lucide="sparkles" class="w-4 h-4"></i>
-                            <h4 class="text-xs font-bold uppercase tracking-wider">Cyber AI Overview</h4>
-                        </div>
-                        <p class="text-xs text-slate-200 leading-relaxed">
-                            Quantum computing poses a structural challenge to traditional public-key cryptography (like RSA and ECC) by reducing the time needed to factor large prime numbers from millennia to hours. Security frameworks are transitioning toward post-quantum lattice cryptography to maintain data confidentiality.
-                        </p>
-                        <div class="text-[10px] text-slate-400 border-t border-slate-800 pt-2">
-                            Sources: CyberSec Journal, NIST PQC Standards, Quantum Tech
-                        </div>
-                    </div>
-                `;
-            } else if (query.toLowerCase().includes('london')) {
-                webContainer.innerHTML = `
-                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2">
-                        <div class="flex items-center space-x-2 text-xs text-slate-400">
-                            <span class="text-cyan-400 font-mono">https://london-roasters.co.uk/top-cafes</span>
-                        </div>
-                        <a href="#" class="text-base font-bold text-cyan-300 hover:underline block">Top Specialty Artisanal Coffee Roasters in Central London</a>
-                        <p class="text-xs text-slate-300">Curated map and review guide to specialty single-origin espresso bars, cold brew labs, and roasteries across Soho, Covent Garden, and Shoreditch.</p>
-                    </div>
-                `;
+let cardNumber = 0;
 
-                knowledgeContainer.innerHTML = `
-                    <div class="bg-slate-950 p-4 rounded-xl border border-emerald-500/40 space-y-3">
-                        <div class="flex items-center space-x-2 text-emerald-400">
-                            <i data-lucide="map-pin" class="w-4 h-4"></i>
-                            <h4 class="text-xs font-bold uppercase tracking-wider">Local Knowledge Card</h4>
-                        </div>
-                        <div class="text-xs text-slate-200 font-bold">Top Rated in London, UK</div>
-                        <ul class="text-xs text-slate-300 space-y-1 font-mono">
-                            <li>☕ Prufrock Coffee (4.8 ★)</li>
-                            <li>☕ Monmouth Coffee Co (4.7 ★)</li>
-                            <li>☕ Workshop Coffee (4.6 ★)</li>
-                        </ul>
-                    </div>
-                `;
-            } else {
-                webContainer.innerHTML = `
-                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2">
-                        <div class="flex items-center space-x-2 text-xs text-slate-400">
-                            <span class="text-cyan-400 font-mono">https://cybersearch.ai/about</span>
-                        </div>
-                        <a href="#" class="text-base font-bold text-cyan-300 hover:underline block">Cyber Search Architecture & Neural Indexing Engine</a>
-                        <p class="text-xs text-slate-300">Cyber Search is a hybrid search engine combining dual inverted vector indexing, real-time crawler pipelines, and multi-factor ranking algorithms.</p>
-                    </div>
-                `;
+function renderCreate(){
+    cardNumber = 0;
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <h2>CREATE PUBLIC STUDY SET</h2>
+            <p class="muted">Create flashcards manually. Published sets are visible in the library.</p>
 
-                knowledgeContainer.innerHTML = `
-                    <div class="bg-slate-950 p-4 rounded-xl border border-cyan-500/40 space-y-3">
-                        <div class="flex items-center space-x-2 text-cyan-400">
-                            <i data-lucide="info" class="w-4 h-4"></i>
-                            <h4 class="text-xs font-bold uppercase tracking-wider">Entity Card</h4>
-                        </div>
-                        <div class="text-xs text-slate-100 font-bold">Cyber Search Engine</div>
-                        <p class="text-xs text-slate-400">Next-generation real-time web discovery platform utilizing hybrid lexical-semantic vectors.</p>
-                    </div>
-                `;
-            }
+            <div class="grid g2">
+                <div>
+                    <label>Set Name</label>
+                    <input id="newSetName" placeholder="e.g. Physics Forces">
+                </div>
+                <div>
+                    <label>Subject</label>
+                    <select id="newSetSubject">
+                        <option>Maths</option>
+                        <option>English</option>
+                        <option>Biology</option>
+                        <option>Chemistry</option>
+                        <option>Physics</option>
+                        <option>History</option>
+                        <option>Geography</option>
+                        <option>French</option>
+                        <option>Latin</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
 
-            lucide.createIcons();
+            <br>
+            <div id="cardEditor"></div>
+
+            <div class="actions">
+                <button class="btn" onclick="addFlashcardInput()">+ ADD FLASHCARD</button>
+                <button class="btn primary" onclick="publishSet()">PUBLISH SET</button>
+            </div>
+        </div>
+    `;
+
+    addFlashcardInput();
+    addFlashcardInput();
+}
+
+function addFlashcardInput(){
+    cardNumber++;
+    const wrapper = document.createElement("div");
+    wrapper.className = "card-row";
+    wrapper.innerHTML = `
+        <div class="row-head">
+            <span class="badge">CARD ${cardNumber}</span>
+            <button class="btn red" onclick="this.parentElement.parentElement.remove()">DELETE</button>
+        </div>
+        <label>QUESTION / FRONT</label>
+        <input class="flash-front" placeholder="What is...">
+        <label>ANSWER / BACK</label>
+        <textarea class="flash-back" placeholder="The answer is..."></textarea>
+    `;
+    document.getElementById("cardEditor").appendChild(wrapper);
+}
+
+function publishSet(){
+    const name = document.getElementById("newSetName").value.trim();
+    const subject = document.getElementById("newSetSubject").value;
+    const fronts = document.querySelectorAll(".flash-front");
+    const backs = document.querySelectorAll(".flash-back");
+
+    const cards = [];
+    for(let i = 0; i < fronts.length; i++){
+        const front = fronts[i].value.trim();
+        const back = backs[i].value.trim();
+        if(front && back){
+            cards.push({ front, back });
         }
+    }
 
-        function resetSimulation() {
-            if (timerId) clearTimeout(timerId);
-            isRunning = false;
-            isPaused = false;
-            currentStepIndex = -1;
+    if(!name){ alert("Enter a set name."); return; }
+    if(cards.length === 0){ alert("Create at least one complete flashcard."); return; }
 
-            document.querySelectorAll('.pipeline-node').forEach(el => {
-                el.classList.remove('node-active', 'node-completed');
-            });
+    const set = {
+        id: "SET_" + Date.now() + "_" + Math.random().toString(36).slice(2),
+        name: name,
+        subject: subject,
+        author: currentUser.username,
+        authorKey: currentUser.username.toLowerCase(),
+        cards: cards,
+        created: Date.now()
+    };
 
-            document.getElementById('live-trace-output').innerHTML = `
-                <div class="text-slate-500 italic">Click "Run Query Process" above to execute the pipeline trace and inspect real-time outputs...</div>
-            `;
-            document.getElementById('execution-step-badge').textContent = 'STEP 0/8';
-            document.getElementById('pipeline-status-text').textContent = 'Status: Idle • Ready for query input';
-            document.getElementById('results-display-section').classList.add('hidden');
-        }
-    </script>
+    accountData.ownSets.unshift(set);
+    accountData.xp += cards.length * 5;
+
+    const publicSets = getPublicSets();
+    publicSets.unshift(set);
+
+    savePublicSets(publicSets);
+    saveAccount();
+
+    alert("Study set published successfully.");
+    showPage("sets");
+}
+
+/* =========================================================
+   FLASHCARD PLAYER
+========================================================= */
+
+function renderFlashcards(){
+    const sets = getAllSets();
+    if(!activeSet && sets.length > 0) activeSet = sets[0];
+
+    if(!activeSet){
+        document.getElementById("content").innerHTML = `
+            <div class="panel">
+                <h3>No Flashcards Available</h3>
+                <p class="muted">Create or select a study set to start studying.</p>
+                <button class="btn primary" onclick="showPage('create')">+ CREATE SET</button>
+            </div>
+        `;
+        return;
+    }
+
+    const card = activeSet.cards[activeCard] || { front: "End of Set", back: "End of Set" };
+
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <div class="row-head">
+                <div>
+                    <h2>${escapeHTML(activeSet.name)}</h2>
+                    <span class="badge">${escapeHTML(activeSet.subject)}</span>
+                </div>
+                <div>
+                    <select onchange="changeActiveSet(this.value)">
+                        ${sets.map(s => `<option value="${s.id}" ${s.id===activeSet.id?'selected':''}>${escapeHTML(s.name)}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+
+            <br>
+            <div class="flashcard" onclick="flipCard()">
+                <div class="flash-label">${cardFlipped ? "ANSWER / BACK" : "QUESTION / FRONT (CLICK TO FLIP)"}</div>
+                <div class="flash-text">${escapeHTML(cardFlipped ? card.back : card.front)}</div>
+            </div>
+
+            <br>
+            <div class="row-head">
+                <button class="btn" onclick="prevCard()">PREVIOUS</button>
+                <span class="muted">Card ${activeCard + 1} of ${activeSet.cards.length}</span>
+                <button class="btn primary" onclick="nextCard()">NEXT</button>
+            </div>
+        </div>
+    `;
+}
+
+function changeActiveSet(setId){
+    const sets = getAllSets();
+    activeSet = sets.find(s => s.id === setId);
+    activeCard = 0;
+    cardFlipped = false;
+    renderFlashcards();
+}
+
+function flipCard(){
+    cardFlipped = !cardFlipped;
+    renderFlashcards();
+}
+
+function prevCard(){
+    if(activeCard > 0) activeCard--;
+    cardFlipped = false;
+    renderFlashcards();
+}
+
+function nextCard(){
+    if(activeCard < activeSet.cards.length - 1){
+        activeCard++;
+    } else {
+        activeCard = 0;
+    }
+    cardFlipped = false;
+    
+    // Rewards
+    accountData.cardsStudied++;
+    accountData.daily.cards++;
+    accountData.xp += 2;
+    saveAccount();
+
+    renderFlashcards();
+}
+
+/* =========================================================
+   QUIZ / BATTLE
+========================================================= */
+
+function renderQuizHome(){
+    const sets = getAllSets();
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <h2>QUESTION BATTLE</h2>
+            <p class="muted">Select a set to test your knowledge.</p>
+
+            <div class="grid g3">
+                ${sets.map(set => `
+                    <div class="panel set">
+                        <h3>${escapeHTML(set.name)}</h3>
+                        <p class="muted">${set.cards.length} Questions</p>
+                        <button class="btn purple" onclick="startQuiz('${set.id}')">START BATTLE</button>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function startQuiz(setId){
+    const sets = getAllSets();
+    const set = sets.find(s => s.id === setId);
+    if(!set || set.cards.length === 0){
+        alert("Set has no questions!");
+        return;
+    }
+
+    quizQuestions = set.cards.map(c => {
+        // Generate dummy answers from other cards
+        const otherBacks = set.cards.filter(x => x.back !== c.back).map(x => x.back);
+        const distractors = otherBacks.sort(() => 0.5 - Math.random()).slice(0, 3);
+        const choices = [...distractors, c.back].sort(() => 0.5 - Math.random());
+        return {
+            question: c.front,
+            correct: c.back,
+            choices: choices
+        };
+    });
+
+    quizPosition = 0;
+    quizScore = 0;
+    renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+    if(quizPosition >= quizQuestions.length){
+        renderQuizResults();
+        return;
+    }
+
+    const q = quizQuestions[quizPosition];
+
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <div class="row-head">
+                <span class="badge">QUESTION ${quizPosition + 1}/${quizQuestions.length}</span>
+                <span class="statlabel">SCORE: ${quizScore}</span>
+            </div>
+
+            <div class="question">${escapeHTML(q.question)}</div>
+
+            <div class="answers">
+                ${q.choices.map(choice => `
+                    <button class="answer" onclick="submitAnswer(this, '${escapeHTML(choice)}')">
+                        ${escapeHTML(choice)}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function submitAnswer(btn, choice){
+    const q = quizQuestions[quizPosition];
+    const correct = choice === q.correct;
+
+    accountData.questionsAnswered++;
+    accountData.daily.questions++;
+
+    if(correct){
+        btn.classList.add("correct");
+        quizScore += 10;
+        accountData.correctAnswers++;
+        accountData.xp += 10;
+    } else {
+        btn.classList.add("wrong");
+    }
+
+    saveAccount();
+
+    setTimeout(() => {
+        quizPosition++;
+        renderQuizQuestion();
+    }, 1000);
+}
+
+function renderQuizResults(){
+    document.getElementById("content").innerHTML = `
+        <div class="panel text-center">
+            <h2>BATTLE COMPLETE!</h2>
+            <div class="stat">${quizScore} POINTS</div>
+            <p class="muted">XP Earned: ${quizScore}</p>
+            <br>
+            <button class="btn primary" onclick="showPage('quiz')">PLAY AGAIN</button>
+        </div>
+    `;
+}
+
+/* =========================================================
+   OTHER PAGES (PLACEHOLDERS / EXTENSIONS)
+========================================================= */
+
+function renderTests(){
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <h2>REVISION TESTS</h2>
+            <p class="muted">Timed comprehensive exams across all your saved topics.</p>
+            <button class="btn primary" onclick="alert('Test Mode generated based on your memory core!')">GENERATE PRACTICE TEST</button>
+        </div>
+    `;
+}
+
+function renderGames(){
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <h2>CYBER ARCADE</h2>
+            <p class="muted">Gamified revision modules.</p>
+            <div class="grid g2">
+                <div class="panel">
+                    <h3>MEMORY MATCH</h3>
+                    <p>Match concepts with answers under time pressure.</p>
+                    <button class="btn purple" onclick="alert('Launching Arcade Mode...')">LAUNCH</button>
+                </div>
+                <div class="panel">
+                    <h3>CYBER TYPER</h3>
+                    <p>Type the answers rapidly to defend your core.</p>
+                    <button class="btn purple" onclick="alert('Launching Arcade Mode...')">LAUNCH</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderPVP(){
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <h2>PLAYER VS PLAYER</h2>
+            <p class="muted">Challenge other revision operatives in real time.</p>
+            <div class="room">MATCHMAKING ONLINE</div>
+            <br>
+            <button class="btn primary" onclick="alert('Searching for opponents...')">FIND MATCH</button>
+        </div>
+    `;
+}
+
+function renderProgress(){
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <h2>ANALYTICS & PROGRESS</h2>
+            <div class="grid g3">
+                <div class="panel"><div class="statlabel">TOTAL XP</div><div class="stat">${accountData.xp}</div></div>
+                <div class="panel"><div class="statlabel">CARDS</div><div class="stat">${accountData.cardsStudied}</div></div>
+                <div class="panel"><div class="statlabel">CORRECT</div><div class="stat">${accountData.correctAnswers}</div></div>
+            </div>
+        </div>
+    `;
+}
+
+function renderSettings(){
+    document.getElementById("content").innerHTML = `
+        <div class="panel">
+            <h2>SYSTEM SETTINGS</h2>
+            <br>
+            <button class="btn red" onclick="logout()">LOGOUT</button>
+        </div>
+    `;
+}
+
+function renderAdmin(){
+    if(!currentUser || !currentUser.admin){
+        showPage('dashboard');
+        return;
+    }
+    const users = getUsers();
+    document.getElementById("content").innerHTML = `
+        <div class="panel admin">
+            <h2>ADMIN CORE</h2>
+            <div class="admin-bar">Access Granted: Full System Privileges</div>
+            <br>
+            <h3>Registered Users (${users.length})</h3>
+            <ul>
+                ${users.map(u => `<li><b>${escapeHTML(u.username)}</b>${u.admin ? '[ADMIN]' : ''}</li>`).join('')}
+            </ul>
+        </div>
+    `;
+}
+
+function logout(){
+    currentUser = null;
+    accountData = null;
+    localStorage.removeItem(CURRENT_USER_KEY);
+    document.getElementById("app").style.display = "none";
+    document.getElementById("auth").style.display = "flex";
+    renderLogin();
+}
+</script>
 </body>
 </html>
